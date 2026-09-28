@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and build output
+node_modules/
+.next/
+dist/
+build/
+coverage/
+*.log
+
+# Editors and local tooling
+.idea/
+.vscode/
+.codex/
+
+# Phase 00 official Agora sample. Keep local and outside product history.
+agora-baseline/
