@@ -8,7 +8,7 @@
 
 **Version:** `0.1.0`
 
-**Status:** implementation in progress; review required
+**Status:** pull request open; awaiting user review
 
 ## Approved checklist
 
@@ -24,8 +24,8 @@
 - [x] Verify local Markdown links and handbook consistency.
 - [x] Scan the tracked product scope for accidental secrets.
 - [x] Run Git whitespace and tracked-file checks.
-- [ ] Commit and push the phase branch.
-- [ ] Open a pull request with verification evidence.
+- [x] Commit and push the phase branch.
+- [x] Open a pull request with verification evidence.
 - [ ] Receive user review and requested changes.
 - [ ] Merge only after explicit user approval.
 
