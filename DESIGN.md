@@ -86,7 +86,7 @@ The result view should reveal information in this order:
 4. questions or moments the user struggled with;
 5. improved replies;
 6. vocabulary and phrases from the meeting;
-7. save, export, and delete controls allowed by the active retention policy.
+7. save and delete controls allowed by the active retention policy.
 
 ## Side-panel information architecture
 
@@ -235,3 +235,7 @@ Before a UI phase is complete, verify:
 ## Long-term design direction
 
 Future experiences may include reusable context libraries, learning progress, speaking practice, multiple language pairs, team knowledge, and native desktop capture. These should reuse the same trust and control principles without forcing enterprise or learning-dashboard complexity into the MVP side panel.
+
+## MVP capture controls
+
+Microphone mute disables microphone samples sent to Agora; it does not mute the meeting application. Pause disables both tab and microphone samples sent to Agora while preserving meeting playback. The browser capture handle stays open to allow resume; the UI must disclose that the provider session remains connected and may incur charges. Stop releases all local capture tracks immediately and requests remote cleanup. No captured audio is buffered for later upload while paused.

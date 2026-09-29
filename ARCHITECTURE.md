@@ -18,7 +18,7 @@ Validated capabilities:
 
 - a browser client can join Agora RTC and publish microphone audio;
 - an Agora Conversational AI agent can join the same channel;
-- RTM can deliver transcript, state, metrics, and error events;
+- RTM delivered live transcripts; state, metric, and error delivery are SDK contracts not separately evidenced by the Phase 00 record;
 - the managed STT -> LLM -> TTS pipeline works without separate vendor keys;
 - server routes can mint combined RTC and RTM-capable tokens;
 - agent start and stop can be controlled by a server runtime;

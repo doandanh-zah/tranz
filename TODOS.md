@@ -53,3 +53,18 @@
 ## Review gate
 
 After the Phase 01 pull request is open, stop. Address review feedback on the same branch, but do not merge or begin Phase 02 until the user explicitly approves it.
+
+## End-to-end MVP authorization — 2026-09-29
+
+The user approved implementation through Phase 08 and will review the integrated MVP afterward. Phase 01 review findings may be corrected as part of this work. No merge is authorized.
+
+- [ ] Phase 02: typed extension/backend foundation, contracts, authenticated local setup, CI and design system.
+- [ ] Phase 03: tab + microphone capture, playback preservation, mute/pause/resume/stop and recovery.
+- [ ] Phase 04: scoped Agora tokens, silent client transport, transcripts, readiness, renewal and cleanup.
+- [ ] Phase 05: revision-linked translation with bounded requests and recoverable failure.
+- [ ] Phase 06: versioned context, grounded suggestions, catch-up and Vietnamese reply composer.
+- [ ] Phase 07: idempotent finalization, summary/learning, opt-in retention and deletion.
+- [ ] Phase 08: privacy, permissions, rate/cost bounds, tests, build and runtime evidence, handoff.
+- [ ] User review of integrated MVP; merge remains pending explicit approval.
+
+Each phase branch updates its evidence and limitations. Production deployment, store publication, real-user beta recruitment and P2 features remain out of scope.

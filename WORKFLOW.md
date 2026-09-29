@@ -81,7 +81,7 @@ The default merge strategy is squash merge after approval. Do not merge merely b
 
 A phase is ready for review only when:
 
-- every current `TODOS.md` item is complete or explicitly reported as blocked;
+- every implementation and verification item in `TODOS.md` is complete or explicitly reported as blocked; review and merge are subsequent gates;
 - implementation matches the approved scope;
 - relevant automated checks pass;
 - required manual or live verification has been performed;
@@ -191,3 +191,7 @@ At the review gate, report:
 - branch, commit, and PR;
 - whether the phase is ready for review, blocked, or approved;
 - confirmation that the next phase has not started.
+
+## Current user authorization — 2026-09-29
+
+The user explicitly authorized end-to-end MVP implementation and deferred their review until delivery. This overrides intermediate user-review pauses for Phases 02–08 for this implementation run. Keep one phase per branch/PR, using stacked branches from the preceding phase. Do not merge any PR or release publicly without explicit approval. Phase 09 recruitment and real-user research, store publication, paid infrastructure provisioning, and P2 expansion are not included. Report unmet runtime gates honestly rather than declaring them complete.
