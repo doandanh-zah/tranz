@@ -270,10 +270,22 @@ async function main() {
 
     clearInterval(heartbeat);
     await api('POST', `/sessions/${sessionId}/stop`);
-    await page.getByText('Session ended').waitFor({ timeout: 10000 }).catch(async () => {
-      await page.reload();
-      await page.getByText('Session ended').waitFor();
-    });
+    await page.getByText('[MOCK] Tóm tắt mô phỏng').waitFor({ timeout: 15000 });
+    check('stopping triggers notes in the background and the panel shows them (mock provider)', true);
+    check('kept session states its retention', (await page.getByRole('heading', { name: /Kept on this computer/ }).count()) === 1);
+    check('improved replies are labelled as illustrative', (await page.getByText(/not a record of what anyone said/).count()) === 1);
+    for (const width of [320, 600]) {
+      await page.setViewportSize({ width, height: 1400 });
+      check(`after-meeting notes have no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
+      await shoot(page, `11-notes-${width}`);
+    }
+    await page.setViewportSize({ width: 360, height: 1100 });
+
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
+    check('library lists the kept session', (await page.getByRole('heading', { name: 'Synthetic sprint sync' }).count()) === 1);
+    await shoot(page, '12-library-360');
+    await page.getByRole('button', { name: 'Open session' }).click();
+    await page.getByRole('heading', { name: /Kept on this computer/ }).waitFor();
 
     // Delete dialog: focus moves in, Escape cancels, focus returns
     const trigger = page.getByRole('button', { name: 'Delete this session' });
@@ -293,6 +305,22 @@ async function main() {
     await page.getByText('Session deleted from this computer').waitFor();
     const gone = await fetch(`${backendApi}/sessions/${sessionId}`, { headers: { authorization: `Bearer ${token}` } });
     check('confirmed deletion removes the session from the backend', gone.status === 404);
+
+    // Temporary session: held in memory only until the user presses Keep in the panel.
+    const temporaryId = randomUUID();
+    await api('POST', '/sessions', { id: temporaryId, profileId: profiles[0].id, retain: false });
+    await api('POST', `/sessions/${temporaryId}/heartbeat`, { state: 'listening' });
+    await api('PUT', `/sessions/${temporaryId}/segments`, [{ id: 't-1', text: 'Synthetic temporary line.', final: true, revision: 1, at: Date.now() }]);
+    await page.reload();
+    await page.getByText('In the meeting').waitFor();
+    await api('POST', `/sessions/${temporaryId}/stop`);
+    await page.getByRole('heading', { name: /Temporary session/ }).waitFor({ timeout: 10000 });
+    const listedBefore = (await api('GET', '/sessions')).some((s) => s.id === temporaryId);
+    await shoot(page, '13-temporary-360');
+    await page.getByRole('button', { name: 'Keep this session' }).click();
+    await page.getByRole('heading', { name: /Kept on this computer/ }).waitFor();
+    const listedAfter = (await api('GET', '/sessions')).some((s) => s.id === temporaryId && s.retain);
+    check('a stopped temporary session is not listed until the user keeps it from the panel', !listedBefore && listedAfter);
 
     // Backend offline
     backend.kill('SIGTERM');
