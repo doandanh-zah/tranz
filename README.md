@@ -39,7 +39,8 @@ Three levels of certainty are kept apart:
 | --- | --- |
 | **Validated baseline** | The official Agora Conversational AI quickstart ran end to end on 2026-09-28 (RTC, RTM, live transcript, TTS). See [ADR 0001](docs/decisions/0001-agora-convoai-baseline.md). |
 | **Implemented and tested** | A local, single-owner MVP: Chrome MV3 extension + loopback Fastify backend. Automated tests, the unpacked extension rendered in Chromium at 320–600 px with a mock AI provider and simulated transcript, and real Chromium tab capture with a synthetic tone. See [docs/evidence](docs/evidence/). |
-| **Not yet proven** | Tranz with real Agora credentials (agent join, transcript over RTM, renewal, cleanup), Google Meet capture with audible playback, the real side-panel frame, and real AI provider quality and latency. |
+| **Live, synthetic speech** | The real Tranz runtime against the configured Agora project with macOS-generated speech played in a real tab: agent join, transcript over RTM, pause/resume, token renewal past 10 minutes, stop and cleanup (`npm run verify:live`). |
+| **Not yet proven** | Google Meet capture with audible playback, the real side-panel frame, real network-loss recovery, and real AI provider quality and latency (no AI key configured). |
 
 Because the live gates are open, this is an **implementation candidate**, not a completed MVP.
 
@@ -56,7 +57,7 @@ npm run dev        # starts the backend on 127.0.0.1:4318
 
 Load `dist/extension` with **chrome://extensions → Developer mode → Load unpacked**, copy the extension ID into `EXTENSION_ID` in `.env`, restart the backend, open Google Meet, click the Tranz toolbar icon and paste `ACCESS_TOKEN`. The Vietnamese review guide is [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
 
-Checks: `npm run verify` (lint, typecheck, tests, build), `npm run verify:ui`, `npm run verify:capture` and, with an AI key, `npm run eval:grounding`.
+Checks: `npm run verify` (lint, typecheck, tests, build into `artifacts/verify-build`), `npm run verify:ui`, `npm run verify:capture`, `npm run verify:live` (real Agora, synthetic speech) and, with an AI key, `npm run eval:grounding`. Only `npm run build` writes `dist/`; press Reload in `chrome://extensions` afterwards.
 
 ## Project documentation
 

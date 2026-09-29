@@ -34,3 +34,15 @@ Revisit: hosted beta, multiple users/processes, real-media evidence of dropped s
 - Stored sessions are capped at 500 and transcript lines at 3,000 per session, with the limit reported.
 
 Revisit additionally if live Agora shows transcript loss while the agent LLM/TTS runs, if `agents.list` auth differs from `stopAgent`, or if the offscreen bundle size (about 2.9 MB, loaded locally only when a session starts) measurably delays start.
+
+## Live Agora addendum (2026-09-29)
+
+First live runs of the Tranz runtime against the configured Agora project, with synthetic macOS speech captured from a real tab (`npm run verify:live`). Three defects were found and fixed:
+
+1. The extension CSP (`script-src 'self'`) blocked WebAssembly used by Agora RTM. The CSP now also allows `'wasm-unsafe-eval'` for extension pages; JavaScript `eval` remains blocked.
+2. The runtime logged into RTM but never subscribed to the channel (`subscribeMessage` only binds the toolkit's parsers), so no transcript arrived. The runtime now calls `rtm.subscribe(channel)`, matching the validated baseline.
+3. The toolkit now renders in `TEXT` mode; word-timed rendering depends on agent audio, which Tranz never subscribes to.
+
+Observed after the fixes: agent join to listening ~8 s, first final line ~1.5 s after listening, pause produced no new lines, resume recovered within ~2 s, stop was idempotent and the agent left the channel within ~1.5 s.
+
+**Important consequence:** the passive agent still runs its LLM on the transcript and produces replies (`assistant.transcription` events were observed). Tranz filters them out and never plays agent audio, but transcript text reaches Agora's managed LLM vendor and that processing is billed. The consent text and Settings now say so. Revisit with an STT-only Agora product or a BYOK transcription path if this is unacceptable.

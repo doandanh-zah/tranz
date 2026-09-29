@@ -33,7 +33,7 @@ Backend chỉ bind 127.0.0.1. Dữ liệu mã hóa nằm ở `.tranz-data/` (đ�
 
 1. Mở `chrome://extensions`, bật **Developer mode**, chọn **Load unpacked** → thư mục `dist/extension`.
 2. Copy ID của extension vào `EXTENSION_ID` trong `.env`, dừng rồi chạy lại `npm run dev`.
-3. Sau mỗi lần `npm run build`, bấm **Reload** trên trang extensions.
+3. Sau mỗi lần `npm run build` (hoặc khi đổi `manifest.json`), bấm **Reload** trên trang extensions. Nếu panel chỉ hiện "Loading Tranz…" hoặc thông báo lỗi, đó là dấu hiệu cần Reload.
 
 ## 4. Luồng review đề xuất
 
@@ -54,17 +54,20 @@ Không dùng nội dung cuộc họp thật cho đến khi chính sách lưu gi�
 
 ```bash
 npm run verify           # lint, typecheck, test, build
-npm run verify:ui        # extension unpacked trong Chromium, AI mock, 42 check
-npm run verify:capture   # tab capture thật trong Chromium với âm synthetic, 9 check (mở cửa sổ ngoài màn hình)
+npm run verify:ui        # extension unpacked trong Chromium, AI mock, 43 check
+npm run verify:capture   # tab capture thật trong Chromium với âm synthetic, 9 check (cửa sổ thu nhỏ, im lặng)
+npm run verify:live      # Agora thật + giọng nói synthetic (say), khoảng 2 phút, tốn phút Agora
+npm run verify:live -- --renewal   # giữ phiên ~11 phút để kiểm tra gia hạn token
 npm run eval:grounding   # gọi AI provider thật với 6 tình huống synthetic (tốn vài request)
 ```
+
+Các lệnh kiểm tra build vào `artifacts/verify-build` và **không** ghi đè `dist/extension` bạn đang load. `verify:capture` và `verify:live` cần mở cửa sổ Chrome for Testing (headless không capture được âm thanh tab): cửa sổ được thu nhỏ ngay và trang có dòng chữ "Tranz automated test page" — có thể bỏ qua, nó tự đóng.
 
 Nếu Playwright báo thiếu trình duyệt, đặt `TRANZ_CHROMIUM` trỏ tới Chrome for Testing hoặc Chromium đã có (Chrome thương hiệu không hỗ trợ `--load-extension`).
 
 ## 6. Checklist live còn mở (cần bạn thực hiện hoặc cấp điều kiện)
 
-- [ ] Agent Agora thật: accepted → join → transcript qua RTM → stop, không còn agent trong kênh (kiểm tra Agora Console).
-- [ ] Token renewal sau 10 phút trong phiên dài hơn 10 phút.
+- [x] Agent Agora thật: accepted → join → transcript qua RTM → stop, không còn agent trong kênh — đạt với giọng nói synthetic (`verify:live`).
 - [ ] Mất mạng ngắn → `Reconnecting` → tự phục hồi; mất lâu → dừng với lý do.
 - [ ] Âm thanh cuộc họp vẫn nghe được trong lúc capture, pause, mute; người khác không nghe thấy gì từ Tranz.
 - [ ] Đóng tab Meet khi đang nghe → phiên dừng với lý do "meeting tab was closed".

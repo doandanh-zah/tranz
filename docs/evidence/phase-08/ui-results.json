@@ -1,16 +1,21 @@
 {
-  "extensionId": "mknochidiclmfkdmnkjcjnblfolnjhdg",
-  "at": "2026-09-29T09:26:13.387Z",
+  "extensionId": "hlciacmigmkadpcjlceolnjdidjbaoen",
+  "at": "2026-09-29T13:56:52.295Z",
   "results": [
     {
       "name": "unpacked extension loads and registers its service worker",
       "pass": true,
-      "detail": "mknochidiclmfkdmnkjcjnblfolnjhdg"
+      "detail": "hlciacmigmkadpcjlceolnjdidjbaoen"
     },
     {
       "name": "manifest permissions are the expected narrow set",
       "pass": true,
       "detail": "{\"permissions\":[\"sidePanel\",\"offscreen\",\"tabCapture\",\"activeTab\",\"storage\"],\"hosts\":[\"http://127.0.0.1:4318/*\"]}"
+    },
+    {
+      "name": "panel renders the app instead of the loading fallback",
+      "pass": true,
+      "detail": ""
     },
     {
       "name": "signed-out view has no horizontal overflow at 320px",

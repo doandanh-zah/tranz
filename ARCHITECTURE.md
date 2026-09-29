@@ -59,7 +59,7 @@ Side panel (React) ◄──── polling ────► Fastify backend on 12
 | --- | --- | --- | --- |
 | Pairing and auth | Random local bearer token, exact extension origin, rate limit, loopback bind | Automated tests; unpacked build | Hosted identity (out of scope) |
 | Capture | Tab + mic mix, pause/mute gates, stop releases tracks, offscreen closed after stop | Real Chromium tab capture with a synthetic tone and synthetic mic | Google Meet, audible playback, device changes |
-| Agora lifecycle | Server-owned channel/UID, 10-minute tokens with renewal, wait for agent join, RTC/RTM degraded gate, watchdog, orphan cleanup after lost start | Automated tests with a mock provider | Any real Agora session, renewal, silent-agent cost |
+| Agora lifecycle | Server-owned channel/UID, 10-minute tokens with renewal, wait for agent join, RTM channel subscription, RTC/RTM degraded gate, watchdog, orphan cleanup after lost start | Tests; **live Agora session with synthetic speech from a real tab**: join, RTM transcript, pause/resume, token renewal past 10 minutes, stop, cleanup | Real network loss and recovery; Google Meet audio; the agent's LLM still runs and is billed |
 | Translation | Final lines only, revision-linked, stale results rejected | Tests; mock provider in browser | Real quality and latency |
 | Assistance | Reply, catch-up, composer; evidence filtered; clarification fallback | Tests incl. prompt injection as data; mock in browser | Real grounding accuracy (`npm run eval:grounding`) |
 | Notes and retention | Background notes after stop, keep/delete, restart recovery | Tests; mock in browser | Real note quality; chunking over 60,000 characters |

@@ -19,18 +19,18 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | 01 | Handbook; PR #1 open; synchronised with the implementation in Phase 08 | User review; merge not authorized |
 | 02 | Foundation; PR #2 open; unpacked extension loads, narrow manifest verified | Real side-panel frame check |
 | 03 | Capture; PR #3 open; real Chromium tab capture with synthetic audio passed (pause, mute, stop, denial) | Google Meet, audible playback, device change |
-| 04 | Agora lifecycle; PR #4 open; hardened in Phase 08; mock-provider tests pass | **Blocked:** no Agora credentials in `.env` — real join, RTM transcript, renewal, cleanup |
+| 04 | Agora lifecycle; PR #4 open; hardened and **verified live** in Phase 08 with synthetic speech (join, RTM transcript, pause/resume, token renewal past 10 min, stop, cleanup) | Real network-loss recovery; Google Meet |
 | 05 | Translation; PR #5 open; mock-provider UI checks pass | **Blocked:** no `AI_API_KEY` — real quality and latency |
 | 06 | Context and grounded assistance; PR #6 open | Real-provider grounding evaluation (`npm run eval:grounding`) |
 | 07 | Notes, keep/delete, restart recovery; PR #7 open | Real note quality; chunking over 60,000 characters deferred |
-| 08 | Runtime hardening, docs, evidence, review guide; PR #8 open | Live gates above; user review |
+| 08 | Runtime hardening, live Agora fixes (RTM subscribe, WASM CSP), docs, evidence, review guide; PR #8 open | AI provider gate; Google Meet; user review |
 | 09 | Not authorized | Requires separate approval |
 
 ## Authorized remaining implementation checklist
 
 - [x] Synchronize handbook with actual implementation and distinguish observed facts from proposals.
 - [x] Complete context CRUD, immutable snapshots, grounded replies, catch-up and Vietnamese reply composer.
-- [ ] Close capture and Agora runtime gates with synthetic audio — Chromium capture done; Google Meet and live Agora blocked on credentials and a signed-in Meet test call.
+- [x] Close capture and Agora runtime gates with synthetic audio — Chromium capture and live Agora (synthetic speech) done; Google Meet playback still needs a person in a signed-in Meet call.
 - [ ] Validate revision-linked translation, failure/retry and cost bounds with configured AI provider — blocked on local `AI_API_KEY`.
 - [x] Wire and validate post-meeting processing, opt-in retention, saved learning and complete local deletion (mock provider).
 - [x] Complete responsive side-panel UX, keyboard/focus, recovery states and unpacked-extension verification (tab rendering; real panel frame pending).
@@ -42,7 +42,7 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 
 ## To unblock the live gates (user actions)
 
-1. `npm run setup`, then add `AGORA_APP_ID`, `AGORA_APP_CERTIFICATE` (rotate the Phase 00 certificate first), `AI_API_KEY` and optionally `AI_BASE_URL`/`AI_MODEL` to `.env` yourself.
+1. Agora is configured. Add `AI_API_KEY` (and optionally `AI_BASE_URL`/`AI_MODEL`) to `.env` yourself; restart the backend.
 2. `npm run eval:grounding` for the synthetic provider evaluation.
 3. Follow the live checklist in [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md) with a Google Meet test call using synthetic speech.
 

@@ -37,7 +37,7 @@ Lint, strict typecheck, build extension/backend và **24/24 test** đạt. Test 
 
 Build vẫn cảnh báo chunk offscreen > 500 kB (đã ghi nhận, không tăng ngưỡng).
 
-### Browser — `npm run verify:ui` (42/42)
+### Browser — `npm run verify:ui` (43/43)
 
 Extension unpacked thật trong Chrome for Testing 1234 headless; AI mock `[MOCK]`; session mô phỏng. Thêm so với Phase 07: banner giải thích lý do dừng tự động. Kết quả: `phase-08/ui-results.json`, ảnh `phase-08/*.png`.
 
@@ -63,12 +63,19 @@ Stop kết thúc mọi track nguồn và track gửi đi. Từ chối quyền mi
 - `npm audit --omit=dev`: 0 lỗ hổng.
 - Quét bundle extension: không có giá trị secret; chỉ có chữ "ACCESS_TOKEN" trong hướng dẫn UI.
 - `git ls-files`: không track `agora-baseline/`, `.env`, `.tranz-data/`.
-- Manifest giữ nguyên: `sidePanel`, `offscreen`, `tabCapture`, `activeTab`, `storage`; host duy nhất `http://127.0.0.1:4318/*` (kiểm tra trong trình duyệt).
+- Quyền manifest giữ nguyên (CSP thêm `'wasm-unsafe-eval'` cho Agora RTM): `sidePanel`, `offscreen`, `tabCapture`, `activeTab`, `storage`; host duy nhất `http://127.0.0.1:4318/*` (kiểm tra trong trình duyệt).
 
 ### Provider thật
 
 `npm run eval:grounding` đã được viết (6 tình huống synthetic: fact có căn cứ, fact không có căn cứ, tin đồn mâu thuẫn, prompt injection, bản dịch giữ thuật ngữ, composer không thêm số). **Chưa chạy được:** repo không có `.env`/`AI_API_KEY`. Script báo `BLOCKED` và thoát mã 2.
 
+## Góp ý của người dùng: trang trắng (2026-09-29)
+
+- **Cửa sổ Chrome for Testing trắng:** do `verify:capture`/`verify:live` phải chạy có cửa sổ. Nay cửa sổ được thu nhỏ bằng CDP ngay khi mở, tab cuộc họp synthetic mở ở nền bằng `chrome.tabs.create({active:false})`, và mọi trang test có dòng chữ "Tranz automated test page… safe to ignore".
+- **Panel Tranz trắng:** các lệnh kiểm tra từng build lại `dist/extension` mà Chrome đang load. Nay `npm run verify` và các harness build vào `artifacts/verify-build`; chỉ `npm run build` ghi `dist/`. `index.html` có nội dung chờ tĩnh ("Loading Tranz… If this stays… Reload") và App được bọc error boundary, nên panel không còn trắng tinh khi thiếu file hoặc lỗi render.
+
+- **Tiếng "Hello team…" lặp lại trên loa:** giọng nói synthetic của test live phát ra loa (tab test tự phát, và Tranz cố ý route âm thanh tab ra loa như trong cuộc họp thật). Test gia hạn token đã bị dừng theo yêu cầu, agent được dọn sạch (Agora báo 0 agent). Nay test chạy im lặng: xem [live-agora.md](live-agora.md).
+
 ## Không thay đổi
 
-Manifest và quyền; định dạng lưu trữ (tương thích ngược, thêm trường tùy chọn); không merge, không release, không deploy, không bắt đầu Phase 09.
+Quyền manifest (CSP được bổ sung `'wasm-unsafe-eval'` sau lần chạy live, xem [live-agora.md](live-agora.md)); định dạng lưu trữ (tương thích ngược, thêm trường tùy chọn); không merge, không release, không deploy, không bắt đầu Phase 09.
