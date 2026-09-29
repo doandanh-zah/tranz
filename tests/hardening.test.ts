@@ -131,7 +131,7 @@ test('transcript growth is bounded and the limit is reported', async () => {
     assert.equal(overflow.body.dropped, 1);
     const session = (await request('GET', `/api/sessions/${id}`)).body;
     assert.equal(session.segments.length, 3000);
-    assert.match(session.error, /limit/);
+    assert.match(session.error, /giới hạn/);
   } finally {
     await close();
   }
@@ -164,8 +164,8 @@ test('provider failures map to specific, secret-free errors', async () => {
     assert.deepEqual(await ai.json('test', {}, schema), { value: 'ok' });
     const cases: [number, number, RegExp][] = [
       [401, 503, /API key/],
-      [404, 503, /not found/],
-      [429, 429, /rate-limiting/],
+      [404, 503, /Không tìm thấy/],
+      [429, 429, /giới hạn số yêu cầu/],
       [500, 502, /HTTP 500/],
     ];
     for (const [providerStatus, expected, message] of cases) {
@@ -177,7 +177,7 @@ test('provider failures map to specific, secret-free errors', async () => {
     }
     status = 200;
     content = 'not json';
-    assert.match((await failure())!.message, /required format/);
+    assert.match((await failure())!.message, /không đúng định dạng/);
     content = '{"value":42}';
     assert.equal((await failure())?.statusCode, 502);
   } finally {

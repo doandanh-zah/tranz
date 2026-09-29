@@ -57,7 +57,7 @@ Side panel (React) ◄──── polling ────► Fastify backend on 12
 
 | Area | Implemented | Evidence level | Not yet proven |
 | --- | --- | --- | --- |
-| Pairing and auth | Random local bearer token, exact extension origin, rate limit, loopback bind | Automated tests; unpacked build | Hosted identity (out of scope) |
+| Pairing and auth | Random local bearer token handed automatically to the exact paired extension origin (`/api/pair`), rate limit, loopback bind | Automated tests; unpacked build | Hosted identity (out of scope) |
 | Capture | Tab + mic mix, pause/mute gates, stop releases tracks, offscreen closed after stop | Real Chromium tab capture with a synthetic tone and synthetic mic | Google Meet, audible playback, device changes |
 | Agora lifecycle | Server-owned channel/UID, 10-minute tokens with renewal, wait for agent join, RTM channel subscription, RTC/RTM degraded gate, watchdog, orphan cleanup after lost start | Tests; **live Agora session with synthetic speech from a real tab**: join, RTM transcript, pause/resume, token renewal past 10 minutes, stop, cleanup | Real network loss and recovery; Google Meet audio; the agent's LLM still runs and is billed |
 | AI provider | ChatGPT plan through the official `codex app-server` (OAuth sign-in, tools disabled, output schema) or an API key; see ADR 0003 | Tests with a Codex stand-in; **live eval with the real ChatGPT Plus plan, 6/6** | In-meeting usefulness of 5–13 s latency |

@@ -1,14 +1,20 @@
 import { useState, type FormEvent } from 'react';
-import { ArrowUpRight, BookOpen, Languages, RefreshCw, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, RefreshCw } from 'lucide-react';
 import { Spinner } from '../components';
 
+/**
+ * Shown only when automatic connection is not possible: Tranz is not running on this computer,
+ * pairing failed, or this is the developer preview page (which has no extension identity).
+ */
 export function Connect({
-  offline,
+  mode,
+  problem,
   busy,
   onConnect,
   onRetry,
 }: {
-  offline: boolean;
+  mode: 'offline' | 'problem' | 'manual';
+  problem: string;
   busy: boolean;
   onConnect: (token: string) => void;
   onRetry: () => void;
@@ -21,69 +27,45 @@ export function Connect({
     setDraft('');
   }
 
-  if (offline) {
+  if (mode === 'offline' || mode === 'problem') {
     return (
-      <section className="panel" aria-labelledby="offline-title">
-        <span className="eyebrow">Backend offline</span>
-        <h2 id="offline-title">Tranz cannot reach your local backend</h2>
-        <p className="muted">
-          Start it from the project folder with <code>npm run dev</code>. It listens only on 127.0.0.1:4318.
-        </p>
+      <section className="panel" aria-labelledby="connect-title">
+        <h2 id="connect-title">{mode === 'offline' ? 'Tranz trên máy chưa chạy' : 'Chưa kết nối được với Tranz'}</h2>
+        {mode === 'offline' ? (
+          <ol className="steps-plain">
+            <li>Mở ứng dụng Terminal.</li>
+            <li>
+              Vào thư mục Tranz và chạy <code>npm run dev</code>.
+            </li>
+            <li>Khi thấy dòng “Tranz backend ready”, bấm Thử lại.</li>
+          </ol>
+        ) : (
+          <p className="muted">{problem}</p>
+        )}
         <button className="primary full" disabled={busy} onClick={onRetry}>
           {busy ? <Spinner /> : <RefreshCw size={17} aria-hidden="true" />}
-          Retry connection
+          Thử lại
         </button>
       </section>
     );
   }
 
   return (
-    <>
-      <div className="intro">
-        <span className="eyebrow">English meetings, with Vietnamese alongside</span>
-        <h1>
-          Stay in the conversation<span className="accent">.</span>
-        </h1>
-        <ul className="steps">
-          <li>
-            <Languages size={18} aria-hidden="true" />
-            Original English with a linked Vietnamese translation
-          </li>
-          <li>
-            <BookOpen size={18} aria-hidden="true" />
-            Reply suggestions grounded in the context you provide
-          </li>
-          <li>
-            <ShieldCheck size={18} aria-hidden="true" />
-            No raw audio saved; you decide what stays
-          </li>
-        </ul>
-      </div>
-      <form className="panel" onSubmit={submit} aria-labelledby="connect-title">
-        <span className="eyebrow">Private local workspace</span>
-        <h2 id="connect-title">Connect to Tranz</h2>
-        <label>
-          Local access token
-          <input
-            type="password"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            required
-            minLength={32}
-            autoComplete="off"
-            spellCheck={false}
-            placeholder="Paste ACCESS_TOKEN from your .env"
-          />
-        </label>
-        <p className="caption">
-          Run <code>npm run setup</code> once, start the backend, then paste ACCESS_TOKEN. The token stays in browser memory
-          until Chrome restarts. Provider keys never leave the backend.
-        </p>
-        <button className="primary full" disabled={busy}>
-          {busy ? <Spinner /> : <ArrowUpRight size={17} aria-hidden="true" />}
-          Connect workspace
-        </button>
-      </form>
-    </>
+    <form className="panel" onSubmit={submit} aria-labelledby="connect-title">
+      <span className="eyebrow">Bản xem thử cho nhà phát triển</span>
+      <h2 id="connect-title">Kết nối bản xem thử</h2>
+      <p className="caption">
+        Trong extension, Tranz tự kết nối và bạn không cần làm bước này. Trang xem thử không có danh tính extension nên cần dán mã
+        ACCESS_TOKEN trong file .env.
+      </p>
+      <label>
+        Mã truy cập (ACCESS_TOKEN)
+        <input type="password" value={draft} onChange={(event) => setDraft(event.target.value)} required minLength={32} autoComplete="off" spellCheck={false} />
+      </label>
+      <button className="primary full" disabled={busy}>
+        {busy ? <Spinner /> : <ArrowUpRight size={17} aria-hidden="true" />}
+        Kết nối
+      </button>
+    </form>
   );
 }

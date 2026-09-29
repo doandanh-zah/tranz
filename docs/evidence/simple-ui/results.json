@@ -1,0 +1,221 @@
+{
+  "extensionId": "kfboagfamcfgjibfmiahofkeacdjhbmd",
+  "at": "2026-09-29T18:04:41.881Z",
+  "results": [
+    {
+      "name": "unpacked extension loads and registers its service worker",
+      "pass": true,
+      "detail": "kfboagfamcfgjibfmiahofkeacdjhbmd"
+    },
+    {
+      "name": "manifest permissions are the expected narrow set",
+      "pass": true,
+      "detail": "{\"permissions\":[\"sidePanel\",\"offscreen\",\"tabCapture\",\"activeTab\",\"storage\"],\"hosts\":[\"http://127.0.0.1:4318/*\"]}"
+    },
+    {
+      "name": "the panel connects by itself, with no access-token step",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "panel renders the app instead of the loading fallback",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home shows a three-step checklist and one start button",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "start stays disabled until AI, microphone and Google Meet are ready, and missing Agora is explained",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the data-flow disclosure is visible under the start button, not collapsed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 360px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 480px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "context is created through the form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the optional context can be picked under options",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "keyboard focus reaches controls with a visible outline",
+      "pass": true,
+      "detail": "10 stops"
+    },
+    {
+      "name": "final lines are translated (batched) and linked to their source (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "partial text is shown separately from final text",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the detected question is labelled as a guess",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a reply suggestion shows its sources and a check-before-use note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 360px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 480px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "catch-up and the Vietnamese composer round-trip through the backend (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reduced motion disables the live indicator animation",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "200% root text size keeps the live view free of horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "stopping creates notes in the background and the panel shows them (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a kept session states its retention",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "practice phrases are labelled as not what anyone said",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "after-meeting notes have no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "after-meeting notes have no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the saved list shows the kept session",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the delete dialog takes focus, closes on Escape and restores focus",
+      "pass": true,
+      "detail": "restored=Xoá phiên này"
+    },
+    {
+      "name": "confirmed deletion removes the session from the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a session without context runs as \"Cuộc họp nhanh\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "an automatic stop explains why it happened",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a stopped temporary session is not listed until the user saves it from the panel",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "backend offline shows plain recovery steps",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the checklist offers \"Đăng nhập ChatGPT\" when not signed in",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "sign-in opens the OpenAI page in a new tab and the checklist marks it done",
+      "pass": true,
+      "detail": "https://auth.openai.com/oauth/authorize"
+    },
+    {
+      "name": "settings shows the signed-in ChatGPT plan",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no script errors on extension pages",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

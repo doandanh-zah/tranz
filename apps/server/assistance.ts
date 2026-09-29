@@ -68,7 +68,7 @@ export function assistanceRoutes(app: FastifyInstance, life: Lifecycle, ai: Text
 
   app.post('/api/profiles', async (req) => {
     if (store.profiles.size >= MAX_PROFILES) {
-      throw new ApiError(409, 'Profile limit reached. Delete an unused profile.');
+      throw new ApiError(409, 'Đã đạt giới hạn số ngữ cảnh. Hãy xoá bớt ngữ cảnh không dùng.');
     }
     const profile: Profile = { ...profileInput.parse(req.body), id: randomUUID(), version: 1 };
     store.profiles.set(profile.id, profile);
@@ -79,7 +79,7 @@ export function assistanceRoutes(app: FastifyInstance, life: Lifecycle, ai: Text
   app.put('/api/profiles/:id', async (req) => {
     const { id } = idParams.parse(req.params);
     const previous = store.profiles.get(id);
-    if (!previous) throw new ApiError(404, 'Profile not found. It may have been deleted.');
+    if (!previous) throw new ApiError(404, 'Không tìm thấy ngữ cảnh này. Có thể nó đã bị xoá.');
     // Sessions hold their own snapshot, so editing never changes an existing session.
     const profile: Profile = { ...profileInput.parse(req.body), id, version: previous.version + 1 };
     store.profiles.set(id, profile);
@@ -100,17 +100,17 @@ export function assistanceRoutes(app: FastifyInstance, life: Lifecycle, ai: Text
     const input = assistInput.parse(req.body);
     const { kind } = input;
     const draft = input.text.trim();
-    if (kind === 'compose' && !draft) throw new ApiError(400, 'Write your Vietnamese draft first.');
+    if (kind === 'compose' && !draft) throw new ApiError(400, 'Hãy viết điều bạn muốn nói bằng tiếng Việt trước.');
 
     const segments = session.segments
       .filter((segment) => segment.final)
       .slice(-segmentWindow[kind])
       .map(({ id: segmentId, text }) => ({ id: segmentId, text }));
     if (!segments.length && kind !== 'compose') {
-      throw new ApiError(409, 'Wait for a final transcript segment first.');
+      throw new ApiError(409, 'Chưa có câu nào được ghi lại hoàn chỉnh. Hãy chờ người nói hết câu.');
     }
     if (session.aiCalls >= SESSION_AI_LIMIT) {
-      throw new ApiError(429, 'This session reached its AI request limit.');
+      throw new ApiError(429, 'Phiên này đã dùng hết giới hạn yêu cầu AI.');
     }
     session.aiCalls++;
 
@@ -131,7 +131,7 @@ export function assistanceRoutes(app: FastifyInstance, life: Lifecycle, ai: Text
     );
 
     // A late completion must not resurrect a deleted session's content.
-    if (store.sessions.get(id) !== session) throw new ApiError(409, 'This session was deleted.');
+    if (store.sessions.get(id) !== session) throw new ApiError(409, 'Phiên này đã bị xoá.');
 
     const known = new Set(segments.map((segment) => segment.id));
     if (hasProfileContent(session.context)) known.add('profile');

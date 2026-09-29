@@ -14,11 +14,11 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
     if (!this.state.error) return this.props.children;
     return (
       <main style={{ padding: '24px 16px', lineHeight: 1.6 }} role="alert">
-        <h1 style={{ fontSize: 20 }}>Tranz hit an unexpected problem</h1>
-        <p>Any audio session keeps running in the background; reopening the panel reconnects to it.</p>
+        <h1 style={{ fontSize: 20 }}>Tranz gặp sự cố ngoài ý muốn</h1>
+        <p>Nếu đang nghe cuộc họp, việc nghe vẫn tiếp tục; mở lại panel sẽ kết nối lại.</p>
         <p style={{ color: '#5d685f', fontSize: 13, overflowWrap: 'anywhere' }}>{this.state.error.message}</p>
         <button onClick={() => location.reload()} style={{ minHeight: 44, padding: '10px 14px' }}>
-          Reload the panel
+          Tải lại panel
         </button>
       </main>
     );

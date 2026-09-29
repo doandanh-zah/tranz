@@ -33,10 +33,10 @@ const SYSTEM =
 const completion = z.object({ choices: z.array(z.object({ message: z.object({ content: z.string().max(24000) }) })).min(1) });
 
 function providerError(status: number) {
-  if (status === 401 || status === 403) return new ApiError(503, 'The AI provider rejected the API key or model access. Check AI_API_KEY and AI_MODEL.');
-  if (status === 404) return new ApiError(503, 'The AI endpoint or model was not found. Check AI_BASE_URL and AI_MODEL.');
-  if (status === 429) return new ApiError(429, 'The AI provider is rate-limiting requests. Wait a moment and retry.');
-  return new ApiError(502, `The AI provider failed (HTTP ${status}). Retry shortly.`);
+  if (status === 401 || status === 403) return new ApiError(503, 'Nhà cung cấp AI từ chối API key hoặc quyền dùng model. Kiểm tra AI_API_KEY và AI_MODEL.');
+  if (status === 404) return new ApiError(503, 'Không tìm thấy địa chỉ hoặc model AI. Kiểm tra AI_BASE_URL và AI_MODEL.');
+  if (status === 429) return new ApiError(429, 'Nhà cung cấp AI đang giới hạn số yêu cầu. Chờ một chút rồi thử lại.');
+  return new ApiError(502, `Nhà cung cấp AI gặp lỗi (HTTP ${status}). Vui lòng thử lại sau.`);
 }
 
 /** OpenAI-compatible chat completions with JSON output. Credentials never leave the backend. */
@@ -48,11 +48,11 @@ export function textAI(c: Config): TextAI {
       return { provider: 'openai', ready, signedIn: ready, email: null, plan: null, pendingLogin: null, lastLoginError: null };
     },
     async json(instruction, data, schema) {
-      if (!c.AI_API_KEY) throw new ApiError(503, 'Configure AI_API_KEY locally to enable translation and assistance.');
-      if (active >= MAX_CONCURRENT) throw new ApiError(429, 'AI is busy. Please retry shortly.');
+      if (!c.AI_API_KEY) throw new ApiError(503, 'Chưa cấu hình AI_API_KEY nên chưa dịch và gợi ý được. Hoặc dùng đăng nhập ChatGPT (AI_PROVIDER=chatgpt).');
+      if (active >= MAX_CONCURRENT) throw new ApiError(429, 'AI đang bận. Vui lòng thử lại sau giây lát.');
       const url = new URL(c.AI_BASE_URL);
       if (url.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(url.hostname)) {
-        throw new ApiError(503, 'The AI endpoint must use HTTPS.');
+        throw new ApiError(503, 'Địa chỉ AI phải dùng HTTPS.');
       }
       active++;
       try {
@@ -76,14 +76,14 @@ export function textAI(c: Config): TextAI {
           });
         } catch (error) {
           const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
-          throw new ApiError(timedOut ? 504 : 502, timedOut ? 'The AI provider did not answer within 25 seconds. Retry.' : 'Could not reach the AI provider. Check the network and AI_BASE_URL.');
+          throw new ApiError(timedOut ? 504 : 502, timedOut ? 'AI không trả lời trong 25 giây. Vui lòng thử lại.' : 'Không kết nối được tới nhà cung cấp AI. Kiểm tra mạng và AI_BASE_URL.');
         }
         if (!response.ok) throw providerError(response.status);
         try {
           const payload = completion.parse(await response.json());
           return schema.parse(JSON.parse(payload.choices[0].message.content));
         } catch {
-          throw new ApiError(502, 'The AI response did not match the required format. Retry, or choose a model that supports JSON output.');
+          throw new ApiError(502, 'Câu trả lời của AI không đúng định dạng. Hãy thử lại, hoặc chọn model hỗ trợ JSON.');
         }
       } finally {
         active--;

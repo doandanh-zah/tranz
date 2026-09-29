@@ -6,25 +6,25 @@ import type { AssistKind, EndReason, ReplyStyle, Segment, Session, Suggestion } 
 import { Banner, ContextDetails, Spinner, StatusPill } from '../components';
 import { AfterMeeting } from './AfterMeeting';
 
-// Heuristic only: the user can always pick another line with "Use for reply".
+// Heuristic only: the user can always pick another line with "Trả lời câu này".
 const QUESTION = /\?\s*$|^(what|why|how|when|where|who|which|can|could|would|will|should|do|does|did|is|are|have|has)\b/i;
 
 /** Every automatic stop is explained; a user stop needs no message. */
 const endedMessages: Partial<Record<EndReason, string>> = {
-  'tab-closed': 'Stopped because the meeting tab was closed.',
-  'capture-ended': 'Stopped because Chrome ended the tab or microphone capture (for example a device was unplugged or permission was revoked).',
-  'agent-left': 'Stopped because the Agora transcriber left the call.',
-  'transcriber-error': 'Stopped because the Agora transcriber reported a speech-to-text error.',
-  'connection-lost': 'Stopped because the real-time connection was lost and did not recover.',
-  'credentials-expired': 'Stopped because the session credentials could not be renewed.',
-  'backend-unreachable': 'Stopped because the local backend stopped answering.',
-  'ended-by-backend': 'Stopped by the backend (it was shutting down or the session had already ended).',
-  'start-failed': 'Start did not complete, so everything was released.',
-  inactive: 'Stopped because the audio runtime stopped reporting for more than 75 seconds.',
-  'time-limit': 'Stopped at the one-hour session limit.',
+  'tab-closed': 'Đã dừng vì tab cuộc họp bị đóng.',
+  'capture-ended': 'Đã dừng vì Chrome ngắt việc nghe tab hoặc micro (ví dụ micro bị rút ra hoặc quyền bị thu hồi).',
+  'agent-left': 'Đã dừng vì bộ chuyển giọng nói Agora rời cuộc gọi.',
+  'transcriber-error': 'Đã dừng vì bộ chuyển giọng nói Agora báo lỗi.',
+  'connection-lost': 'Đã dừng vì mất kết nối và không khôi phục được.',
+  'credentials-expired': 'Đã dừng vì không gia hạn được quyền truy cập của phiên.',
+  'backend-unreachable': 'Đã dừng vì Tranz trên máy ngừng phản hồi.',
+  'ended-by-backend': 'Đã dừng vì Tranz trên máy đang tắt hoặc phiên đã kết thúc.',
+  'start-failed': 'Chưa bắt đầu được nên mọi thứ đã được tắt.',
+  inactive: 'Đã dừng vì phần nghe trong trình duyệt không phản hồi quá 75 giây.',
+  'time-limit': 'Đã dừng khi đạt giới hạn 1 giờ mỗi phiên.',
 };
 
-const time = (at: number) => new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const time = (at: number) => new Date(at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
 export function Live({
   api,
@@ -88,9 +88,9 @@ export function Live({
     <>
       <div className="session-heading">
         <div>
-          <span className="eyebrow">{active ? 'In the meeting' : 'After the meeting'}</span>
+          <span className="eyebrow">{active ? 'Trong cuộc họp' : 'Sau cuộc họp'}</span>
           <p className="session-meta">
-            {session.context.name} · started {time(session.startedAt)}
+            {session.context.name} · bắt đầu {time(session.startedAt)}
           </p>
         </div>
         <div role="status" aria-live="polite">
@@ -102,42 +102,42 @@ export function Live({
       {!active && session.endedReason && endedMessages[session.endedReason] && <Banner>{endedMessages[session.endedReason]}</Banner>}
       {session.state === 'paused' && (
         <Banner>
-          Paused: no tab or microphone audio is sent. The meeting keeps playing. The provider session stays connected and may
-          still be billed.
+          Đang tạm dừng: Tranz không gửi âm thanh đi. Bạn vẫn nghe cuộc họp bình thường. Kết nối vẫn mở nên có thể vẫn bị tính
+          phí.
         </Banner>
       )}
-      {session.state === 'reconnecting' && <Banner>Connection interrupted. Audio sending is paused while Tranz reconnects.</Banner>}
+      {session.state === 'reconnecting' && <Banner>Kết nối bị gián đoạn. Tranz tạm ngừng gửi âm thanh trong lúc kết nối lại.</Banner>}
 
       {active && (
-        <div className="controls" role="group" aria-label="Session controls">
+        <div className="controls" role="group" aria-label="Điều khiển phiên">
           <button className="secondary" disabled={starting || !!busy} onClick={onPause}>
             {session.state === 'paused' ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
-            {session.state === 'paused' ? 'Resume' : 'Pause'}
+            {session.state === 'paused' ? 'Tiếp tục' : 'Tạm dừng'}
           </button>
           <button
             className="icon outlined"
             disabled={starting || !!busy}
             aria-pressed={muted}
-            aria-label={muted ? 'Microphone muted for Tranz. Unmute' : 'Mute my microphone for Tranz'}
-            title="Stops your microphone reaching Tranz. The meeting app is not affected."
+            aria-label={muted ? 'Micro đang tắt với Tranz. Bật lại' : 'Tắt micro của tôi với Tranz'}
+            title="Tranz ngừng nghe micro của bạn. Không ảnh hưởng tới Google Meet."
             onClick={onMute}
           >
             {muted ? <MicOff size={17} /> : <Mic size={17} />}
           </button>
           <button className="stop" disabled={busy === 'stop'} onClick={onStop}>
             {busy === 'stop' ? <Spinner /> : <Square size={13} aria-hidden="true" />}
-            Stop
+            Dừng
           </button>
         </div>
       )}
       {!active && (
         <AfterMeeting api={api} session={session} busy={busy} run={run} aiReady={!!capabilities?.ai} onUpdate={onUpdate} onNext={onNext} onDelete={onDelete} />
       )}
-      {muted && active && <p className="caption">Your microphone is muted for Tranz only. Meeting audio is still transcribed.</p>}
+      {muted && active && <p className="caption">Micro của bạn đang tắt với Tranz (Google Meet không bị ảnh hưởng). Tranz vẫn nghe những người khác.</p>}
 
       <section className="now" aria-labelledby="now-heading">
         <h2 id="now-heading" className="section-label">
-          Now · English → Tiếng Việt
+          Vừa nói · Anh → Việt
         </h2>
         {latestFinal ? (
           <>
@@ -149,57 +149,57 @@ export function Live({
         ) : (
           !partial && (
             <div className="empty compact">
-              <h3>{starting ? 'Waiting for the transcriber to join…' : active ? 'No speech received yet' : 'No transcript'}</h3>
-              <p>Only real speech appears here. Nothing is shown until the transcriber sends text.</p>
+              <h3>{starting ? 'Đang kết nối, khoảng 10 giây…' : active ? 'Đang nghe, chưa có ai nói' : 'Không có lời thoại'}</h3>
+              <p>Lời nói trong cuộc họp sẽ hiện ở đây kèm bản dịch tiếng Việt.</p>
             </div>
           )
         )}
         {partial && (
           <p className="partial" lang="en">
-            <span className="tag">{active ? 'Hearing…' : 'Unfinished line, never finalised:'}</span> {partial.text}
+            <span className="tag">{active ? 'Đang nghe…' : 'Câu chưa nói xong:'}</span> {partial.text}
           </p>
         )}
       </section>
 
       <section className="panel response" aria-labelledby="respond-heading">
         <h2 id="respond-heading" className="section-label">
-          Find your words
+          Trả lời thế nào?
         </h2>
         {target ? (
           <div className="target">
-            <span className="tag">{selected ? 'Selected by you' : 'Detected question (automatic guess)'}</span>
+            <span className="tag">{selected ? 'Câu bạn đã chọn' : 'Câu hỏi Tranz đoán được'}</span>
             <p lang="en">{target.text}</p>
             {selected && (
-              <button className="icon small" aria-label="Clear selected line" onClick={() => setSelected(undefined)}>
+              <button className="icon small" aria-label="Bỏ chọn câu này" onClick={() => setSelected(undefined)}>
                 <X size={15} />
               </button>
             )}
           </div>
         ) : (
-          <p className="muted">No question detected. Suggestions use the latest conversation, or pick a line below.</p>
+          <p className="muted">Chưa thấy câu hỏi nào. Tranz sẽ gợi ý dựa trên đoạn hội thoại gần nhất, hoặc bạn chọn một câu ở phần Toàn bộ hội thoại.</p>
         )}
         <div className="button-row">
           <button className="secondary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
             {busy === 'reply' ? <Spinner /> : null}
-            Suggest a reply
+            Gợi ý câu trả lời
           </button>
           <button className="text-button" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('catch-up')}>
-            {busy === 'catch-up' ? 'Summarising…' : 'Catch me up (Tiếng Việt)'}
+            {busy === 'catch-up' ? 'Đang tóm tắt…' : 'Tóm tắt vừa rồi'}
           </button>
         </div>
-        {!aiReady && <p className="caption">Connect an AI provider in Settings (ChatGPT sign-in or API key) to enable suggestions.</p>}
+        {!aiReady && <p className="caption">Đăng nhập ChatGPT trong Cài đặt để dùng gợi ý và dịch.</p>}
 
         {result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
 
         <details className="composer">
-          <summary>Think in Vietnamese, reply in English</summary>
+          <summary>Tôi muốn nói… (viết tiếng Việt, Tranz chuyển sang tiếng Anh)</summary>
           <label>
-            Your draft in Vietnamese
+            Điều bạn muốn nói, bằng tiếng Việt
             <textarea value={draft} maxLength={2000} onChange={(event) => setDraft(event.target.value)} lang="vi" placeholder="Điều bạn muốn nói…" />
           </label>
           <button className="secondary" disabled={!!busy || !draft.trim() || !aiReady} onClick={() => void assist('compose')}>
             {busy === 'compose' ? <Spinner /> : null}
-            Find the English wording
+            Chuyển sang tiếng Anh
           </button>
         </details>
       </section>
@@ -207,7 +207,7 @@ export function Live({
       <History segments={session.segments} aiReady={aiReady} onUse={setSelected} onTranslate={onTranslate} />
 
       <details className="panel">
-        <summary>Context snapshot used by this session · v{session.context.version}</summary>
+        <summary>Ngữ cảnh dùng cho phiên này: {session.context.name}</summary>
         <ContextDetails profile={session.context} />
       </details>
 
@@ -236,10 +236,10 @@ function Translation({
   if (segment.translationState === 'error') {
     return (
       <p className="translation muted">
-        Translation failed for this line.{' '}
+        Chưa dịch được câu này.{' '}
         <button className="text-button" onClick={() => onRetry(segment)}>
           <RefreshCw size={13} aria-hidden="true" />
-          Retry
+          Thử lại
         </button>
       </p>
     );
@@ -247,16 +247,16 @@ function Translation({
   if (aiReady && !active && segment.translationState !== 'pending') {
     return (
       <p className="translation muted">
-        Not translated.{' '}
+        Chưa dịch.{' '}
         <button className="text-button" onClick={() => onRetry(segment)}>
-          Translate
+          Dịch
         </button>
       </p>
     );
   }
   return (
     <p className="translation muted">
-      {!aiReady ? 'Translation needs an AI provider (Settings).' : segment.translationState === 'pending' ? 'Translating… (can take several seconds)' : 'Waiting to translate…'}
+      {!aiReady ? 'Đăng nhập ChatGPT (Cài đặt) để xem bản dịch.' : segment.translationState === 'pending' ? 'Đang dịch… (mất vài giây)' : 'Chờ dịch…'}
     </p>
   );
 }
@@ -277,30 +277,30 @@ function Result({
   const vietnamese = result.kind === 'catch-up';
   const lines = result.evidence.filter((id) => id !== 'profile');
   const usedProfile = result.evidence.includes('profile');
-  const heading = { reply: 'Suggested reply', 'catch-up': 'What just happened', compose: 'English wording' }[result.kind];
+  const heading = { reply: 'Bạn có thể nói', 'catch-up': 'Vừa rồi mọi người nói gì', compose: 'Câu tiếng Anh cho bạn' }[result.kind];
 
   return (
     <div className="result" aria-live="polite">
       <h3>{heading}</h3>
-      {result.question && <p className="caption">For: “{result.question}”</p>}
+      {result.question && <p className="caption">Cho câu: “{result.question}”</p>}
       <p className="suggestion" lang={vietnamese ? 'vi' : 'en'}>
         {result.text}
       </p>
       <p className={`evidence-label ${result.uncertain ? 'uncertain' : ''}`}>
-        {result.uncertain ? 'Uncertain — check before using. ' : 'AI suggestion — verify before using. '}
+        {result.uncertain ? 'Chưa chắc chắn, hãy kiểm tra trước khi dùng. ' : 'Gợi ý của AI, hãy kiểm tra trước khi dùng. '}
         {result.kind !== 'compose' &&
           (usedProfile || lines.length
-            ? `Based on ${[usedProfile && 'your context', lines.length && `${lines.length} transcript line${lines.length > 1 ? 's' : ''}`].filter(Boolean).join(' and ')}.`
-            : 'No supporting source was cited.')}
+            ? `Dựa trên ${[usedProfile && 'ngữ cảnh của bạn', lines.length && `${lines.length} câu trong cuộc họp`].filter(Boolean).join(' và ')}.`
+            : 'Không dựa trên nguồn cụ thể nào.')}
       </p>
       {result.evidence.length > 0 && (
         <details>
-          <summary>Show the cited sources</summary>
+          <summary>Xem nguồn</summary>
           <ul className="evidence">
-            {usedProfile && <li>Your context: {session.context.facts || session.context.role || session.context.goal}</li>}
+            {usedProfile && <li>Ngữ cảnh của bạn: {session.context.facts || session.context.role || session.context.goal}</li>}
             {lines.map((id) => (
               <li key={id} lang="en">
-                {session.segments.find((s) => s.id === id)?.text ?? 'Source line no longer available'}
+                {session.segments.find((s) => s.id === id)?.text ?? 'Câu nguồn không còn'}
               </li>
             ))}
           </ul>
@@ -310,10 +310,10 @@ function Result({
         {result.kind === 'reply' &&
           (
             [
-              ['shorter', 'Shorter'],
-              ['simple', 'Simpler English'],
-              ['professional', 'More professional'],
-              ['clarify', 'Ask for clarification'],
+              ['shorter', 'Ngắn hơn'],
+              ['simple', 'Dễ nói hơn'],
+              ['professional', 'Chuyên nghiệp hơn'],
+              ['clarify', 'Hỏi lại cho rõ'],
             ] as const
           ).map(([style, label]) => (
             <button key={style} disabled={!!busy} onClick={() => onRestyle(style)}>
@@ -324,12 +324,12 @@ function Result({
           onClick={() =>
             void navigator.clipboard
               .writeText(result.text)
-              .then(() => onCopied('Copied. Review the wording before you use it.'))
-              .catch(() => onCopied('Copy was blocked by the browser. Select the text instead.'))
+              .then(() => onCopied('Đã sao chép. Hãy đọc lại trước khi dùng.'))
+              .catch(() => onCopied('Trình duyệt chặn sao chép. Hãy bôi đen để chép.'))
           }
         >
           <Copy size={13} aria-hidden="true" />
-          Copy
+          Sao chép
         </button>
       </div>
     </div>
@@ -360,9 +360,9 @@ function History({
     <section className="history" aria-labelledby="history-heading">
       <h2 id="history-heading">
         <button className="history-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-          Conversation
+          Toàn bộ hội thoại
           <span>
-            {segments.length} {segments.length === 1 ? 'line' : 'lines'}
+            {segments.length} câu
           </span>
         </button>
       </h2>
@@ -372,7 +372,7 @@ function History({
             ref={list}
             className="history-items"
             tabIndex={0}
-            aria-label="Conversation transcript"
+            aria-label="Toàn bộ hội thoại"
             onScroll={(event) => {
               const el = event.currentTarget;
               setFollowing(el.scrollHeight - el.scrollTop - el.clientHeight < 24);
@@ -381,7 +381,8 @@ function History({
             {segments.map((segment) => (
               <li key={segment.id}>
                 <small>
-                  {segment.final ? 'Final' : 'Partial'} · {time(segment.at)} · speaker not identified
+                  {segment.final ? '' : 'Đang nói · '}
+                  {time(segment.at)}
                 </small>
                 <p lang="en">{segment.text}</p>
                 {segment.translation && (
@@ -392,11 +393,11 @@ function History({
                 {segment.final && (
                   <div className="button-row start">
                     <button className="text-button" onClick={() => onUse(segment)}>
-                      Use for reply
+                      Trả lời câu này
                     </button>
                     {!segment.translation && segment.translationState !== 'pending' && (
                       <button className="text-button" disabled={!aiReady} onClick={() => onTranslate(segment)}>
-                        {segment.translationState === 'error' ? 'Retry translation' : 'Translate'}
+                        {segment.translationState === 'error' ? 'Dịch lại' : 'Dịch'}
                       </button>
                     )}
                   </div>
@@ -413,7 +414,7 @@ function History({
               }}
             >
               <ArrowDown size={15} aria-hidden="true" />
-              Jump to latest
+              Xuống câu mới nhất
             </button>
           )}
         </>

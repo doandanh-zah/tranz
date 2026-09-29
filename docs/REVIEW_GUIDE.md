@@ -1,6 +1,6 @@
 # Hướng dẫn cài đặt, chạy và review Tranz MVP
 
-Tài liệu cho người review bản tích hợp (branch `feat/mvp-hardening`, PR #8, xếp chồng trên #1–#7). Đây là **implementation candidate**: các gate live (Agora thật, Google Meet, AI provider thật) chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md).
+Tài liệu cho người review bản tích hợp (branch `feat/simple-vietnamese-ui`, PR #10, xếp chồng trên #9). Đây là **implementation candidate**: Agora thật với giọng nói synthetic và AI provider thật đã được kiểm tra; Google Meet, side panel thật và giá trị sử dụng trong cuộc họp vẫn chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md).
 
 ## 1. Chuẩn bị
 
@@ -17,14 +17,14 @@ npm run setup
 | Biến | Ý nghĩa |
 | --- | --- |
 | `AGORA_APP_ID`, `AGORA_APP_CERTIFICATE` | Bắt buộc để bắt đầu nghe. Nên rotate certificate đã lộ ở Phase 00 trước khi dùng. |
-| `AI_PROVIDER` | Mặc định `chatgpt`: dùng gói ChatGPT qua Codex CLI, đăng nhập bằng nút **Sign in with ChatGPT** trong Settings (xem [provider ChatGPT](evidence/chatgpt-provider.md)). Đặt `openai` để dùng `AI_API_KEY` thay thế. |
+| `AI_PROVIDER` | Mặc định `chatgpt`: dùng gói ChatGPT qua Codex CLI, đăng nhập bằng nút **Đăng nhập ChatGPT** trong checklist hoặc Cài đặt (xem [provider ChatGPT](evidence/chatgpt-provider.md)). Đặt `openai` để dùng `AI_API_KEY` thay thế. |
 | `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` | Chỉ cần khi `AI_PROVIDER=openai`. |
 | `EXTENSION_ID` | ID của extension sau khi load unpacked (bước 3). |
 
 ## 2. Build và chạy backend
 
 ```bash
-npm run verify     # lint, typecheck, 24 test, build
+npm run verify     # lint, typecheck, 31 test, build
 npm run dev        # backend tại http://127.0.0.1:4318
 ```
 
@@ -34,19 +34,19 @@ Backend chỉ bind 127.0.0.1. Dữ liệu mã hóa nằm ở `.tranz-data/` (đ�
 
 1. Mở `chrome://extensions`, bật **Developer mode**, chọn **Load unpacked** → thư mục `dist/extension`.
 2. Copy ID của extension vào `EXTENSION_ID` trong `.env`, dừng rồi chạy lại `npm run dev`.
-3. Sau mỗi lần `npm run build` (hoặc khi đổi `manifest.json`), bấm **Reload** trên trang extensions. Nếu panel chỉ hiện "Loading Tranz…" hoặc thông báo lỗi, đó là dấu hiệu cần Reload.
+3. Sau mỗi lần `npm run build` (hoặc khi đổi `manifest.json`), bấm **Reload** trên trang extensions. Nếu panel chỉ hiện “Đang mở Tranz…” hoặc thông báo lỗi, đó là dấu hiệu cần Reload.
 
 ## 4. Luồng review đề xuất
 
 1. Mở một Google Meet test call. Bấm icon Tranz trên thanh công cụ **khi đang ở tab Meet** (bắt buộc: Chrome chỉ cho capture tab mà extension được gọi).
-2. Side panel mở ra → dán `ACCESS_TOKEN` → Connect. Lần đầu: Settings (bánh răng) → **Sign in with ChatGPT** → đăng nhập trên trang OpenAI vừa mở.
-3. **Context** → tạo profile với dữ liệu synthetic (ví dụ: "Beta ships after QA sign-off; launch date undecided").
-4. **Session** → xem snapshot context, bấm **Check microphone** (nếu side panel không hiện hộp thoại quyền, chọn "Open in a tab instead"), chọn có giữ phiên hay không, tick consent.
-5. **Start listening** → trạng thái `Connecting…` cho tới khi transcriber Agora thật sự vào kênh, rồi `Listening`.
-6. Phát giọng nói synthetic (TTS từ máy khác hoặc file audio tự tạo) trong cuộc gọi. Kiểm tra dòng tiếng Anh, `Hearing…`, bản dịch tiếng Việt.
-7. **Suggest a reply**, các chip Shorter/Simpler/Professional/Clarify, **Catch me up**, composer tiếng Việt.
-8. **Pause** → đọc banner; **Mute** micro; **Resume**; **Stop**.
-9. Xem **Meeting notes** tự tạo; **Keep this session** nếu là phiên tạm; mở lại trong **Library**; **Delete** và xác nhận.
+2. Side panel (tiếng Việt) tự kết nối, không cần dán mã. Làm theo checklist: **Đăng nhập ChatGPT** (trên trang OpenAI), **Cho phép micro**, và mở từ tab Google Meet.
+3. (Không bắt buộc) **Ngữ cảnh** → tạo ngữ cảnh với dữ liệu synthetic (ví dụ: "Beta ships after QA sign-off; launch date undecided").
+4. **Cuộc họp** → mở "Tuỳ chọn cho cuộc họp này" nếu muốn chọn ngữ cảnh hoặc lưu phiên.
+5. **Bắt đầu nghe** → trạng thái **Đang kết nối** cho tới khi bộ chuyển giọng nói Agora thật sự vào kênh, rồi **Đang nghe**.
+6. Phát giọng nói synthetic (TTS từ máy khác hoặc file audio tự tạo) trong cuộc gọi. Kiểm tra dòng tiếng Anh, **Đang nghe…**, bản dịch tiếng Việt.
+7. Thử **Gợi ý câu trả lời**, các nút **Ngắn hơn** / **Dễ nói hơn** / **Chuyên nghiệp hơn** / **Hỏi lại cho rõ**, **Tóm tắt vừa rồi** và ô **Tôi muốn nói…**.
+8. **Tạm dừng** → đọc banner; tắt/bật micro; **Tiếp tục**; **Dừng**.
+9. Xem **Ghi chú cuộc họp** tự tạo; **Lưu phiên này** nếu là phiên tạm; mở lại trong **Đã lưu**; **Xoá** và xác nhận.
 10. Thử lỗi: tắt backend giữa phiên, đóng tab Meet, từ chối quyền micro, xóa `AI_API_KEY`.
 
 Không dùng nội dung cuộc họp thật cho đến khi chính sách lưu giữ của provider được chấp thuận.
@@ -55,7 +55,7 @@ Không dùng nội dung cuộc họp thật cho đến khi chính sách lưu gi�
 
 ```bash
 npm run verify           # lint, typecheck, test, build
-npm run verify:ui        # extension unpacked trong Chromium, AI mock, 43 check
+npm run verify:ui        # extension unpacked trong Chromium, AI mock, 42 check
 npm run verify:capture   # tab capture thật trong Chromium với âm synthetic, 9 check (cửa sổ thu nhỏ, im lặng)
 npm run verify:live      # Agora thật + giọng nói synthetic (say), khoảng 2 phút, tốn phút Agora
 npm run verify:live -- --renewal   # giữ phiên ~11 phút để kiểm tra gia hạn token
@@ -69,12 +69,12 @@ Nếu Playwright báo thiếu trình duyệt, đặt `TRANZ_CHROMIUM` trỏ tớ
 ## 6. Checklist live còn mở (cần bạn thực hiện hoặc cấp điều kiện)
 
 - [x] Agent Agora thật: accepted → join → transcript qua RTM → stop, không còn agent trong kênh — đạt với giọng nói synthetic (`verify:live`).
-- [ ] Mất mạng ngắn → `Reconnecting` → tự phục hồi; mất lâu → dừng với lý do.
+- [ ] Mất mạng ngắn → **Đang kết nối lại** → tự phục hồi; mất lâu → dừng với lý do.
 - [ ] Âm thanh cuộc họp vẫn nghe được trong lúc capture, pause, mute; người khác không nghe thấy gì từ Tranz.
-- [ ] Đóng tab Meet khi đang nghe → phiên dừng với lý do "meeting tab was closed".
+- [ ] Đóng tab Meet khi đang nghe → phiên dừng với lý do **Đã dừng vì tab cuộc họp đã đóng**.
 - [ ] Side panel thật ở các độ rộng 320–600 px (kéo mép panel), zoom 200%, VoiceOver.
 - [ ] Chất lượng/latency dịch và gợi ý với provider thật; chi phí Agora khi agent LLM/TTS vẫn chạy ở chế độ im lặng.
 
 ## 7. Dọn dẹp
 
-Xóa phiên trong UI (Library → Delete). Để xóa toàn bộ dữ liệu cục bộ: dừng backend và xóa thư mục `.tranz-data/`. Xóa cục bộ không thu hồi được dữ liệu đã gửi tới Agora hoặc AI provider.
+Xoá phiên trong giao diện (**Đã lưu** → **Xoá**). Để xoá toàn bộ dữ liệu cục bộ: dừng backend và xoá thư mục `.tranz-data/`. Xoá cục bộ không thu hồi được dữ liệu đã gửi tới Agora hoặc AI provider.

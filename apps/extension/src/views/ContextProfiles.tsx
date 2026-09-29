@@ -7,9 +7,9 @@ import type { Profile, ProfileInput } from '../../../../packages/shared/contract
 const empty: ProfileInput = { name: '', role: '', facts: '', goal: '', glossary: '', tone: 'clear' };
 
 const textFields = [
-  ['facts', 'Verified project facts', 8000, 'What is true? Include constraints and what is still undecided.'],
-  ['goal', 'Meeting goal', 1000, 'What would make this meeting useful?'],
-  ['glossary', 'Words worth knowing', 2000, 'Project terms, names and what they mean.'],
+  ['facts', 'Thông tin chắc chắn về công việc', 8000, 'Điều gì đã chắc chắn? Ghi cả những việc chưa quyết định để Tranz không đoán bừa.'],
+  ['goal', 'Mục tiêu cuộc họp', 1000, 'Bạn muốn cuộc họp đạt được điều gì?'],
+  ['glossary', 'Thuật ngữ, tên riêng', 2000, 'Thuật ngữ dự án, tên người, tên sản phẩm và nghĩa của chúng.'],
 ] as const;
 
 export function ContextProfiles({
@@ -54,25 +54,24 @@ export function ContextProfiles({
   return (
     <>
       <div className="section-heading">
-        <span className="eyebrow">The facts behind your words</span>
-        <h1>Context profiles</h1>
-        <p>Suggestions may only rely on what you write here and on the meeting transcript. Keep facts short and true.</p>
+        <h1>Ngữ cảnh</h1>
+        <p>Không bắt buộc. Ngữ cảnh giúp Tranz gợi ý câu trả lời đúng về công việc của bạn, thay vì đoán. Gợi ý chỉ dựa trên những gì bạn viết ở đây và lời thoại trong cuộc họp.</p>
       </div>
       {editing ? (
         <form className="panel" onSubmit={save} aria-labelledby="profile-form-heading">
           <div className="section-label">
-            <h2 id="profile-form-heading">{editing.id ? 'Edit context' : 'New context'}</h2>
-            <button type="button" className="icon small" aria-label="Cancel editing" onClick={() => setEditing(undefined)}>
+            <h2 id="profile-form-heading">{editing.id ? 'Sửa ngữ cảnh' : 'Ngữ cảnh mới'}</h2>
+            <button type="button" className="icon small" aria-label="Huỷ" onClick={() => setEditing(undefined)}>
               <X size={17} />
             </button>
           </div>
           <label>
-            Profile name
-            <input required maxLength={80} value={editing.value.name} placeholder="e.g. Payments team sync" onChange={(e) => update('name', e.target.value)} />
+            Tên (để bạn dễ chọn)
+            <input required maxLength={80} value={editing.value.name} placeholder="Ví dụ: Họp tuần với team Payments" onChange={(e) => update('name', e.target.value)} />
           </label>
           <label>
-            Your role
-            <input maxLength={160} value={editing.value.role} placeholder="e.g. Backend engineer" onChange={(e) => update('role', e.target.value)} />
+            Vai trò của bạn
+            <input maxLength={160} value={editing.value.role} placeholder="Ví dụ: Backend engineer" onChange={(e) => update('role', e.target.value)} />
           </label>
           {textFields.map(([key, label, max, placeholder]) => (
             <label key={key}>
@@ -84,40 +83,40 @@ export function ContextProfiles({
             </label>
           ))}
           <label>
-            Preferred tone
+            Giọng văn khi gợi ý câu trả lời
             <select value={editing.value.tone} onChange={(e) => update('tone', e.target.value)}>
-              <option value="clear">Clear and natural</option>
-              <option value="professional">Professional</option>
-              <option value="simple">Simple English</option>
+              <option value="clear">Rõ ràng, tự nhiên</option>
+              <option value="professional">Chuyên nghiệp</option>
+              <option value="simple">Tiếng Anh đơn giản</option>
             </select>
           </label>
           <p className="caption">
-            Saved profiles are encrypted on this computer. When a session starts, Tranz copies this profile into the session, and
-            sends it to the AI provider with each suggestion request.
+            Ngữ cảnh được mã hoá trên máy này. Khi bắt đầu cuộc họp, Tranz sao chép ngữ cảnh vào phiên và gửi kèm tới ChatGPT mỗi
+            khi gợi ý câu trả lời.
           </p>
           <button className="primary full" disabled={!!busy}>
             <Check size={17} aria-hidden="true" />
-            {busy === 'profile' ? 'Saving…' : 'Save context'}
+            {busy === 'profile' ? 'Đang lưu…' : 'Lưu ngữ cảnh'}
           </button>
         </form>
       ) : (
         <>
           <button className="secondary full" onClick={() => setEditing({ value: empty })}>
             <Plus size={17} aria-hidden="true" />
-            New context profile
+            Tạo ngữ cảnh mới
           </button>
           {profiles.length ? (
             <ul className="card-list">
               {profiles.map((profile) => (
                 <li className="card" key={profile.id}>
-                  <span className="eyebrow">Version {profile.version}</span>
+                  <span className="eyebrow">Phiên bản {profile.version}</span>
                   <h2>{profile.name}</h2>
-                  <p>{profile.role || 'No role provided'}</p>
+                  <p>{profile.role || 'Chưa ghi vai trò'}</p>
                   <div className="button-row">
                     <button className="text-button" onClick={() => setEditing({ id: profile.id, value: toInput(profile) })}>
-                      Review and edit
+                      Xem và sửa
                     </button>
-                    <button className="icon danger" aria-label={`Delete profile ${profile.name}`} onClick={() => onDelete(profile)}>
+                    <button className="icon danger" aria-label={`Xoá ngữ cảnh ${profile.name}`} onClick={() => onDelete(profile)}>
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -126,8 +125,8 @@ export function ContextProfiles({
             </ul>
           ) : (
             <div className="empty">
-              <h2>No profiles yet</h2>
-              <p>Start with the few facts that matter for your next meeting.</p>
+              <h2>Chưa có ngữ cảnh nào</h2>
+              <p>Bạn vẫn dùng Tranz bình thường khi không có ngữ cảnh. Thêm vài thông tin chính nếu muốn gợi ý sát với công việc hơn.</p>
             </div>
           )}
         </>

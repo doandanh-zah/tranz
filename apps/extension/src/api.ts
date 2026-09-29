@@ -11,6 +11,19 @@ export class ApiError extends Error {
   }
 }
 
+/** Automatic pairing: the backend hands its local access token only to the paired extension origin. */
+export async function pairToken(): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetch(`${BACKEND_ORIGIN}/api/pair`, { signal: AbortSignal.timeout(10000) });
+  } catch {
+    throw new ApiError('Tranz trên máy chưa chạy.', 0);
+  }
+  const data = (await response.json().catch(() => ({}))) as { token?: string; error?: string };
+  if (!response.ok || !data.token) throw new ApiError(data.error ?? 'Không tự kết nối được với Tranz trên máy.', response.status);
+  return data.token;
+}
+
 export class Api {
   constructor(readonly token: string) {}
 
@@ -31,13 +44,13 @@ export class Api {
       if (signal?.aborted) throw error;
       throw new ApiError(
         timeout.aborted
-          ? 'The local backend did not answer in time. Retry.'
-          : 'Cannot reach the Tranz backend at 127.0.0.1:4318. Start it with npm run dev, then retry.',
+          ? 'Tranz trên máy không phản hồi kịp. Vui lòng thử lại.'
+          : 'Tranz trên máy chưa chạy. Mở Terminal ở thư mục Tranz, chạy npm run dev, rồi thử lại.',
         0,
       );
     }
     const data = (await response.json().catch(() => ({}))) as { error?: string };
-    if (!response.ok) throw new ApiError(data.error ?? `Request failed (${response.status}).`, response.status);
+    if (!response.ok) throw new ApiError(data.error ?? `Yêu cầu không thành công (${response.status}).`, response.status);
     return data as T;
   }
 }

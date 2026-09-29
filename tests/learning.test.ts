@@ -59,7 +59,7 @@ test('a failed notes job leaves the session stopped and can be retried', async (
     const failed = (await request('GET', `/api/sessions/${id}`)).body;
     assert.equal(failed.state, 'stopped');
     assert.equal(failed.processing, 'error');
-    assert.match(failed.processingError, /Retry/);
+    assert.match(failed.processingError, /thử lại/);
     fail = false;
     const retried = await request('POST', `/api/sessions/${id}/finalize`);
     assert.equal(retried.body.processing, 'ready');
@@ -148,7 +148,7 @@ test('a notes job interrupted by a restart becomes a retryable error', async () 
   try {
     const session = (await second.request('GET', `/api/sessions/${id}`)).body;
     assert.equal(session.processing, 'error');
-    assert.match(session.processingError, /restart/);
+    assert.match(session.processingError, /khởi động lại/);
     assert.equal(session.segments[0].translationState, undefined);
     assert.equal((await second.request('POST', `/api/sessions/${id}/finalize`)).body.processing, 'ready');
   } finally {
@@ -171,7 +171,7 @@ test('notes require a stopped session, a final transcript and a bounded length',
     await tick();
     const session = (await request('GET', `/api/sessions/${long.id}`)).body;
     assert.equal(session.processing, 'error');
-    assert.match(session.processingError, /too long/);
+    assert.match(session.processingError, /quá dài/);
     assert.equal(calls.length, 0);
   } finally {
     await close();

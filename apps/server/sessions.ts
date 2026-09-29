@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ApiError } from './app';
-import { endReasons, segmentInput, type EndReason, type Session } from '../../packages/shared/contracts';
+import { endReasons, segmentInput, type EndReason, type Profile, type Session } from '../../packages/shared/contracts';
 import { Store, type RecordSession } from './store';
 import type { VoiceProvider } from './agora';
 
@@ -13,6 +13,7 @@ export const MAX_SESSION_DURATION = 3600000;
 export const TEMPORARY_RETENTION = 3600000;
 const MAX_SEGMENTS = 3000;
 const MAX_STORED_SESSIONS = 500;
+const QUICK_MEETING: Profile = { id: '', version: 0, name: 'Cuộc họp nhanh', role: '', facts: '', goal: '', glossary: '', tone: 'clear' };
 
 export function publicSession(s: RecordSession): Session {
   const { id, context, retain, state, startedAt, segments, artifact, processing, processingError, endedReason, error } = s;
@@ -37,7 +38,7 @@ export class Lifecycle {
 
   get(id: string) {
     const session = this.store.sessions.get(id);
-    if (!session) throw new ApiError(404, 'Session not found or deleted.');
+    if (!session) throw new ApiError(404, 'Không tìm thấy phiên, hoặc phiên đã bị xoá.');
     return session;
   }
 
@@ -59,7 +60,7 @@ export class Lifecycle {
     return this.exclusive(id, async () => {
       const s = this.get(id);
       if (s.agentId) return { accepted: true };
-      if (s.state !== 'created') throw new ApiError(409, 'This session cannot restart. Start a new meeting.');
+      if (s.state !== 'created') throw new ApiError(409, 'Không thể bắt đầu lại phiên này. Hãy bắt đầu phiên mới.');
       s.state = 'connecting';
       this.store.save();
       try {
@@ -70,7 +71,7 @@ export class Lifecycle {
         // The provider may have created the agent even though the response was lost.
         await this.voice.cleanupChannel?.(s.channel).catch(() => {});
         s.state = 'error';
-        s.error = 'The Agora transcriber could not be started. Check the provider configuration.';
+        s.error = 'Không khởi động được bộ chuyển giọng nói Agora. Kiểm tra cấu hình Agora.';
         this.store.save();
         throw new ApiError(502, s.error);
       }
@@ -93,7 +94,7 @@ export class Lifecycle {
         for (const listener of this.stoppedListeners) listener(s);
         return publicSession(s);
       } catch {
-        s.error = 'Local capture stopped, but the transcriber may still be running. Press Stop again to retry.';
+        s.error = 'Đã dừng thu âm trên máy, nhưng bộ chuyển giọng nói có thể vẫn đang chạy. Bấm Dừng lần nữa để thử lại.';
         this.store.save();
         throw new ApiError(502, s.error);
       }
@@ -129,16 +130,17 @@ export function sessionRoutes(app: FastifyInstance, life: Lifecycle) {
   );
 
   app.post('/api/sessions', async (req) => {
-    const body = z.object({ id: z.string().uuid(), profileId: z.string().uuid(), retain: z.boolean() }).parse(req.body);
+    const body = z.object({ id: z.string().uuid(), profileId: z.string().uuid().optional(), retain: z.boolean() }).parse(req.body);
     if (store.sessions.has(body.id)) return publicSession(life.get(body.id));
     if ([...store.sessions.values()].some((s) => s.state !== 'stopped')) {
-      throw new ApiError(409, 'Stop the existing session before starting another.');
+      throw new ApiError(409, 'Hãy dừng phiên đang chạy trước khi bắt đầu phiên mới.');
     }
     if (store.sessions.size >= MAX_STORED_SESSIONS) {
-      throw new ApiError(409, 'Too many saved sessions. Delete some from the Library first.');
+      throw new ApiError(409, 'Có quá nhiều phiên đã lưu. Hãy xoá bớt trong mục Đã lưu.');
     }
-    const profile = store.profiles.get(body.profileId);
-    if (!profile) throw new ApiError(404, 'Context profile not found.');
+    // Context is optional: without one the session uses an empty "quick meeting" snapshot.
+    const profile = body.profileId ? store.profiles.get(body.profileId) : QUICK_MEETING;
+    if (!profile) throw new ApiError(404, 'Không tìm thấy ngữ cảnh đã chọn.');
     const session: RecordSession = {
       id: body.id,
       context: structuredClone(profile),
@@ -161,7 +163,7 @@ export function sessionRoutes(app: FastifyInstance, life: Lifecycle) {
 
   app.post('/api/sessions/:id/credentials', async (req) => {
     const s = life.get(id(req.params));
-    if (ended(s)) throw new ApiError(409, 'Session is not active.');
+    if (ended(s)) throw new ApiError(409, 'Phiên không còn hoạt động.');
     s.lastSeen = Date.now();
     return life.voice.credentials(s);
   });
@@ -173,7 +175,7 @@ export function sessionRoutes(app: FastifyInstance, life: Lifecycle) {
   app.post('/api/sessions/:id/heartbeat', async (req) => {
     const s = life.get(id(req.params));
     const { state } = z.object({ state: z.enum(liveStates) }).parse(req.body);
-    if (ended(s)) throw new ApiError(409, 'Session ended.');
+    if (ended(s)) throw new ApiError(409, 'Phiên đã kết thúc.');
     s.lastSeen = Date.now();
     s.state = state;
     return { ok: true };
@@ -182,7 +184,7 @@ export function sessionRoutes(app: FastifyInstance, life: Lifecycle) {
   // Paused and reconnecting sessions still accept lines that were finalised before the gate closed.
   app.put('/api/sessions/:id/segments', async (req) => {
     const s = life.get(id(req.params));
-    if (!(liveStates as readonly string[]).includes(s.state)) throw new ApiError(409, 'Session is not listening.');
+    if (!(liveStates as readonly string[]).includes(s.state)) throw new ApiError(409, 'Phiên không còn đang nghe.');
     const input = z.array(segmentInput).max(100).parse(req.body);
     let dropped = 0;
     for (const item of input) {
@@ -195,7 +197,7 @@ export function sessionRoutes(app: FastifyInstance, life: Lifecycle) {
       } else if (s.segments.length < MAX_SEGMENTS) s.segments.push(item);
       else dropped++;
     }
-    if (dropped) s.error = `Transcript limit of ${MAX_SEGMENTS} lines reached; newer lines are not kept.`;
+    if (dropped) s.error = `Đã đạt giới hạn ${MAX_SEGMENTS} câu; các câu mới sẽ không được lưu.`;
     s.lastSeen = Date.now();
     store.save();
     return { ok: true, dropped };

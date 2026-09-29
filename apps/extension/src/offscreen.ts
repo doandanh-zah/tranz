@@ -22,11 +22,11 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
       case 'status':
         return runtime.status();
       default:
-        throw new Error('Unknown audio command.');
+        throw new Error('Tranz nhận được lệnh âm thanh không hợp lệ.');
     }
   })()
     .then(respond)
     // Runtime errors are written for the user (see describeStartFailure); nothing sensitive is included.
-    .catch((error) => respond({ error: error instanceof Error && error.message ? error.message : 'The audio session failed.' }));
+    .catch((error) => respond({ error: error instanceof Error && error.message ? error.message : 'Phiên nghe gặp lỗi.' }));
   return true;
 });

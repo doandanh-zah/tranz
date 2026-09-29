@@ -9,7 +9,7 @@ export class Capture {
  private paused=false;
  private muted=false;
  async start(streamId:string,onEnded:()=>void){
-  if(this.context)throw new Error('Capture is already active.');
+  if(this.context)throw new Error('Tranz đang nghe một cuộc họp khác. Hãy dừng phiên đó trước.');
   try{
    this.tab=await navigator.mediaDevices.getUserMedia({audio:{mandatory:{chromeMediaSource:'tab',chromeMediaSourceId:streamId}} as MediaTrackConstraints,video:false});
    this.mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});

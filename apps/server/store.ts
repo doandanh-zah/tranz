@@ -15,7 +15,7 @@ export class Store {
    for(const p of db.profiles)this.profiles.set(p.id,p);
    for(const s of db.sessions){
     // Work in flight when the process died cannot complete; surface it as retryable instead of stuck.
-    if(s.processing==='processing'){if(s.artifact)s.processing='ready';else{s.processing='error';s.processingError='Notes were interrupted by a backend restart. Retry.';}}
+    if(s.processing==='processing'){if(s.artifact)s.processing='ready';else{s.processing='error';s.processingError='Việc tạo ghi chú bị gián đoạn do Tranz khởi động lại. Hãy thử lại.';}}
     for(const segment of s.segments)if(segment.translationState==='pending')segment.translationState=undefined;
     this.sessions.set(s.id,s);
    }

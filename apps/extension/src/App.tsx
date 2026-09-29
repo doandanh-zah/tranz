@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AudioLines, Settings as SettingsIcon } from 'lucide-react';
-import { Api, ApiError } from './api';
+import { Api, ApiError, pairToken } from './api';
 import { errorMessage, isExtension, readToken, sendCommand, writeToken, type CaptureStatus } from './platform';
 import { Banner, ConfirmDialog, Spinner } from './components';
 import { Connect } from './views/Connect';
-import { Prepare } from './views/Prepare';
+import { Home } from './views/Home';
 import { Live } from './views/Live';
 import { ContextProfiles } from './views/ContextProfiles';
 import { Library } from './views/Library';
@@ -14,7 +14,8 @@ import './style.css';
 
 export type Capabilities = { agora: boolean; ai: boolean; model: string; provider: 'chatgpt' | 'openai' };
 type View = 'meeting' | 'context' | 'library' | 'settings';
-type Connection = 'loading' | 'signed-out' | 'offline' | 'ready';
+/** `manual` is only for the developer preview page; the extension pairs automatically. */
+type Connection = 'loading' | 'manual' | 'offline' | 'problem' | 'ready';
 type Deletion = { kind: 'session' | 'profile'; id: string; name: string };
 /** Runs a user action, reporting failures in the shared error banner. Returns false on failure. */
 export type Run = (name: string, job: () => Promise<void>) => Promise<boolean>;
@@ -37,20 +38,22 @@ export function App() {
   const [muted, setMuted] = useState(false);
   const [deletion, setDeletion] = useState<Deletion>();
   const [editRequest, setEditRequest] = useState<{ profile?: Profile; nonce: number }>();
+  const [problem, setProblem] = useState('');
 
   const api = useMemo(() => new Api(token), [token]);
   const sessionId = useRef<string | undefined>(undefined);
   sessionId.current = session?.id;
   const active = isActive(session);
 
+  const reconnect = useRef<() => void>(() => {});
+  /** The saved token stopped working (e.g. the backend's .env changed): pair again, or ask in the preview. */
   const signOut = useCallback((message: string) => {
     setToken('');
-    setConnection('signed-out');
     setSession(undefined);
     setProfiles([]);
     setLibrary([]);
     setError(message);
-    void writeToken('');
+    void writeToken('').then(() => (isExtension ? reconnect.current() : setConnection('manual')));
   }, []);
 
   const run: Run = useCallback(
@@ -62,7 +65,7 @@ export function App() {
         return true;
       } catch (caught) {
         if (caught instanceof ApiError && caught.status === 401) {
-          signOut('Your pairing expired. Paste the local access token again.');
+          signOut('Kết nối với Tranz trên máy đã hết hạn. Đang kết nối lại…');
         } else {
           setError(errorMessage(caught));
         }
@@ -81,7 +84,7 @@ export function App() {
       client.call<Capabilities>('/status'),
     ]);
     setProfiles(nextProfiles);
-    setProfileId((old) => (nextProfiles.some((p) => p.id === old) ? old : (nextProfiles[0]?.id ?? '')));
+    setProfileId((old) => (nextProfiles.some((p) => p.id === old) ? old : ''));
     setLibrary(sessions);
     setCapabilities(status);
     // Re-attach to a session still running in the background (e.g. after the panel was closed).
@@ -92,12 +95,13 @@ export function App() {
         const runtime = await sendCommand<CaptureStatus>('status').catch(() => undefined);
         setMuted(!!runtime?.muted);
         if (runtime && !runtime.active && ongoing.state !== 'created') {
-          setError('The backend still lists a running session, but no audio capture is active in this browser. Press Stop to end it.');
+          setError('Tranz vẫn ghi nhận một phiên đang chạy, nhưng trình duyệt này không còn nghe. Bấm Dừng để kết thúc phiên đó.');
         }
       }
     }
   }, []);
 
+  /** Returns 'rejected' when the backend refused the token, so the caller can pair again. */
   const connectWith = useCallback(
     async (candidate: string) => {
       try {
@@ -106,21 +110,48 @@ export function App() {
         setToken(candidate);
         setConnection('ready');
         setError('');
+        return 'ok';
       } catch (caught) {
         if (caught instanceof ApiError && caught.status === 0) {
-          setToken(candidate);
           setConnection('offline');
-        } else {
-          signOut(caught instanceof ApiError && caught.status === 401 ? 'That access token was not accepted.' : errorMessage(caught));
+          return 'offline';
         }
+        if (caught instanceof ApiError && caught.status === 401) return 'rejected';
+        setProblem(errorMessage(caught));
+        setConnection('problem');
+        return 'problem';
       }
     },
-    [load, signOut],
+    [load],
   );
 
-  useEffect(() => {
-    void readToken().then((saved) => (saved ? connectWith(saved) : setConnection('signed-out')));
+  const connect = useCallback(async () => {
+    setConnection('loading');
+    const saved = await readToken();
+    if (saved && (await connectWith(saved)) !== 'rejected') return;
+    await writeToken('');
+    if (!isExtension) {
+      setConnection('manual');
+      return;
+    }
+    try {
+      if ((await connectWith(await pairToken())) === 'rejected') {
+        setProblem('Tranz trên máy từ chối kết nối. Hãy khởi động lại Tranz rồi thử lại.');
+        setConnection('problem');
+      }
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.status === 0) setConnection('offline');
+      else {
+        setProblem(errorMessage(caught));
+        setConnection('problem');
+      }
+    }
   }, [connectWith]);
+  reconnect.current = () => void connect();
+
+  useEffect(() => {
+    void connect();
+  }, [connect]);
 
   // Poll the backend for transcript/processing updates. The last good snapshot stays visible on failure.
   const shouldPoll = !!token && !!session && (active || session.processing === 'processing');
@@ -139,9 +170,9 @@ export function App() {
           if (controller.signal.aborted) return;
           if (caught instanceof ApiError && caught.status === 404) {
             setSession(undefined);
-            setNotice('This session no longer exists on the backend.');
+            setNotice('Phiên này không còn trên Tranz trên máy.');
           } else if (caught instanceof ApiError && caught.status === 401) {
-            signOut('Your pairing expired. Paste the local access token again.');
+            signOut('Kết nối với Tranz trên máy đã hết hạn. Đang kết nối lại…');
           } else {
             setBackendLost(true);
           }
@@ -213,9 +244,8 @@ export function App() {
 
   async function start(retain: boolean) {
     await run('start', async () => {
-      if (!profileId) throw new Error('Choose a context profile first.');
       const id = crypto.randomUUID();
-      setSession(await api.call<Session>('/sessions', 'POST', { id, profileId, retain }));
+      setSession(await api.call<Session>('/sessions', 'POST', { id, profileId: profileId || undefined, retain }));
       setMuted(false);
       try {
         await sendCommand('start', { id, token });
@@ -240,7 +270,7 @@ export function App() {
       setSession(await api.call<Session>(`/sessions/${id}/stop`, 'POST'));
       if (localFailure) {
         throw new Error(
-          `The provider session stopped, but Tranz could not confirm local audio capture was released (${localFailure}). Close the meeting tab to be sure.`,
+          `Đã dừng phiên, nhưng Tranz chưa xác nhận được việc tắt thu âm trên máy (${localFailure}). Hãy đóng tab cuộc họp cho chắc chắn.`,
         );
       }
     });
@@ -277,18 +307,18 @@ export function App() {
       }
     });
     setDeletion(undefined);
-    if (ok) setNotice(target.kind === 'profile' ? 'Context profile deleted.' : 'Session deleted from this computer.');
+    if (ok) setNotice(target.kind === 'profile' ? 'Đã xoá ngữ cảnh.' : 'Đã xoá phiên khỏi máy này.');
   }
 
   const saveProfile = (profile: Profile) => {
     setProfiles((old) => [...old.filter((p) => p.id !== profile.id), profile].sort((a, b) => a.name.localeCompare(b.name)));
     setProfileId(profile.id);
-    setNotice('Context saved. Running and past sessions keep the snapshot they started with.');
+    setNotice('Đã lưu ngữ cảnh. Các phiên đã bắt đầu vẫn giữ bản ngữ cảnh lúc bắt đầu.');
   };
 
   const openSession = (next: Session) => {
     if (active && session?.id !== next.id) {
-      setError('Stop the current session before opening another.');
+      setError('Hãy dừng phiên đang chạy trước khi mở phiên khác.');
       return;
     }
     setSession(next);
@@ -300,7 +330,7 @@ export function App() {
   return (
     <div className="app">
       <header className="masthead">
-        <button className="wordmark" onClick={() => go('meeting')} aria-label="Tranz, go to session">
+        <button className="wordmark" onClick={() => go('meeting')} aria-label="Tranz, về màn hình cuộc họp">
           <span className="mark" aria-hidden="true">
             <AudioLines size={18} />
           </span>
@@ -308,22 +338,22 @@ export function App() {
         </button>
         {session && signedIn && view !== 'meeting' && active && (
           <button className="text-button live-link" onClick={() => go('meeting')}>
-            Back to live session
+            Quay lại cuộc họp
           </button>
         )}
         {signedIn && (
-          <button className="icon" aria-label="Settings" aria-current={view === 'settings' ? 'page' : undefined} onClick={() => go('settings')}>
+          <button className="icon" aria-label="Cài đặt" title="Cài đặt" aria-current={view === 'settings' ? 'page' : undefined} onClick={() => go('settings')}>
             <SettingsIcon size={18} />
           </button>
         )}
       </header>
       {signedIn && (
-        <nav className="tabs" aria-label="Main">
+        <nav className="tabs" aria-label="Điều hướng chính">
           {(
             [
-              ['meeting', 'Session'],
-              ['context', 'Context'],
-              ['library', 'Library'],
+              ['meeting', 'Cuộc họp'],
+              ['context', 'Ngữ cảnh'],
+              ['library', 'Đã lưu'],
             ] as const
           ).map(([key, label]) => (
             <button key={key} aria-current={view === key ? 'page' : undefined} onClick={() => go(key)}>
@@ -345,21 +375,26 @@ export function App() {
         )}
         {backendLost && signedIn && (
           <Banner tone="error">
-            Lost contact with the local backend. Showing the last update; Tranz keeps retrying. Audio capture, if running, is not
-            stopped by this message.
+            Mất kết nối với Tranz trên máy. Đang hiển thị cập nhật cuối cùng và tự thử lại. Việc nghe (nếu đang chạy) không bị
+            dừng bởi thông báo này.
           </Banner>
         )}
         {connection === 'loading' ? (
           <div className="empty" aria-busy="true">
             <Spinner />
-            <h2>Connecting to your local backend…</h2>
+            <h2>Đang kết nối…</h2>
           </div>
         ) : !signedIn ? (
           <Connect
-            offline={connection === 'offline'}
+            mode={connection === 'offline' ? 'offline' : connection === 'problem' ? 'problem' : 'manual'}
+            problem={problem}
             busy={busy === 'connect'}
-            onConnect={(candidate) => run('connect', () => connectWith(candidate))}
-            onRetry={() => run('connect', () => connectWith(token))}
+            onConnect={(candidate) =>
+              run('connect', async () => {
+                if ((await connectWith(candidate)) === 'rejected') throw new Error('Mã truy cập không đúng.');
+              })
+            }
+            onRetry={() => run('connect', connect)}
           />
         ) : view === 'meeting' ? (
           session ? (
@@ -381,15 +416,17 @@ export function App() {
               onUpdate={(next) => setSession((current) => (current?.id === next.id ? next : current))}
             />
           ) : (
-            <Prepare
+            <Home
+              api={api}
               profiles={profiles}
               profileId={profileId}
               onSelect={setProfileId}
               capabilities={capabilities}
               busy={busy}
               onStart={start}
-              onEditProfile={(profile) => {
-                setEditRequest({ profile, nonce: Date.now() });
+              onCapabilitiesChanged={() => void load(api)}
+              onNewProfile={() => {
+                setEditRequest({ nonce: Date.now() });
                 setView('context');
               }}
             />
@@ -420,9 +457,8 @@ export function App() {
             run={run}
             onRefresh={async () => {
               await load(api);
-              setNotice('Configuration refreshed.');
+              setNotice('Đã cập nhật trạng thái.');
             }}
-            onDisconnect={() => signOut('')}
           />
         )}
       </main>
@@ -430,24 +466,25 @@ export function App() {
         <span>
           TR<span className="accent">/</span>NZ
         </span>
-        <span>{isExtension ? 'Local workspace' : 'Management preview'} · 0.1</span>
+        <span>{isExtension ? 'Chạy trên máy của bạn' : 'Bản xem thử giao diện'} · 0.1</span>
       </footer>
       {deletion && (
         <ConfirmDialog
-          title={deletion.kind === 'profile' ? `Delete the profile “${deletion.name}”?` : `Delete the session “${deletion.name}”?`}
+          title={deletion.kind === 'profile' ? `Xoá ngữ cảnh “${deletion.name}”?` : `Xoá phiên “${deletion.name}”?`}
           description={
             deletion.kind === 'profile' ? (
               <p>
-                This removes the reusable profile from this computer. Sessions that already started keep their own snapshot of it;
-                delete those sessions to remove their copies.
+                Ngữ cảnh này sẽ bị xoá khỏi máy. Các phiên đã dùng nó vẫn giữ bản sao riêng; muốn xoá hết thì xoá cả các phiên
+                đó.
               </p>
             ) : (
               <p>
-                This removes the transcript, translations, context snapshot and any notes for this session from this computer. It cannot be undone, and it cannot recall text already processed by Agora or the AI provider.
+                Bản ghi hội thoại, bản dịch, ngữ cảnh và ghi chú của phiên này sẽ bị xoá khỏi máy và không khôi phục được. Việc này không
+                thu hồi được dữ liệu Agora hoặc ChatGPT đã xử lý.
               </p>
             )
           }
-          confirmLabel={deletion.kind === 'profile' ? 'Delete profile' : 'Delete session'}
+          confirmLabel={deletion.kind === 'profile' ? 'Xoá ngữ cảnh' : 'Xoá phiên'}
           busy={busy === 'delete'}
           onConfirm={() => void confirmDeletion()}
           onCancel={() => setDeletion(undefined)}

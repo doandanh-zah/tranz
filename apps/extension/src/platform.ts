@@ -12,12 +12,12 @@ export async function writeToken(token: string) {
   else sessionStorage.setItem('tranz-token', token);
 }
 
-export type CaptureCommand = 'start' | 'pause' | 'mute' | 'stop' | 'status';
+export type CaptureCommand = 'start' | 'pause' | 'mute' | 'stop' | 'status' | 'meeting';
 export type CaptureStatus = { active: boolean; paused: boolean; muted: boolean };
 
 export async function sendCommand<T = { ok: true }>(type: CaptureCommand, extra: Record<string, unknown> = {}) {
   if (!isExtension) {
-    throw new Error('Audio capture runs only in the Chrome extension. Load the unpacked build to start.');
+    throw new Error('Chỉ nghe được cuộc họp khi mở Tranz từ extension trong Chrome.');
   }
   const result = await chrome.runtime.sendMessage({ target: 'worker', type, ...extra });
   if (result?.error) throw new Error(result.error);
@@ -46,5 +46,5 @@ export function openSetupTab() {
 }
 
 export function errorMessage(error: unknown) {
-  return error instanceof Error && error.message ? error.message : 'The operation failed. Try again.';
+  return error instanceof Error && error.message ? error.message : 'Thao tác không thành công. Hãy thử lại.';
 }

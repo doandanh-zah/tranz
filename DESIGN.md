@@ -49,7 +49,7 @@ The interface is not a transcript dashboard. Its primary job is to reduce the us
 ### Purposeful visual language
 
 - Favor calm density, sharp hierarchy, and restrained accents.
-- Avoid decorative gradients, glass effects, oversized headings, and animation that competes with the meeting.
+- Use translucent material only to clarify navigation, controls, status and grouping; avoid decorative glass layers, oversized headings, and animation that competes with the meeting.
 - Every color, icon, badge, and motion must communicate state or action.
 
 ## Core experience flows
@@ -175,14 +175,16 @@ Loading states must preserve the last reliable content when safe. Error states m
 
 ## Visual system direction
 
-The final tokens are intentionally deferred to Phase 02. The initial direction is:
+The visual system follows an iOS-inspired liquid-glass direction requested in the first user review, while preserving the calm meeting-copilot goal:
 
-- a neutral, low-distraction foundation;
+- a softly tinted, low-distraction foundation with restrained green and blue ambient color;
+- translucent surfaces with blur, a light inner highlight, a hairline border and shallow depth for navigation, controls and grouped content;
 - one restrained accent for primary actions and live state;
 - semantic colors reserved for success, warning, error, and privacy states;
-- highly readable sans-serif typography with a distinct treatment for transcript content;
+- the local Apple system font stack, with a distinct treatment for transcript content and no external font dependency;
 - an 8 px spacing rhythm with optical exceptions documented in the design system;
-- compact radii and borders that clarify grouping without turning every element into a card.
+- 14–24 px radii that reflect the surface hierarchy rather than turning every row into a separate card;
+- an opaque high-contrast fallback when blur is unsupported or the user requests increased contrast.
 
 Color alone must never carry status. Icons require labels or accessible names.
 
@@ -271,3 +273,22 @@ Implementation status: rendered in the unpacked build with a mock AI provider; r
 - Settings shows **Sign in with ChatGPT** when the ChatGPT-plan provider is active. It opens OpenAI's own sign-in page in a new tab; the panel waits (up to five minutes) and then shows the account and plan, with a sign-out action.
 - The panel says that requests take several seconds and count toward the plan's Codex limits. Translation shows `Translating… (can take several seconds)` and arrives in batches.
 - Wherever AI is unavailable, copy points to Settings instead of mentioning API keys.
+
+## Simplified Vietnamese interface (implemented after user feedback, 2026-09-29)
+
+The first user review found the English, multi-step interface hard to use. The panel now:
+
+- is written in Vietnamese (`lang="vi"`); transcript lines, suggested replies and practice phrases stay in English because they are the meeting's language;
+- connects to the local backend automatically; the only sign-in a person sees is ChatGPT;
+- opens on **Sẵn sàng cho cuộc họp**: a three-step checklist (Đăng nhập ChatGPT, Cho phép micro, Mở cuộc họp Google Meet) that collapses to “Mọi thứ đã sẵn sàng”, then one large **Bắt đầu nghe** button;
+- treats pressing **Bắt đầu nghe** as the explicit consent, with the data-flow disclosure always visible directly under the button (never collapsed, because the button press is the consent) (the separate consent checkbox was removed);
+- makes context optional (“Không dùng — Cuộc họp nhanh”) and moves context choice and keeping the session into a collapsed “Tuỳ chọn cho cuộc họp này”;
+- names live actions plainly: Tạm dừng/Tiếp tục, Dừng, Gợi ý câu trả lời, Tóm tắt vừa rồi, “Tôi muốn nói…”, Trả lời câu này; shows times in 24-hour Vietnamese format;
+- puts backend and provider details under a collapsed “Thông tin kỹ thuật” in Cài đặt.
+
+## Liquid-glass refinement (implemented after user feedback, 2026-09-30)
+
+- The header and three destinations are combined visually into a quiet glass dock; the live controls remain in document flow so they never cover transcript content while scrolling.
+- The home screen uses one product symbol, one short promise, one compact setup card and one primary start action. Technical Agora configuration stays in a collapsed disclosure; the short data-flow disclosure under the start button stays visible because pressing the button is the consent (PR-004).
+- Glass is a material cue, not decoration: content surfaces keep readable light fills, semantic states keep text labels, and the interface has reduced-motion, increased-contrast and no-backdrop-filter fallbacks.
+- The responsive harness renders the unpacked extension at 320, 360, 400, 480 and 600 px; real side-panel, screen-reader and live-meeting validation remain pending.

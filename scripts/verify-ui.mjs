@@ -23,7 +23,8 @@ const dataDir = mkdtempSync(join(tmpdir(), 'tranz-ui-'));
 const profileDir = mkdtempSync(join(tmpdir(), 'tranz-chromium-'));
 const results = [];
 // Matches VITE_TRANZ_BACKEND in build:verify, so a backend the person runs on 4318 is left alone.
-const PORT = 4328;
+// Override both together (TRANZ_VERIFY_PORT + a build with that backend) when 4328 is already in use.
+const PORT = Number(process.env.TRANZ_VERIFY_PORT ?? 4328);
 const backendApi = `http://127.0.0.1:${PORT}/api`;
 
 // Chrome derives an unpacked extension's ID from the SHA-256 of its absolute path.
@@ -147,70 +148,52 @@ async function main() {
     page.on('pageerror', (error) => consoleErrors.push(String(error)));
     const panel = `chrome-extension://${extensionId}/index.html`;
 
-    // The static "Loading Tranz…" fallback must be replaced by the app, never left blank.
-    await page.setViewportSize({ width: 360, height: 760 });
+    // Opening the panel pairs automatically: no token or password field appears.
+    await page.setViewportSize({ width: 360, height: 900 });
     await page.goto(panel);
-    await page.getByRole('heading', { name: 'Connect to Tranz' }).waitFor();
-    check('panel renders the app instead of the loading fallback', !(await page.locator('#root').textContent()).includes('Loading Tranz'));
-
-    // Signed out
-    for (const width of widths) {
-      await page.setViewportSize({ width, height: 760 });
-      await page.goto(panel);
-      await page.getByRole('heading', { name: 'Connect to Tranz' }).waitFor();
-      check(`signed-out view has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
-      await shoot(page, `01-connect-${width}`);
-    }
-
-    // Wrong token is rejected with a visible error
-    await page.setViewportSize({ width: 360, height: 760 });
-    await page.getByLabel('Local access token').fill('x'.repeat(40));
-    await page.getByRole('button', { name: 'Connect workspace' }).click();
-    await page.getByRole('alert').waitFor();
-    check('invalid token shows an error', (await page.getByRole('alert').textContent()).includes('not accepted'));
-
-    await page.getByLabel('Local access token').fill(token);
-    await page.getByRole('button', { name: 'Connect workspace' }).click();
-    await page.getByRole('heading', { name: 'Prepare your meeting' }).waitFor();
-    check('valid token opens the prepare view', true);
+    await page.getByRole('heading', { name: 'Sẵn sàng cho cuộc họp' }).waitFor();
+    check('the panel connects by itself, with no access-token step', (await page.locator('input[type=password]').count()) === 0);
+    check('panel renders the app instead of the loading fallback', !(await page.locator('#root').textContent()).includes('Đang mở Tranz'));
     check(
-      'start is blocked without a profile, Agora credentials or consent',
-      (await page.getByRole('button', { name: 'Start listening' }).isDisabled()) &&
-        (await page.locator('#start-blockers li').count()) >= 3,
+      'home shows a three-step checklist and one start button',
+      (await page.locator('.checklist li').count()) === 3 && (await page.getByRole('button', { name: 'Bắt đầu nghe' }).count()) === 1,
     );
-    await shoot(page, '02-prepare-empty-360');
-
-    // Create a profile through the real form
-    await page.getByRole('button', { name: 'Create a context profile' }).click();
-    await page.getByLabel('Profile name').fill('Synthetic sprint sync');
-    await page.getByLabel('Your role').fill('Backend engineer (synthetic)');
-    await page.getByLabel('Verified project facts').fill('Synthetic fact: the beta ships after QA sign-off. Launch date is undecided.');
-    await page.getByLabel('Meeting goal').fill('Agree on the next test milestone.');
-    await shoot(page, '03-profile-form-360');
-    await page.getByRole('button', { name: 'Save context' }).click();
-    await page.getByText('Context saved').waitFor();
-    check('profile is created through the form', (await page.getByRole('heading', { name: 'Synthetic sprint sync' }).count()) === 1);
-
-    await page.getByRole('button', { name: 'Session', exact: true }).click();
-    await page.getByText('Review the exact context').click();
-    await page.getByLabel(/I’m ready to share meeting audio/).check();
+    check(
+      'start stays disabled until AI, microphone and Google Meet are ready, and missing Agora is explained',
+      (await page.getByRole('button', { name: 'Bắt đầu nghe' }).isDisabled()) && (await page.getByText(/thiếu cấu hình Agora/).count()) === 1,
+    );
+    check(
+      'the data-flow disclosure is visible under the start button, not collapsed',
+      await page.locator('.start-zone .consent').isVisible(),
+    );
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
-      check(`prepare view has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
-      await shoot(page, `04-prepare-${width}`);
+      check(`home has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
+      await shoot(page, `01-home-${width}`);
     }
-    check(
-      'start stays disabled when Agora credentials are missing',
-      (await page.getByRole('button', { name: 'Start listening' }).isDisabled()) &&
-        (await page.locator('#start-blockers').textContent()).includes('Agora credentials'),
-    );
 
-    // Keyboard order on the prepare view
+    // Optional context, created through the real form
     await page.setViewportSize({ width: 360, height: 900 });
-    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Ngữ cảnh', exact: true }).click();
+    await page.getByRole('button', { name: 'Tạo ngữ cảnh mới' }).click();
+    await page.getByLabel('Tên (để bạn dễ chọn)').fill('Synthetic sprint sync');
+    await page.getByLabel('Vai trò của bạn').fill('Backend engineer (synthetic)');
+    await page.getByLabel('Thông tin chắc chắn về công việc').fill('Synthetic fact: the beta ships after QA sign-off. Launch date is undecided.');
+    await page.getByLabel('Mục tiêu cuộc họp').fill('Agree on the next test milestone.');
+    await shoot(page, '03-context-form-360');
+    await page.getByRole('button', { name: 'Lưu ngữ cảnh' }).click();
+    await page.getByText('Đã lưu ngữ cảnh').waitFor();
+    check('context is created through the form', (await page.getByRole('heading', { name: 'Synthetic sprint sync' }).count()) === 1);
+
+    await page.getByRole('button', { name: 'Cuộc họp', exact: true }).click();
+    await page.getByText('Tuỳ chọn cho cuộc họp này').click();
+    check('the optional context can be picked under options', (await page.locator('select option', { hasText: 'Synthetic sprint sync' }).count()) === 1);
+    await shoot(page, '04-home-options-360');
+
+    // Keyboard order on the home view
     await page.locator('body').click({ position: { x: 1, y: 1 } });
     const order = [];
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
       await page.keyboard.press('Tab');
       order.push(
         await page.evaluate(() => {
@@ -220,11 +203,11 @@ async function main() {
         }),
       );
     }
-    writeFileSync(join(out, 'keyboard-order-prepare.txt'), order.join('\n'));
+    writeFileSync(join(out, 'keyboard-order-home.txt'), order.join('\n'));
     check('keyboard focus reaches controls with a visible outline', order.every((item) => item.includes('outline=solid')), `${order.length} stops`);
 
-    await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('heading', { name: 'Connection and privacy' }).waitFor();
+    await page.getByRole('button', { name: 'Cài đặt', exact: true }).click();
+    await page.getByRole('heading', { name: 'Cài đặt', exact: true }).waitFor();
     await shoot(page, '05-settings-360');
 
     // Simulated live session: synthetic segments posted straight to the API (no audio, no Agora).
@@ -247,28 +230,28 @@ async function main() {
       ],
     );
     await page.goto(panel);
-    await page.getByText('In the meeting').waitFor();
+    await page.getByText('Trong cuộc họp').waitFor();
     await page.getByText('[MOCK] Bản dịch mô phỏng: Can you share').waitFor({ timeout: 15000 });
-    check('final segments are translated one by one and linked to their source (mock provider)', true);
-    check('partial text is shown separately from final text', (await page.getByText('Hearing…').count()) === 1);
-    check('detected question is labelled as a guess', (await page.getByText('Detected question (automatic guess)').count()) === 1);
-    await page.getByRole('button', { name: 'Suggest a reply' }).click();
+    check('final lines are translated (batched) and linked to their source (mock provider)', true);
+    check('partial text is shown separately from final text', (await page.getByText('Đang nghe…', { exact: true }).count()) === 1);
+    check('the detected question is labelled as a guess', (await page.getByText('Câu hỏi Tranz đoán được').count()) === 1);
+    await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
     await page.getByText('[MOCK] Based on our plan').waitFor();
-    check('reply suggestion shows provenance and a verify warning', (await page.getByText(/AI suggestion — verify before using/).count()) === 1);
-    await page.getByRole('button', { name: 'Conversation' }).click();
+    check('a reply suggestion shows its sources and a check-before-use note', (await page.getByText(/Gợi ý của AI, hãy kiểm tra/).count()) === 1);
+    await page.getByRole('button', { name: /Toàn bộ hội thoại/ }).click();
     for (const width of widths) {
       await page.setViewportSize({ width, height: 1100 });
       check(`simulated live view has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
       await shoot(page, `06-live-simulated-${width}`);
     }
     await page.setViewportSize({ width: 360, height: 1100 });
-    await page.getByRole('button', { name: /Catch me up/ }).click();
+    await page.getByRole('button', { name: 'Tóm tắt vừa rồi' }).click();
     await page.getByText('[MOCK] Mọi người').waitFor();
-    await page.getByText('Think in Vietnamese, reply in English').click();
-    await page.getByLabel('Your draft in Vietnamese').fill('Tôi cần thêm thời gian để xác nhận.');
-    await page.getByRole('button', { name: 'Find the English wording' }).click();
+    await page.getByText('Tôi muốn nói…').click();
+    await page.getByLabel('Điều bạn muốn nói, bằng tiếng Việt').fill('Tôi cần thêm thời gian để xác nhận.');
+    await page.getByRole('button', { name: 'Chuyển sang tiếng Anh' }).click();
     await page.getByText('[MOCK] I need a little more time').waitFor();
-    check('catch-up and Vietnamese composer round-trip through the backend (mock provider)', true);
+    check('catch-up and the Vietnamese composer round-trip through the backend (mock provider)', true);
     await shoot(page, '07-composer-360');
 
     // Reduced motion removes the live pulse
@@ -283,14 +266,14 @@ async function main() {
     check('200% root text size keeps the live view free of horizontal overflow at 400px', await noHorizontalOverflow(page));
     await shoot(page, '08-live-text-200-400');
     await page.reload();
-    await page.getByText('In the meeting').waitFor();
+    await page.getByText('Trong cuộc họp').waitFor();
 
     clearInterval(heartbeat);
     await api('POST', `/sessions/${sessionId}/stop`);
     await page.getByText('[MOCK] Tóm tắt mô phỏng').waitFor({ timeout: 15000 });
-    check('stopping triggers notes in the background and the panel shows them (mock provider)', true);
-    check('kept session states its retention', (await page.getByRole('heading', { name: /Kept on this computer/ }).count()) === 1);
-    check('improved replies are labelled as illustrative', (await page.getByText(/not a record of what anyone said/).count()) === 1);
+    check('stopping creates notes in the background and the panel shows them (mock provider)', true);
+    check('a kept session states its retention', (await page.getByRole('heading', { name: /Đã lưu trên máy này/ }).count()) === 1);
+    check('practice phrases are labelled as not what anyone said', (await page.getByText(/không phải lời ai đã nói/).count()) === 1);
     for (const width of [320, 600]) {
       await page.setViewportSize({ width, height: 1400 });
       check(`after-meeting notes have no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
@@ -298,14 +281,14 @@ async function main() {
     }
     await page.setViewportSize({ width: 360, height: 1100 });
 
-    await page.getByRole('button', { name: 'Library', exact: true }).click();
-    check('library lists the kept session', (await page.getByRole('heading', { name: 'Synthetic sprint sync' }).count()) === 1);
+    await page.getByRole('button', { name: 'Đã lưu', exact: true }).click();
+    check('the saved list shows the kept session', (await page.getByRole('heading', { name: 'Synthetic sprint sync' }).count()) === 1);
     await shoot(page, '12-library-360');
-    await page.getByRole('button', { name: 'Open session' }).click();
-    await page.getByRole('heading', { name: /Kept on this computer/ }).waitFor();
+    await page.getByRole('button', { name: 'Mở lại' }).click();
+    await page.getByRole('heading', { name: /Đã lưu trên máy này/ }).waitFor();
 
     // Delete dialog: focus moves in, Escape cancels, focus returns
-    const trigger = page.getByRole('button', { name: 'Delete this session' });
+    const trigger = page.getByRole('button', { name: 'Xoá phiên này' });
     await trigger.focus();
     await trigger.press('Enter');
     const dialog = page.getByRole('dialog');
@@ -315,61 +298,61 @@ async function main() {
     await page.keyboard.press('Escape');
     await dialog.waitFor({ state: 'detached' });
     const restored = await page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
-    check('delete dialog takes focus, closes on Escape and restores focus', focusInside && restored === 'Delete this session', `restored=${restored}`);
+    check('the delete dialog takes focus, closes on Escape and restores focus', focusInside && restored === 'Xoá phiên này', `restored=${restored}`);
 
     await trigger.click();
-    await page.getByRole('button', { name: 'Delete session' }).click();
-    await page.getByText('Session deleted from this computer').waitFor();
+    await page.getByRole('button', { name: 'Xoá phiên', exact: true }).click();
+    await page.getByText('Đã xoá phiên khỏi máy này').waitFor();
     const gone = await fetch(`${backendApi}/sessions/${sessionId}`, { headers: { authorization: `Bearer ${token}` } });
     check('confirmed deletion removes the session from the backend', gone.status === 404);
 
-    // Temporary session: held in memory only until the user presses Keep in the panel.
+    // Temporary session: held in memory only until the user presses Save in the panel.
     const temporaryId = randomUUID();
-    await api('POST', '/sessions', { id: temporaryId, profileId: profiles[0].id, retain: false });
+    await api('POST', '/sessions', { id: temporaryId, retain: false });
     await api('POST', `/sessions/${temporaryId}/heartbeat`, { state: 'listening' });
     await api('PUT', `/sessions/${temporaryId}/segments`, [{ id: 't-1', text: 'Synthetic temporary line.', final: true, revision: 1, at: Date.now() }]);
     await page.reload();
-    await page.getByText('In the meeting').waitFor();
+    await page.getByText('Trong cuộc họp').waitFor();
+    check('a session without context runs as "Cuộc họp nhanh"', (await page.getByText(/Cuộc họp nhanh/).count()) >= 1);
     await api('POST', `/sessions/${temporaryId}/stop`, { reason: 'tab-closed' });
-    await page.getByRole('heading', { name: /Temporary session/ }).waitFor({ timeout: 10000 });
-    check('an automatic stop explains why it happened', (await page.getByText('Stopped because the meeting tab was closed.').count()) === 1);
+    await page.getByRole('heading', { name: /Phiên tạm thời/ }).waitFor({ timeout: 10000 });
+    check('an automatic stop explains why it happened', (await page.getByText('Đã dừng vì tab cuộc họp bị đóng.').count()) === 1);
     const listedBefore = (await api('GET', '/sessions')).some((s) => s.id === temporaryId);
     await shoot(page, '13-temporary-360');
-    await page.getByRole('button', { name: 'Keep this session' }).click();
-    await page.getByRole('heading', { name: /Kept on this computer/ }).waitFor();
+    await page.getByRole('button', { name: 'Lưu phiên này' }).click();
+    await page.getByRole('heading', { name: /Đã lưu trên máy này/ }).waitFor();
     const listedAfter = (await api('GET', '/sessions')).some((s) => s.id === temporaryId && s.retain);
-    check('a stopped temporary session is not listed until the user keeps it from the panel', !listedBefore && listedAfter);
+    check('a stopped temporary session is not listed until the user saves it from the panel', !listedBefore && listedAfter);
+    await page.getByRole('button', { name: 'Cuộc họp mới' }).click();
 
     // Backend offline
     backend.kill('SIGTERM');
     await new Promise((r) => setTimeout(r, 500));
     await page.reload();
-    await page.getByRole('heading', { name: /cannot reach your local backend/ }).waitFor();
-    check('backend offline shows a recovery screen', true);
+    await page.getByRole('heading', { name: 'Tranz trên máy chưa chạy' }).waitFor();
+    check('backend offline shows plain recovery steps', (await page.getByText('npm run dev').count()) === 1);
     await shoot(page, '10-backend-offline-360');
 
-    // ChatGPT provider with the synthetic Codex stand-in. The OpenAI page is intercepted locally,
-    // so nothing is sent to OpenAI.
+    // ChatGPT provider with the synthetic Codex stand-in, signed in from the home checklist. The
+    // OpenAI page is intercepted locally, so nothing is sent to OpenAI.
     await context.route('https://auth.openai.com/**', (route) =>
       route.fulfill({ contentType: 'text/html', body: '<title>Synthetic sign-in</title>Synthetic OpenAI sign-in page (test)' }),
     );
     await startBackend({ AI_PROVIDER: 'chatgpt', AI_API_KEY: '', CODEX_BIN: resolve('tests/fixtures/fake-codex.mjs'), FAKE_CODEX_SIGNED_IN: '0' });
-    await page.reload();
-    await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Sign in with ChatGPT' }).waitFor();
-    check('ChatGPT provider without sign-in offers "Sign in with ChatGPT"', true);
-    await shoot(page, '14-chatgpt-signin-360');
+    await page.getByRole('button', { name: 'Thử lại' }).click();
+    await page.getByRole('button', { name: 'Đăng nhập ChatGPT' }).waitFor();
+    check('the checklist offers "Đăng nhập ChatGPT" when not signed in', true);
+    await shoot(page, '14-chatgpt-checklist-360');
     const opened = context.waitForEvent('page');
-    await page.getByRole('button', { name: 'Sign in with ChatGPT' }).click();
+    await page.getByRole('button', { name: 'Đăng nhập ChatGPT' }).click();
     const authPage = await opened;
-    await page.getByText('Signed in', { exact: true }).waitFor({ timeout: 15000 });
-    check(
-      'sign-in opens the OpenAI page in a new tab and the panel then shows the signed-in plan',
-      authPage.url().startsWith('https://auth.openai.com/') && (await page.getByText(/· plus/).count()) > 0,
-      authPage.url().split('?')[0],
-    );
+    await page.getByText(/Đã đăng nhập: synthetic@example.test/).waitFor({ timeout: 15000 });
+    check('sign-in opens the OpenAI page in a new tab and the checklist marks it done', authPage.url().startsWith('https://auth.openai.com/'), authPage.url().split('?')[0]);
     await authPage.close();
-    await shoot(page, '15-chatgpt-signed-in-360');
+    await page.getByRole('button', { name: 'Cài đặt', exact: true }).click();
+    await page.getByText(/· plus/).waitFor();
+    check('settings shows the signed-in ChatGPT plan', true);
+    await shoot(page, '15-chatgpt-settings-360');
 
     check('no script errors on extension pages', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));
   } finally {
