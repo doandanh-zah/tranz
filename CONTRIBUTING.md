@@ -19,13 +19,18 @@ Read [BACKLOG.md](BACKLOG.md) for context only. A backlog item is not permission
 
 ## Current repository setup
 
-At version `0.1.0`, the tracked repository contains product and engineering documentation only. Application scaffolding, package-manager commands, and local runtime setup will be defined in Phase 02.
+The repository contains a TypeScript npm workspace: the Chrome extension (`apps/extension`), the local backend (`apps/server`), shared contracts (`packages/shared`), tests (`tests`) and verification scripts (`scripts`).
 
-Current prerequisites:
+Prerequisites: Git, GitHub CLI, Node.js 22.12+, npm and Chrome 116+.
 
-- Git;
-- GitHub CLI for repository and pull-request operations;
-- a Markdown-capable editor.
+```bash
+npm ci
+npm run setup     # private .env with generated ACCESS_TOKEN and DATA_KEY; never commit it
+npm run verify    # lint, typecheck, unit/integration tests, build
+npm run dev       # backend on 127.0.0.1:4318 (reads .env)
+```
+
+Browser checks: `npm run verify:ui` and `npm run verify:capture` load the built extension in Playwright Chromium (set `TRANZ_CHROMIUM` to a Chrome for Testing binary if the bundled one is missing). `npm run eval:grounding` calls the real configured AI provider with synthetic cases and costs a few requests.
 
 The ignored local `agora-baseline/` directory is reference evidence from Phase 00. Do not modify, copy wholesale, track, or push it without explicit approval.
 
@@ -67,7 +72,7 @@ git diff --check
 git status --short
 ```
 
-Also check local Markdown links, terminology, accidental secrets, and tracked files. Application-specific lint, typecheck, tests, builds, extension loading, browser behavior, audio behavior, and live Agora checks will be added when those components exist.
+Also check local Markdown links, terminology, accidental secrets, and tracked files. For code changes run `npm run verify`; for UI, capture or lifecycle changes also run the browser scripts above and state which live checks (real Agora, Google Meet, provider) were not performed.
 
 Do not claim a check passed unless it was actually run against the current change.
 

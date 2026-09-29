@@ -1,0 +1,50 @@
+{
+  "at": "2026-09-29T09:28:44.567Z",
+  "results": [
+    {
+      "name": "tab audio and microphone are both acquired",
+      "pass": true,
+      "detail": "{\"tabTracks\":1,\"micTracks\":1}"
+    },
+    {
+      "name": "outgoing mix carries audio while listening",
+      "pass": true,
+      "detail": "0.4974"
+    },
+    {
+      "name": "pause sends silence (tab and microphone gated)",
+      "pass": true,
+      "detail": "0.00000"
+    },
+    {
+      "name": "resume restores the outgoing mix",
+      "pass": true,
+      "detail": "0.4986"
+    },
+    {
+      "name": "with the tab silent, the synthetic microphone reaches the mix",
+      "pass": true,
+      "detail": "0.46028"
+    },
+    {
+      "name": "mute removes the microphone from the mix",
+      "pass": true,
+      "detail": "0.00000"
+    },
+    {
+      "name": "mute keeps meeting-tab audio flowing",
+      "pass": true,
+      "detail": "0.1838"
+    },
+    {
+      "name": "stop ends every source track and the outgoing track",
+      "pass": true,
+      "detail": "{\"sourcesEnded\":true,\"outputEnded\":true,\"endedCallbacks\":0}"
+    },
+    {
+      "name": "microphone denial after tab capture releases the tab track (simulated denial)",
+      "pass": true,
+      "detail": "{\"rejected\":true,\"name\":\"NotAllowedError\",\"tabReleased\":true}"
+    }
+  ]
+}

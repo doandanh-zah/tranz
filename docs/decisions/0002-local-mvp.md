@@ -21,3 +21,16 @@ Revisit: hosted beta, multiple users/processes, real-media evidence of dropped s
 - Deletion removes the session record including snapshot, transcript, translations and notes. Late provider completions check session identity and are discarded, so deleted data is not recreated.
 - A job interrupted by a restart is restored as a retryable error (or `ready` if its artifact was already saved). Shutdown does not start new notes jobs.
 - Deletion is local only; it cannot recall data already processed by Agora or the AI provider.
+
+## Phase 08 addendum — runtime hardening (2026-09-29)
+
+- Pausing no longer ends the session: the backend accepts transcript lines while `paused` or `reconnecting`, and the runtime keeps transient upload/heartbeat failures for retry instead of stopping. It stops only when the backend says the session is over, or after about 60 seconds of failed heartbeats.
+- RTC `RECONNECTING` and RTM `CONNECTING`/`SUSPENDED`/`DISCONNECTED` gate outgoing audio (`reconnecting`); recovery resumes automatically unless the user paused. RTC `DISCONNECTED` and RTM `FAILED` stop the session. Previously a successful RTC reconnect stopped the session and RTM state was not observed.
+- Only ASR module errors from the agent stop the session. LLM/TTS errors from the passive agent are ignored because Tranz does not use its replies.
+- Every stop records an `endedReason` (first reason wins) that the panel explains. The watchdog records `inactive` (no heartbeat for 75 s) or `time-limit` (one hour).
+- The worker closes the offscreen document after every stop, which guarantees capture tracks are released even if the runtime misbehaves. It returns specific, user-written error messages.
+- If an agent start request fails, the backend lists agents in the session channel and stops any still running (best effort, same app-credential auth the SDK uses for `stopAgent`). Not yet exercised against live Agora.
+- AI provider errors are classified (key/model 503, rate limit 429, timeout 504, provider or format failure 502) without echoing provider bodies or keys.
+- Stored sessions are capped at 500 and transcript lines at 3,000 per session, with the limit reported.
+
+Revisit additionally if live Agora shows transcript loss while the agent LLM/TTS runs, if `agents.list` auth differs from `stopAgent`, or if the offscreen bundle size (about 2.9 MB, loaded locally only when a session starts) measurably delays start.

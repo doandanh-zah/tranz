@@ -42,10 +42,11 @@ Only work inside the phase explicitly approved by the user.
 
 ## Current repository state
 
-- Version `0.1.0` is a product-definition and technical-baseline milestone.
-- The Agora Conversational AI baseline is proven end to end.
-- Tranz application code has not been scaffolded.
-- The current product architecture includes validated facts, proposed MVP boundaries, and long-term hypotheses. Keep these labels distinct.
+- Version `0.1.0`; no newer version is tagged or released.
+- The Agora Conversational AI baseline is proven end to end (Phase 00).
+- A local, single-owner MVP (Phases 02–08) is implemented on stacked, unmerged pull requests: MV3 extension in `apps/extension`, loopback Fastify backend in `apps/server`, shared contracts in `packages/shared`.
+- It is tested with automated tests, the unpacked build rendered in Chromium with a mock AI provider, and real Chromium tab capture with synthetic audio. Real Agora sessions, Google Meet playback, the real side-panel frame and real AI provider quality are **not** yet proven.
+- Keep validated facts, implemented-and-tested behaviour, and unproven or long-term hypotheses distinct.
 
 ## Agora baseline boundary
 

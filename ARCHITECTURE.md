@@ -5,7 +5,8 @@
 This document deliberately separates three levels of certainty:
 
 - **Validated:** observed in a real working baseline.
-- **Proposed:** the current MVP design, still requiring implementation and verification.
+- **Implemented and tested:** built in this repository and covered by automated or browser checks, but not yet proven in a live meeting with real providers.
+- **Proposed:** the MVP design direction, still requiring implementation or verification.
 - **Long-term:** a direction that must not constrain the MVP prematurely.
 
 Agents and contributors must preserve these labels when updating the architecture.
@@ -34,7 +35,40 @@ Validated limitations and observations:
 
 See [ADR 0001](docs/decisions/0001-agora-convoai-baseline.md) for evidence.
 
+## Implemented local MVP (2026-09-29)
+
+Status: **implemented and tested**, not validated live. Decisions are recorded in [ADR 0002](docs/decisions/0002-local-mvp.md); evidence in [docs/evidence](docs/evidence/).
+
+```text
+Google Meet tab ──tabCapture stream ID──► service worker ──► offscreen document
+                                                               │ Capture: tab + mic mix,
+                                                               │ tab re-routed to speakers,
+                                                               │ gain gates for pause/mute
+                                                               ▼
+                                          Runtime: Agora RTC publish (never subscribes),
+                                          RTM transcript → segments (revisioned)
+                                                               │ HTTP + bearer token
+Side panel (React) ◄──── polling ────► Fastify backend on 127.0.0.1:4318
+                                          ├─ sessions: lifecycle, heartbeat watchdog, end reasons
+                                          ├─ agora: scoped RTC/RTM tokens (10 min), agent start/stop/cleanup
+                                          ├─ translation / assistance / notes via OpenAI-compatible API
+                                          └─ encrypted local JSON store (AES-256-GCM, single process)
+```
+
+| Area | Implemented | Evidence level | Not yet proven |
+| --- | --- | --- | --- |
+| Pairing and auth | Random local bearer token, exact extension origin, rate limit, loopback bind | Automated tests; unpacked build | Hosted identity (out of scope) |
+| Capture | Tab + mic mix, pause/mute gates, stop releases tracks, offscreen closed after stop | Real Chromium tab capture with a synthetic tone and synthetic mic | Google Meet, audible playback, device changes |
+| Agora lifecycle | Server-owned channel/UID, 10-minute tokens with renewal, wait for agent join, RTC/RTM degraded gate, watchdog, orphan cleanup after lost start | Automated tests with a mock provider | Any real Agora session, renewal, silent-agent cost |
+| Translation | Final lines only, revision-linked, stale results rejected | Tests; mock provider in browser | Real quality and latency |
+| Assistance | Reply, catch-up, composer; evidence filtered; clarification fallback | Tests incl. prompt injection as data; mock in browser | Real grounding accuracy (`npm run eval:grounding`) |
+| Notes and retention | Background notes after stop, keep/delete, restart recovery | Tests; mock in browser | Real note quality; chunking over 60,000 characters |
+
+Trust boundaries in the implementation: provider secrets and the App Certificate exist only in the backend `.env`; the browser receives a pairing token (kept in `chrome.storage.session`) and 10-minute Agora tokens; transcript and profile text go to Agora and the configured AI provider only for the features the user triggers or opts into; raw audio is never written anywhere by Tranz.
+
 ## Proposed MVP system
+
+The diagram and responsibilities below are the original design direction. Where the implemented local MVP above differs (no hosted identity, local encrypted file instead of a database, polling instead of push), the implementation section is authoritative for current behaviour.
 
 ```text
 ┌──────────────────────── Chrome ────────────────────────┐
@@ -283,6 +317,8 @@ Long-term evolution may introduce:
 These are directions, not current commitments. The MVP should remain a modular monolith unless measured needs justify separation.
 
 ## Open technical decisions
+
+Partly answered by the implementation: the MVP mixes tab and microphone audio (no labelling); translates final text only; triggers suggestions by user action; stores data in an encrypted single-process file; pairs the extension with a local token; and reattaches the side panel to the running offscreen runtime. Each remains open for the hosted product.
 
 - Can tab audio and microphone audio be published separately and labeled reliably?
 - Does the preferred Agora path support silent operation without wasting TTS work?
