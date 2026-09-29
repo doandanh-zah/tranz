@@ -115,7 +115,8 @@ export function Prepare({
           <span>
             I’m ready to share meeting audio
             <small>
-              Tab and microphone audio go to Agora for speech-to-text. Transcript text and this context go to the configured AI
+              Tab and microphone audio go to Agora for speech-to-text. Agora’s pipeline also runs its language model on the
+              transcript; Tranz ignores and never plays those replies. Transcript text and this context go to the configured AI
               provider. Tell participants before you start.
             </small>
           </span>

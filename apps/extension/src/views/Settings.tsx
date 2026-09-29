@@ -45,6 +45,10 @@ export function SettingsView({
         </h2>
         <ul className="plain">
           <li>Raw audio is never saved by Tranz.</li>
+          <li>
+            Agora’s managed pipeline runs a language model on the transcript even though Tranz never uses or plays its replies.
+            That processing is billed to your Agora project.
+          </li>
           <li>Profiles and sessions you choose to keep are encrypted on this computer.</li>
           <li>Temporary sessions live in backend memory and are discarded after one hour or on restart.</li>
           <li>Deleting removes Tranz’s local copy only. It cannot recall data already processed by Agora or the AI provider.</li>
