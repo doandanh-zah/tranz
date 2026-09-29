@@ -197,6 +197,7 @@ These are working choices for the local MVP, to be revisited with measured use:
 - Notes are created automatically once after a session stops (when AI is configured); stopping never waits for them.
 - Nothing is retained unless the user opts in before start or presses `Keep this session` afterwards.
 - The transcript mixes tab and microphone audio; speakers are never identified.
+- AI runs on the user's ChatGPT plan by default (sign-in, no API key), accepting multi-second latency ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md)).
 
 ## Open product decisions
 

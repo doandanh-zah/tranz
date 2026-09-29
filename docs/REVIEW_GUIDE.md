@@ -4,7 +4,7 @@ Tài liệu cho người review bản tích hợp (branch `feat/mvp-hardening`, 
 
 ## 1. Chuẩn bị
 
-Yêu cầu: macOS/Linux, Node.js 22.12+, npm, Chrome 116+.
+Yêu cầu: macOS/Linux, Node.js 22.12+, npm, Chrome 116+, Codex CLI (`codex --version`) cho provider ChatGPT.
 
 ```bash
 git switch feat/mvp-hardening
@@ -17,7 +17,8 @@ npm run setup
 | Biến | Ý nghĩa |
 | --- | --- |
 | `AGORA_APP_ID`, `AGORA_APP_CERTIFICATE` | Bắt buộc để bắt đầu nghe. Nên rotate certificate đã lộ ở Phase 00 trước khi dùng. |
-| `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` | Provider OpenAI-compatible, cần hỗ trợ `response_format: json_object`. Thiếu key thì transcript vẫn chạy, dịch/gợi ý/notes báo "cần API key". |
+| `AI_PROVIDER` | Mặc định `chatgpt`: dùng gói ChatGPT qua Codex CLI, đăng nhập bằng nút **Sign in with ChatGPT** trong Settings (xem [provider ChatGPT](evidence/chatgpt-provider.md)). Đặt `openai` để dùng `AI_API_KEY` thay thế. |
+| `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` | Chỉ cần khi `AI_PROVIDER=openai`. |
 | `EXTENSION_ID` | ID của extension sau khi load unpacked (bước 3). |
 
 ## 2. Build và chạy backend
@@ -38,7 +39,7 @@ Backend chỉ bind 127.0.0.1. Dữ liệu mã hóa nằm ở `.tranz-data/` (đ�
 ## 4. Luồng review đề xuất
 
 1. Mở một Google Meet test call. Bấm icon Tranz trên thanh công cụ **khi đang ở tab Meet** (bắt buộc: Chrome chỉ cho capture tab mà extension được gọi).
-2. Side panel mở ra → dán `ACCESS_TOKEN` → Connect.
+2. Side panel mở ra → dán `ACCESS_TOKEN` → Connect. Lần đầu: Settings (bánh răng) → **Sign in with ChatGPT** → đăng nhập trên trang OpenAI vừa mở.
 3. **Context** → tạo profile với dữ liệu synthetic (ví dụ: "Beta ships after QA sign-off; launch date undecided").
 4. **Session** → xem snapshot context, bấm **Check microphone** (nếu side panel không hiện hộp thoại quyền, chọn "Open in a tab instead"), chọn có giữ phiên hay không, tick consent.
 5. **Start listening** → trạng thái `Connecting…` cho tới khi transcriber Agora thật sự vào kênh, rồi `Listening`.
@@ -58,7 +59,7 @@ npm run verify:ui        # extension unpacked trong Chromium, AI mock, 43 check
 npm run verify:capture   # tab capture thật trong Chromium với âm synthetic, 9 check (cửa sổ thu nhỏ, im lặng)
 npm run verify:live      # Agora thật + giọng nói synthetic (say), khoảng 2 phút, tốn phút Agora
 npm run verify:live -- --renewal   # giữ phiên ~11 phút để kiểm tra gia hạn token
-npm run eval:grounding   # gọi AI provider thật với 6 tình huống synthetic (tốn vài request)
+npm run eval:grounding   # gọi AI provider thật (mặc định gói ChatGPT) với 6 tình huống synthetic, tốn vài lượt
 ```
 
 Các lệnh kiểm tra build vào `artifacts/verify-build` và **không** ghi đè `dist/extension` bạn đang load. `verify:capture` và `verify:live` cần mở cửa sổ Chrome for Testing (headless không capture được âm thanh tab): cửa sổ được thu nhỏ ngay và trang có dòng chữ "Tranz automated test page" — có thể bỏ qua, nó tự đóng.

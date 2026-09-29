@@ -40,22 +40,23 @@ Three levels of certainty are kept apart:
 | **Validated baseline** | The official Agora Conversational AI quickstart ran end to end on 2026-09-28 (RTC, RTM, live transcript, TTS). See [ADR 0001](docs/decisions/0001-agora-convoai-baseline.md). |
 | **Implemented and tested** | A local, single-owner MVP: Chrome MV3 extension + loopback Fastify backend. Automated tests, the unpacked extension rendered in Chromium at 320–600 px with a mock AI provider and simulated transcript, and real Chromium tab capture with a synthetic tone. See [docs/evidence](docs/evidence/). |
 | **Live, synthetic speech** | The real Tranz runtime against the configured Agora project with macOS-generated speech played in a real tab: agent join, transcript over RTM, pause/resume, token renewal past 10 minutes, stop and cleanup (`npm run verify:live`). |
-| **Not yet proven** | Google Meet capture with audible playback, the real side-panel frame, real network-loss recovery, and real AI provider quality and latency (no AI key configured). |
+| **Live, ChatGPT plan** | Translation, grounded replies, catch-up and composer through the user's ChatGPT Plus plan via the official Codex runtime (`npm run eval:grounding`, 6/6 synthetic cases, 5–13 s per request). |
+| **Not yet proven** | Google Meet capture with audible playback, the real side-panel frame, real network-loss recovery, and in-meeting usefulness of multi-second AI latency. |
 
 Because the live gates are open, this is an **implementation candidate**, not a completed MVP.
 
 ## Run it locally
 
-Requirements: Node.js 22.12+, npm, Chrome 116+.
+Requirements: Node.js 22.12+, npm, Chrome 116+, and the [Codex CLI](https://github.com/openai/codex) for the default ChatGPT-plan AI provider.
 
 ```bash
 npm ci
-npm run setup      # creates a private .env with ACCESS_TOKEN and DATA_KEY; fill in provider values yourself
+npm run setup      # creates a private .env with ACCESS_TOKEN and DATA_KEY; add Agora values yourself
 npm run build      # builds dist/extension and dist/server
 npm run dev        # starts the backend on 127.0.0.1:4318
 ```
 
-Load `dist/extension` with **chrome://extensions → Developer mode → Load unpacked**, copy the extension ID into `EXTENSION_ID` in `.env`, restart the backend, open Google Meet, click the Tranz toolbar icon and paste `ACCESS_TOKEN`. The Vietnamese review guide is [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
+Load `dist/extension` with **chrome://extensions → Developer mode → Load unpacked**, copy the extension ID into `EXTENSION_ID` in `.env`, restart the backend, open Google Meet, click the Tranz toolbar icon and paste `ACCESS_TOKEN`. In Settings, press **Sign in with ChatGPT** to use your ChatGPT plan for AI ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md)); set `AI_PROVIDER=openai` and `AI_API_KEY` to use an API key instead. The Vietnamese review guide is [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
 
 Checks: `npm run verify` (lint, typecheck, tests, build into `artifacts/verify-build`), `npm run verify:ui`, `npm run verify:capture`, `npm run verify:live` (real Agora, synthetic speech) and, with an AI key, `npm run eval:grounding`. Only `npm run build` writes `dist/`; press Reload in `chrome://extensions` afterwards.
 
@@ -74,6 +75,7 @@ Checks: `npm run verify` (lint, typecheck, tests, build into `artifacts/verify-b
 | [AGENTS.md](AGENTS.md) | Mandatory operating instructions for coding agents |
 | [ADR 0001](docs/decisions/0001-agora-convoai-baseline.md) | Agora baseline evidence and carried-forward constraints |
 | [ADR 0002](docs/decisions/0002-local-mvp.md) | Local MVP stack, storage, retention and runtime decisions |
+| [ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md) | ChatGPT subscription (Codex) as the default AI provider |
 | [Evidence](docs/evidence/) | Per-phase verification records and the MVP acceptance matrix (Vietnamese) |
 
 ## MVP boundaries

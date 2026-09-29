@@ -265,3 +265,9 @@ Implementation status: rendered in the unpacked build with a mock AI provider; r
 - While the real-time connection recovers, audio sending is gated and the status reads `Reconnecting`; it resumes automatically unless the user paused.
 - When the panel reopens during a session it reads pause/mute state from the audio runtime, and warns if the backend lists a session that has no capture running in this browser.
 - In a stopped session, untranslated lines offer `Translate` instead of implying a pending job.
+
+## ChatGPT sign-in (implemented, ADR 0003)
+
+- Settings shows **Sign in with ChatGPT** when the ChatGPT-plan provider is active. It opens OpenAI's own sign-in page in a new tab; the panel waits (up to five minutes) and then shows the account and plan, with a sign-out action.
+- The panel says that requests take several seconds and count toward the plan's Codex limits. Translation shows `Translating… (can take several seconds)` and arrives in batches.
+- Wherever AI is unavailable, copy points to Settings instead of mentioning API keys.
