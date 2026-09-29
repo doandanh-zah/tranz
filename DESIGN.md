@@ -239,3 +239,16 @@ Future experiences may include reusable context libraries, learning progress, sp
 ## MVP capture controls
 
 Microphone mute disables microphone samples sent to Agora; it does not mute the meeting application. Pause disables both tab and microphone samples sent to Agora while preserving meeting playback. The browser capture handle stays open to allow resume; the UI must disclose that the provider session remains connected and may incur charges. Stop releases all local capture tracks immediately and requests remote cleanup. No captured audio is buffered for later upload while paused.
+
+## MVP assistance behaviour (implemented in Phase 06)
+
+Implementation status: rendered in the unpacked extension build with a mock AI provider and simulated transcript. Real provider quality, latency and live-meeting usefulness are not yet validated.
+
+- Suggestions are user-triggered only. Tranz never requests a reply automatically, which bounds cost and distraction; revisit after measured use.
+- Question detection is a heuristic over the last five final lines (a trailing question mark or an interrogative first word). It is labelled `Detected question (automatic guess)`; the user can pick any final line with `Use for reply`.
+- The live view shows the latest final English line with its linked Vietnamese translation. In-progress text appears separately as `Hearing…` and is never translated. Final lines are translated one at a time.
+- Each result states whether it cites the user's context, transcript lines, both or nothing, and always says `verify before using`. Cited sources are expandable. A valid citation does not prove the answer is correct.
+- A reply that cites no known source is replaced with a clarification request and marked uncertain.
+- `Catch me up` explains recent speech in Vietnamese. The composer rewrites a Vietnamese draft as spoken English without adding facts.
+- Transcript history keeps the reader's position and offers `Jump to latest`; every line says the speaker is not identified.
+- Deletion uses a native modal dialog: focus moves into it, Escape cancels, and focus returns to the control that opened it.

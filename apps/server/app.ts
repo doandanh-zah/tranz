@@ -5,6 +5,7 @@ import { timingSafeEqual,createHash } from 'node:crypto';
 import { ZodError } from 'zod';
 import { textAI, type TextAI } from './ai';
 import { translationRoutes } from './translation';
+import { assistanceRoutes } from './assistance';
 import { Store } from './store';
 import { agoraProvider, type VoiceProvider } from './agora';
 import { Lifecycle, sessionRoutes } from './sessions';
@@ -32,6 +33,8 @@ export async function createApp(config:Config,voice?:VoiceProvider,ai?:TextAI){
  const store=new Store(config.DATA_DIR,config.DATA_KEY);
  const life=new Lifecycle(store,voice??agoraProvider(config));
  sessionRoutes(app,life);
- translationRoutes(app,life,ai??textAI(config));
+ const assistant=ai??textAI(config);
+ translationRoutes(app,life,assistant);
+ assistanceRoutes(app,life,assistant);
  return app;
 }

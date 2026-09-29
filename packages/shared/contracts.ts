@@ -5,7 +5,18 @@ export type Profile = ProfileInput & {id:string;version:number};
 export const segmentInput = z.object({id:z.string().min(1).max(120),text:z.string().min(1).max(4000),final:z.boolean(),revision:z.number().int().min(1),at:z.number().nonnegative()});
 export type Segment = z.infer<typeof segmentInput> & {translation?:string;translationState?:'pending'|'ready'|'error'};
 export type SessionState = 'created'|'connecting'|'listening'|'paused'|'reconnecting'|'stopping'|'stopped'|'error';
-export type Suggestion = {text:string;evidence:string[];uncertain:boolean};
+export const assistKinds = ['reply', 'catch-up', 'compose'] as const;
+export type AssistKind = (typeof assistKinds)[number];
+export const replyStyles = ['clear', 'shorter', 'simple', 'professional', 'clarify'] as const;
+export type ReplyStyle = (typeof replyStyles)[number];
+export const assistInput = z.object({
+  kind: z.enum(assistKinds),
+  text: z.string().max(2000).default(''),
+  style: z.enum(replyStyles).default('clear'),
+});
+export type AssistInput = z.input<typeof assistInput>;
+/** `evidence` holds transcript segment IDs or "profile"; valid IDs do not prove the text is correct. */
+export type Suggestion = {kind:AssistKind;text:string;evidence:string[];uncertain:boolean;question?:string};
 export type Artifact = {summary:string;decisions:string[];actions:string[];improvedReplies:string[];vocabulary:{phrase:string;meaning:string;example:string}[]};
 export type Session = {id:string;context:Profile;retain:boolean;state:SessionState;startedAt:number;segments:Segment[];artifact?:Artifact;processing:'idle'|'processing'|'ready'|'error';error?:string};
 export type Credentials = {appId:string;channel:string;uid:number;agentUid:number;rtcToken:string;rtmToken:string;expiresAt:number};
