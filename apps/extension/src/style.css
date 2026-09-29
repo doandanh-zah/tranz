@@ -1014,3 +1014,48 @@ summary {
     --line: #8b968a;
   }
 }
+
+/* After the meeting */
+.notes .summary {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.notes ul,
+.vocabulary {
+  font-size: 14px;
+}
+
+.notes ul {
+  padding-left: 18px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.notes .banner {
+  display: block;
+}
+
+.vocabulary {
+  margin: 0;
+}
+
+.vocabulary > div {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.vocabulary dt {
+  font-weight: 650;
+}
+
+.vocabulary dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.divider {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}

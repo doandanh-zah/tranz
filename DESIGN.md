@@ -252,3 +252,11 @@ Implementation status: rendered in the unpacked extension build with a mock AI p
 - `Catch me up` explains recent speech in Vietnamese. The composer rewrites a Vietnamese draft as spoken English without adding facts.
 - Transcript history keeps the reader's position and offers `Jump to latest`; every line says the speaker is not identified.
 - Deletion uses a native modal dialog: focus moves into it, Escape cancels, and focus returns to the control that opened it.
+
+## MVP after-meeting behaviour (implemented in Phase 07)
+
+Implementation status: rendered in the unpacked build with a mock AI provider; real note quality is not validated.
+
+- Stop never waits for AI. When a session with final transcript stops and AI is configured, notes are created once in the background; the panel shows `Writing notes…`, then the notes, or the error with `Retry notes`.
+- Notes order: summary (Vietnamese), decisions, next steps, illustrative phrases, vocabulary. Notes state that speakers are not identified, and illustrative phrases say they are not a record of what anyone said.
+- Temporary sessions say they live only in backend memory. `Keep this session` explains what will be saved before saving it.

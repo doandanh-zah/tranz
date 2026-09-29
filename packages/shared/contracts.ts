@@ -18,5 +18,5 @@ export type AssistInput = z.input<typeof assistInput>;
 /** `evidence` holds transcript segment IDs or "profile"; valid IDs do not prove the text is correct. */
 export type Suggestion = {kind:AssistKind;text:string;evidence:string[];uncertain:boolean;question?:string};
 export type Artifact = {summary:string;decisions:string[];actions:string[];improvedReplies:string[];vocabulary:{phrase:string;meaning:string;example:string}[]};
-export type Session = {id:string;context:Profile;retain:boolean;state:SessionState;startedAt:number;segments:Segment[];artifact?:Artifact;processing:'idle'|'processing'|'ready'|'error';error?:string};
+export type Session = {id:string;context:Profile;retain:boolean;state:SessionState;startedAt:number;segments:Segment[];artifact?:Artifact;processing:'idle'|'processing'|'ready'|'error';processingError?:string;error?:string};
 export type Credentials = {appId:string;channel:string;uid:number;agentUid:number;rtcToken:string;rtmToken:string;expiresAt:number};

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowRight, Copy, Mic, MicOff, Pause, Play, RefreshCw, Square, Trash2, X } from 'lucide-react';
+import { ArrowDown, Copy, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
 import type { AssistKind, ReplyStyle, Segment, Session, Suggestion } from '../../../../packages/shared/contracts';
 import { Banner, ContextDetails, Spinner, StatusPill } from '../components';
+import { AfterMeeting } from './AfterMeeting';
 
 // Heuristic only: the user can always pick another line with "Use for reply".
 const QUESTION = /\?\s*$|^(what|why|how|when|where|who|which|can|could|would|will|should|do|does|did|is|are|have|has)\b/i;
@@ -24,6 +25,7 @@ export function Live({
   onNotice,
   onNext,
   onDelete,
+  onUpdate,
 }: {
   api: Api;
   session: Session;
@@ -38,6 +40,7 @@ export function Live({
   onNotice: (message: string) => void;
   onNext: () => void;
   onDelete: () => void;
+  onUpdate: (session: Session) => void;
 }) {
   const [result, setResult] = useState<Suggestion>();
   const [selected, setSelected] = useState<Segment>();
@@ -110,6 +113,9 @@ export function Live({
             Stop
           </button>
         </div>
+      )}
+      {!active && (
+        <AfterMeeting api={api} session={session} busy={busy} run={run} aiReady={!!capabilities?.ai} onUpdate={onUpdate} onNext={onNext} onDelete={onDelete} />
       )}
       {muted && active && <p className="caption">Your microphone is muted for Tranz only. Meeting audio is still transcribed.</p>}
 
@@ -189,25 +195,6 @@ export function Live({
         <ContextDetails profile={session.context} />
       </details>
 
-      {!active && (
-        <section className="panel" aria-labelledby="ended-heading">
-          <h2 id="ended-heading">Session ended</h2>
-          <p className="muted">
-            {session.retain
-              ? 'Saved encrypted on this computer until you delete it.'
-              : 'Temporary: kept in backend memory for one hour after the session ends, or until the backend restarts.'}
-          </p>
-          <div className="button-row">
-            <button className="primary" onClick={onNext}>
-              Prepare next meeting
-              <ArrowRight size={16} aria-hidden="true" />
-            </button>
-            <button className="icon danger" aria-label="Delete this session" onClick={onDelete}>
-              <Trash2 size={18} />
-            </button>
-          </div>
-        </section>
-      )}
     </>
   );
 }

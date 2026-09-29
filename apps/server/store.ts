@@ -13,7 +13,12 @@ export class Store {
    const b=readFileSync(this.file);const d=createDecipheriv('aes-256-gcm',this.key,b.subarray(0,12));d.setAuthTag(b.subarray(12,28));
    const db=JSON.parse(Buffer.concat([d.update(b.subarray(28)),d.final()]).toString()) as Database;
    for(const p of db.profiles)this.profiles.set(p.id,p);
-   for(const s of db.sessions)this.sessions.set(s.id,s);
+   for(const s of db.sessions){
+    // Work in flight when the process died cannot complete; surface it as retryable instead of stuck.
+    if(s.processing==='processing'){if(s.artifact)s.processing='ready';else{s.processing='error';s.processingError='Notes were interrupted by a backend restart. Retry.';}}
+    for(const segment of s.segments)if(segment.translationState==='pending')segment.translationState=undefined;
+    this.sessions.set(s.id,s);
+   }
   }
  }
  save(){

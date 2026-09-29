@@ -22,7 +22,7 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | 04 | Agora lifecycle committed; PR #4 open | Real RTC/RTM/transcript, renewals, failure/cleanup evidence |
 | 05 | Linked translation committed; PR #5 open | Local AI configuration, live quality/latency and UI recovery |
 | 06 | Context, grounded assist API and side-panel UI committed; unpacked build rendered with mock AI | Real-provider grounding/latency evaluation; real side-panel frame check |
-| 07 | Untracked processor draft; routes not registered | Integration, idempotency, retention/deletion and recovery tests |
+| 07 | Notes, keep/delete and restart recovery committed; tested with mock AI | Real-provider note quality; long-transcript chunking not implemented |
 | 08 | Pending integrated hardening | Browser, privacy, security, E2E evidence and handoff |
 | 09 | Not authorized | Requires separate approval |
 
