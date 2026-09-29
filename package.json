@@ -14,7 +14,10 @@
     "lint": "eslint apps packages tests scripts",
     "test": "tsx --test tests/*.test.ts",
     "build": "vite build && esbuild apps/extension/src/worker.ts --bundle --format=esm --outfile=dist/extension/worker.js && esbuild apps/server/index.ts --bundle --platform=node --packages=external --format=esm --outfile=dist/server/index.js",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run build"
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
+    "verify:ui": "node scripts/verify-ui.mjs",
+    "verify:capture": "node scripts/verify-capture.mjs",
+    "eval:grounding": "tsx --env-file-if-exists=.env scripts/eval-grounding.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",

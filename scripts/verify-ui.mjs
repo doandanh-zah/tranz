@@ -313,8 +313,9 @@ async function main() {
     await api('PUT', `/sessions/${temporaryId}/segments`, [{ id: 't-1', text: 'Synthetic temporary line.', final: true, revision: 1, at: Date.now() }]);
     await page.reload();
     await page.getByText('In the meeting').waitFor();
-    await api('POST', `/sessions/${temporaryId}/stop`);
+    await api('POST', `/sessions/${temporaryId}/stop`, { reason: 'tab-closed' });
     await page.getByRole('heading', { name: /Temporary session/ }).waitFor({ timeout: 10000 });
+    check('an automatic stop explains why it happened', (await page.getByText('Stopped because the meeting tab was closed.').count()) === 1);
     const listedBefore = (await api('GET', '/sessions')).some((s) => s.id === temporaryId);
     await shoot(page, '13-temporary-360');
     await page.getByRole('button', { name: 'Keep this session' }).click();
