@@ -41,19 +41,26 @@ export function Home({
   const aiReady = !!capabilities?.ai;
   const allReady = aiReady && microphone.granted && meeting.ready;
   const canStart = isExtension && !!capabilities?.agora && allReady;
+  const stepsLeft = [aiReady, microphone.granted, meeting.ready].filter((ready) => !ready).length;
 
   return (
     <>
-      <div className="section-heading">
+      <div className="section-heading home-hero">
+        <span className="hero-orb" aria-hidden="true">
+          <Headphones size={28} />
+        </span>
         <h1>Sẵn sàng cho cuộc họp</h1>
-        <p>Tranz nghe cuộc họp tiếng Anh, dịch sang tiếng Việt và gợi ý câu trả lời cho bạn.</p>
+        <p>Nghe tiếng Anh, xem tiếng Việt và trả lời tự tin hơn.</p>
       </div>
 
       {capabilities && !capabilities.agora && (
-        <div className="banner error" role="alert">
-          Tranz trên máy này chưa được cài đặt đầy đủ (thiếu cấu hình Agora để chuyển giọng nói thành chữ). Hãy nhờ người cài
-          đặt bổ sung AGORA_APP_ID và AGORA_APP_CERTIFICATE.
-        </div>
+        <details className="setup-warning">
+          <summary>Tranz cần được hoàn tất cài đặt</summary>
+          <p>
+            Máy này đang thiếu cấu hình Agora để chuyển giọng nói thành chữ. Hãy nhờ người cài đặt bổ sung{' '}
+            <code>AGORA_APP_ID</code> và <code>AGORA_APP_CERTIFICATE</code>.
+          </p>
+        </details>
       )}
 
       {allReady ? (
@@ -62,7 +69,10 @@ export function Home({
         </p>
       ) : (
         <section className="panel" aria-labelledby="checklist-heading">
-          <h2 id="checklist-heading">Chuẩn bị (chỉ cần làm lần đầu)</h2>
+          <div className="checklist-heading">
+            <h2 id="checklist-heading">Chuẩn bị nhanh</h2>
+            <span>{stepsLeft} bước còn lại</span>
+          </div>
           <ol className="checklist">
             <Step
               done={aiReady}
@@ -127,15 +137,20 @@ export function Home({
         </section>
       )}
 
-      <button className="primary full start" disabled={!!busy || !canStart} onClick={() => onStart(retain)}>
-        {busy === 'start' ? <Spinner /> : <Headphones size={20} aria-hidden="true" />}
-        {busy === 'start' ? 'Đang kết nối… (khoảng 10 giây)' : 'Bắt đầu nghe'}
-      </button>
-      {!isExtension && <p className="caption">Đây là bản xem thử giao diện. Muốn nghe cuộc họp, hãy mở Tranz từ extension trong Chrome.</p>}
-      <p className="caption consent">
-        Khi bấm <strong>Bắt đầu nghe</strong>, âm thanh của tab cuộc họp và micro của bạn được gửi đi để chuyển thành chữ (qua
-        Agora), và lời thoại được gửi tới ChatGPT để dịch và gợi ý. Hãy báo cho mọi người trong cuộc họp. Tranz không lưu âm thanh.
-      </p>
+      <section className="start-zone" aria-label="Bắt đầu cuộc họp">
+        <button className="primary full start" disabled={!!busy || !canStart} onClick={() => onStart(retain)}>
+          {busy === 'start' ? <Spinner /> : <Headphones size={20} aria-hidden="true" />}
+          {busy === 'start' ? 'Đang kết nối… (khoảng 10 giây)' : 'Bắt đầu nghe'}
+        </button>
+        {!isExtension && <p className="caption">Bản xem thử giao diện · Mở extension trong Chrome để nghe cuộc họp.</p>}
+        <details className="data-details">
+          <summary>Cách Tranz xử lý âm thanh</summary>
+          <p className="caption consent">
+            Khi bấm <strong>Bắt đầu nghe</strong>, âm thanh của tab và micro được gửi qua Agora để chuyển thành chữ; lời thoại được
+            gửi tới ChatGPT để dịch và gợi ý. Hãy báo cho mọi người trong cuộc họp. Tranz không lưu âm thanh.
+          </p>
+        </details>
+      </section>
 
       <details className="panel options">
         <summary>Tuỳ chọn cho cuộc họp này</summary>
