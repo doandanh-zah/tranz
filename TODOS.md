@@ -1,70 +1,51 @@
-# Current Phase TODOs
+# Current Approved Work
 
-## Phase 01 — project handbook and repository governance
+## Authorization and current request
 
-**Objective:** create a coherent English source of truth for the product, architecture, design, delivery process, contribution rules, future backlog, current work, version history, and coding-agent behavior.
+On 2026-09-29 the user authorized end-to-end MVP implementation through Phases 02–08, with user review deferred until integrated delivery. The user selected an OpenAI-compatible text provider with locally configured credentials.
 
-**Branch:** `docs/project-handbook`
+The latest request is to produce a phased plan and one handoff prompt. Application implementation is paused for this planning handoff. Resume when the user invokes the handoff or explicitly asks to continue; no additional phase-by-phase approval is needed within the already authorized MVP scope.
 
-**Version:** `0.1.0`
+- [x] Inspect actual branch, worktree, commits and open PR stack.
+- [x] Record phased delivery plan, acceptance gates, evidence and limitations in [MVP delivery plan](docs/MVP_DELIVERY_PLAN.md).
+- [x] Prepare [handoff prompt](docs/HANDOFF_PROMPT.md) preserving uncommitted work.
+- [ ] User invokes continuation or reviews the plan.
 
-**Status:** pull request open; awaiting user review
+## Implementation status — not completion claims
 
-## Approved checklist
+| Phase | Current state | Remaining gate |
+| --- | --- | --- |
+| 00 | Official Agora voice-agent baseline previously validated | Does not validate Tranz capture/silent topology |
+| 01 | Handbook and authorization recorded; PR #1 open | User review, stale-document synchronization; merge not authorized |
+| 02 | Foundation committed; PR #2 open | Integrated shell/design and unpacked-extension verification |
+| 03 | Capture committed; PR #3 open | Live audio, playback, permission and lifecycle evidence |
+| 04 | Agora lifecycle committed; PR #4 open | Real RTC/RTM/transcript, renewals, failure/cleanup evidence |
+| 05 | Linked translation committed; PR #5 open | Local AI configuration, live quality/latency and UI recovery |
+| 06 | Context/assistance/UI WIP in local worktree | Review, complete, test, commit and open focused PR |
+| 07 | Untracked processor draft; routes not registered | Integration, idempotency, retention/deletion and recovery tests |
+| 08 | Pending integrated hardening | Browser, privacy, security, E2E evidence and handoff |
+| 09 | Not authorized | Requires separate approval |
 
-- [x] Validate the official Agora Conversational AI baseline and record the decision.
-- [x] Create the private Tranz GitHub repository.
-- [x] Confirm English as the documentation language.
-- [x] Confirm the root handbook file set and omit `CLAUDE.md`.
-- [x] Confirm the `BACKLOG.md`, `TODOS.md`, and `CHANGELOG.md` responsibilities.
-- [x] Confirm architecture coverage for both MVP boundaries and long-term direction.
-- [x] Set the initial repository version to `0.1.0`.
-- [x] Create `README.md`, `AGENTS.md`, `PRODUCT.md`, `ARCHITECTURE.md`, and `DESIGN.md`.
-- [x] Create `WORKFLOW.md`, `CONTRIBUTING.md`, `BACKLOG.md`, `TODOS.md`, `CHANGELOG.md`, and `VERSION`.
-- [x] Verify local Markdown links and handbook consistency.
-- [x] Scan the tracked product scope for accidental secrets.
-- [x] Run Git whitespace and tracked-file checks.
-- [x] Commit and push the phase branch.
-- [x] Open a pull request with verification evidence.
-- [ ] Receive user review and requested changes.
-- [ ] Merge only after explicit user approval.
+## Authorized remaining implementation checklist
 
-## Acceptance criteria
+- [ ] Synchronize handbook with actual implementation and distinguish observed facts from proposals.
+- [ ] Complete context CRUD, immutable snapshots, grounded replies, catch-up and Vietnamese reply composer.
+- [ ] Close capture and Agora runtime gates with synthetic audio; do not hide blocked verification.
+- [ ] Validate revision-linked translation, failure/retry and cost bounds with configured AI provider.
+- [ ] Wire and validate post-meeting processing, opt-in retention, saved learning and complete local deletion.
+- [ ] Complete responsive side-panel UX, keyboard/focus, recovery states and real extension verification.
+- [ ] Harden provider failures, cancellation/stale events, logging, permissions, storage and session limits.
+- [ ] Run applicable automated, browser and live checks and record separate evidence.
+- [ ] Commit and push each phase to a focused stacked PR, preserving unrelated WIP.
+- [ ] Deliver integrated MVP or explicitly blocked implementation candidate for user review.
+- [ ] Merge only after explicit user approval; no merge currently authorized.
 
-- All agreed files exist at the repository root, except the intentionally omitted `CLAUDE.md`.
-- Each document has one clear responsibility and links to related sources of truth.
-- Validated facts, MVP proposals, and long-term ideas remain distinguishable.
-- Agents are constrained to explicit phases and evidence-backed claims.
-- Git flow requires a focused branch and user-reviewed PR before merge.
-- No credential, environment file, private transcript, recording, or local Agora baseline is tracked.
-- The branch passes the documentation verification defined in `WORKFLOW.md`.
+## Boundaries
 
-## Explicitly out of scope
-
-- Application or package scaffolding.
-- Chrome extension implementation.
-- Backend implementation.
-- Meeting-tab or microphone capture changes.
-- Agora product integration beyond the recorded baseline.
-- UI mockups or browser validation.
-- Translation, suggestions, storage, or post-meeting features.
-- Starting Phase 02 or any item directly from `BACKLOG.md`.
-
-## Review gate
-
-After the Phase 01 pull request is open, stop. Address review feedback on the same branch, but do not merge or begin Phase 02 until the user explicitly approves it.
-
-## End-to-end MVP authorization — 2026-09-29
-
-The user approved implementation through Phase 08 and will review the integrated MVP afterward. Phase 01 review findings may be corrected as part of this work. No merge is authorized.
-
-- [ ] Phase 02: typed extension/backend foundation, contracts, authenticated local setup, CI and design system.
-- [ ] Phase 03: tab + microphone capture, playback preservation, mute/pause/resume/stop and recovery.
-- [ ] Phase 04: scoped Agora tokens, silent client transport, transcripts, readiness, renewal and cleanup.
-- [ ] Phase 05: revision-linked translation with bounded requests and recoverable failure.
-- [ ] Phase 06: versioned context, grounded suggestions, catch-up and Vietnamese reply composer.
-- [ ] Phase 07: idempotent finalization, summary/learning, opt-in retention and deletion.
-- [ ] Phase 08: privacy, permissions, rate/cost bounds, tests, build and runtime evidence, handoff.
-- [ ] User review of integrated MVP; merge remains pending explicit approval.
-
-Each phase branch updates its evidence and limitations. Production deployment, store publication, real-user beta recruitment and P2 features remain out of scope.
+- One phase per branch/PR; existing PRs remain open.
+- Do not create `CLAUDE.md`.
+- Do not modify, move, delete, track or commit `agora-baseline/`.
+- Never expose provider credentials, environment files, private transcripts or recordings.
+- No raw-audio storage by default; no real meeting content as fixtures.
+- No automatic Phase 09, public beta recruitment, paid infrastructure, production deployment, store publication or P2 work.
+- Preserve the dirty worktree on `feat/grounded-assistance`; the plan records its exact snapshot.
