@@ -23,3 +23,9 @@ coverage/
 
 # Phase 00 official Agora sample. Keep local and outside product history.
 agora-baseline/
+
+# Private product data and generated verification output
+.tranz-data/
+artifacts/
+playwright-report/
+test-results/
