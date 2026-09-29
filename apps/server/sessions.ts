@@ -6,11 +6,16 @@ import {segmentInput,type Session} from '../../packages/shared/contracts';
 import {Store,type RecordSession} from './store';
 import type {VoiceProvider} from './agora';
 export function publicSession(s:RecordSession):Session{
- const {id,context,retain,state,startedAt,segments,artifact,processing,error}=s;
- return {id,context,retain,state,startedAt,segments,artifact,processing,error};
+ const {id,context,retain,state,startedAt,segments,artifact,processing,processingError,error}=s;
+ return {id,context,retain,state,startedAt,segments,artifact,processing,processingError,error};
 }
 export class Lifecycle {
  private jobs=new Map<string,Promise<unknown>>();
+ private stoppedListeners:((s:RecordSession)=>void)[]=[];
+ /** Set during shutdown so stop-triggered background work is not started. */
+ closing=false;
+ /** Called synchronously once a session reaches `stopped`; listeners must not throw or block. */
+ onStopped(listener:(s:RecordSession)=>void){this.stoppedListeners.push(listener);}
  constructor(readonly store:Store,readonly voice:VoiceProvider){}
  get(id:string){const s=this.store.sessions.get(id);if(!s)throw new ApiError(404,'Session not found or deleted.');return s;}
  exclusive<T>(id:string,fn:()=>Promise<T>):Promise<T>{
@@ -26,7 +31,7 @@ export class Lifecycle {
  stop(id:string){return this.exclusive(id,async()=>{
   const s=this.get(id);if(s.state==='stopped')return publicSession(s);
   s.state='stopping';this.store.save();
-  try{if(s.agentId)await this.voice.stop(s.agentId);s.agentId=undefined;s.state='stopped';s.error=undefined;this.store.save();return publicSession(s);}
+  try{if(s.agentId)await this.voice.stop(s.agentId);s.agentId=undefined;s.state='stopped';s.error=undefined;this.store.save();for(const listener of this.stoppedListeners)listener(s);return publicSession(s);}
   catch{ s.error='Local capture stopped; remote cleanup is pending. Retry Stop.';this.store.save();throw new ApiError(502,s.error);}
  });}
  async reap(){for(const s of this.store.sessions.values()){
@@ -67,5 +72,5 @@ export function sessionRoutes(app:FastifyInstance,life:Lifecycle){
   const sessionId=id(req.params);await life.stop(sessionId);life.store.sessions.delete(sessionId);life.store.save();return {ok:true};
  });
  const timer=setInterval(()=>void life.reap(),15000);timer.unref();
- app.addHook('onClose',async()=>{clearInterval(timer);for(const s of life.store.sessions.values())if(s.state!=='stopped')await life.stop(s.id).catch(()=>{});});
+ app.addHook('onClose',async()=>{clearInterval(timer);life.closing=true;for(const s of life.store.sessions.values())if(s.state!=='stopped')await life.stop(s.id).catch(()=>{});});
 }

@@ -6,6 +6,7 @@ import { ZodError } from 'zod';
 import { textAI, type TextAI } from './ai';
 import { translationRoutes } from './translation';
 import { assistanceRoutes } from './assistance';
+import { learningRoutes } from './learning';
 import { Store } from './store';
 import { agoraProvider, type VoiceProvider } from './agora';
 import { Lifecycle, sessionRoutes } from './sessions';
@@ -36,5 +37,6 @@ export async function createApp(config:Config,voice?:VoiceProvider,ai?:TextAI){
  const assistant=ai??textAI(config);
  translationRoutes(app,life,assistant);
  assistanceRoutes(app,life,assistant);
+ learningRoutes(app,life,assistant,{autoFinalize:!!ai||!!config.AI_API_KEY});
  return app;
 }

@@ -356,6 +356,7 @@ export function App() {
               onNotice={setNotice}
               onNext={() => setSession(undefined)}
               onDelete={() => setDeletion({ kind: 'session', id: session.id, name: session.context.name })}
+              onUpdate={(next) => setSession((current) => (current?.id === next.id ? next : current))}
             />
           ) : (
             <Prepare

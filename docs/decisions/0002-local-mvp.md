@@ -12,3 +12,12 @@
 Sources: [Chrome capture](https://developer.chrome.com/docs/extensions/how-to/web-platform/screen-capture), [Agora agent SDK](https://github.com/AgoraIO-Conversational-AI/agent-server-sdk-ts), [Agora join contract](https://docs-md.agora.io/en/conversational-ai/rest-api/agent/join.md).
 
 Revisit: hosted beta, multiple users/processes, real-media evidence of dropped speech, provider retention incompatibility, or unacceptable cost.
+
+## Phase 07 addendum — notes, retention and deletion (2026-09-29)
+
+- Stopping a session never waits for the AI provider. If AI is configured and a final transcript exists, one notes job starts in the background; concurrent `finalize` calls are serialised per session and return the same artifact.
+- Temporary (non-retained) sessions keep transcript, translations, snapshot and notes in process memory only; the encrypted file stores cleanup metadata with content blanked. They are dropped one hour after the last activity once stopped, or on restart.
+- `Keep this session` sets `retain` and persists the content encrypted. Nothing is recoverable after a restart for a temporary session.
+- Deletion removes the session record including snapshot, transcript, translations and notes. Late provider completions check session identity and are discarded, so deleted data is not recreated.
+- A job interrupted by a restart is restored as a retryable error (or `ready` if its artifact was already saved). Shutdown does not start new notes jobs.
+- Deletion is local only; it cannot recall data already processed by Agora or the AI provider.
