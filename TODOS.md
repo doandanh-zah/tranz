@@ -4,12 +4,12 @@
 
 On 2026-09-29 the user authorized end-to-end MVP implementation through Phases 02–08, with user review deferred until integrated delivery. The user selected an OpenAI-compatible text provider with locally configured credentials.
 
-The latest request is to produce a phased plan and one handoff prompt. Application implementation is paused for this planning handoff. Resume when the user invokes the handoff or explicitly asks to continue; no additional phase-by-phase approval is needed within the already authorized MVP scope.
+The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 06–08 until completion or a real blocker, then stop for integrated review. No merge, production deployment, store publication, Phase 09 or P2 work is authorized.
 
 - [x] Inspect actual branch, worktree, commits and open PR stack.
 - [x] Record phased delivery plan, acceptance gates, evidence and limitations in [MVP delivery plan](docs/MVP_DELIVERY_PLAN.md).
 - [x] Prepare [handoff prompt](docs/HANDOFF_PROMPT.md) preserving uncommitted work.
-- [ ] User invokes continuation or reviews the plan.
+- [x] User invokes continuation (2026-09-29).
 
 ## Implementation status — not completion claims
 
@@ -21,7 +21,7 @@ The latest request is to produce a phased plan and one handoff prompt. Applicati
 | 03 | Capture committed; PR #3 open | Live audio, playback, permission and lifecycle evidence |
 | 04 | Agora lifecycle committed; PR #4 open | Real RTC/RTM/transcript, renewals, failure/cleanup evidence |
 | 05 | Linked translation committed; PR #5 open | Local AI configuration, live quality/latency and UI recovery |
-| 06 | Context/assistance/UI WIP in local worktree | Review, complete, test, commit and open focused PR |
+| 06 | Context, grounded assist API and side-panel UI committed; unpacked build rendered with mock AI | Real-provider grounding/latency evaluation; real side-panel frame check |
 | 07 | Untracked processor draft; routes not registered | Integration, idempotency, retention/deletion and recovery tests |
 | 08 | Pending integrated hardening | Browser, privacy, security, E2E evidence and handoff |
 | 09 | Not authorized | Requires separate approval |

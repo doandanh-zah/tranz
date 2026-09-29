@@ -1,0 +1,12 @@
+button:Tranz, go to session|outline=solid
+button:Settings|outline=solid
+button:Session|outline=solid
+button:Context|outline=solid
+button:Library|outline=solid
+button:New profile|outline=solid
+select:Choose a profileSynthetic sprint|outline=solid
+summary:Review the exact context this se|outline=solid
+button:Edit this profile|outline=solid
+button:Check microphone|outline=solid
+button:Open in a tab instead|outline=solid
+input:checkbox|outline=solid
