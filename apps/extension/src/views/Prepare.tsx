@@ -117,7 +117,7 @@ export function Prepare({
             <small>
               Tab and microphone audio go to Agora for speech-to-text. Agora’s pipeline also runs its language model on the
               transcript; Tranz ignores and never plays those replies. Transcript text and this context go to the configured AI
-              provider. Tell participants before you start.
+              provider (with the ChatGPT option, OpenAI via your plan). Tell participants before you start.
             </small>
           </span>
         </label>
@@ -125,7 +125,9 @@ export function Prepare({
 
       {capabilities && !capabilities.ai && (
         <p className="caption">
-          AI is not configured, so translation, suggestions and notes will be unavailable. The transcript still works.
+          {capabilities.provider === 'chatgpt'
+            ? 'Sign in with ChatGPT in Settings (gear icon) to enable translation, suggestions and notes. The transcript works without it.'
+            : 'AI is not configured, so translation, suggestions and notes will be unavailable. The transcript still works.'}
         </p>
       )}
       <button

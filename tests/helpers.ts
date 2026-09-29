@@ -46,7 +46,7 @@ export function mockAI(respond: (call: AiCall) => unknown | Promise<unknown>) {
 export async function testApp(options: { ai?: TextAI; voice?: VoiceProvider; dir?: string } = {}) {
   const dir = options.dir ?? mkdtempSync(join(tmpdir(), 'tranz-test-'));
   const app = await createApp(
-    configSchema.parse({ ACCESS_TOKEN: TOKEN, DATA_KEY: 'f'.repeat(64), DATA_DIR: dir }),
+    configSchema.parse({ ACCESS_TOKEN: TOKEN, DATA_KEY: 'f'.repeat(64), DATA_DIR: dir, AI_PROVIDER: 'openai' }),
     options.voice ?? silentVoice,
     options.ai,
   );

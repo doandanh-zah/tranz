@@ -12,7 +12,7 @@ import { SettingsView } from './views/Settings';
 import type { Profile, Segment, Session } from '../../../packages/shared/contracts';
 import './style.css';
 
-export type Capabilities = { agora: boolean; ai: boolean; model: string };
+export type Capabilities = { agora: boolean; ai: boolean; model: string; provider: 'chatgpt' | 'openai' };
 type View = 'meeting' | 'context' | 'library' | 'settings';
 type Connection = 'loading' | 'signed-out' | 'offline' | 'ready';
 type Deletion = { kind: 'session' | 'profile'; id: string; name: string };
@@ -180,17 +180,30 @@ export function App() {
     [api, mergeSegment],
   );
 
-  // Translate new final segments one at a time so the transcript does not flood the provider.
+  // Translate new final lines in batches of up to 8, one request at a time, so a slower provider
+  // (ChatGPT via Codex takes several seconds per request) does not fall behind the conversation.
   const translating = useRef(false);
   useEffect(() => {
     if (!active || !capabilities?.ai || translating.current || !session) return;
-    const next = session.segments.find((s) => s.final && !s.translation && !s.translationState);
-    if (!next) return;
+    const next = session.segments.filter((s) => s.final && !s.translation && !s.translationState).slice(0, 8);
+    if (!next.length) return;
+    const id = session.id;
     translating.current = true;
-    void translate(next).finally(() => {
-      translating.current = false;
-    });
-  }, [active, capabilities?.ai, session, translate]);
+    for (const segment of next) mergeSegment(id, { ...segment, translationState: 'pending' });
+    void api
+      .call<{ segments: Segment[] }>(`/sessions/${id}/translate-batch`, 'POST', {
+        items: next.map((s) => ({ segmentId: s.id, revision: s.revision })),
+      })
+      .then(({ segments }) => segments.forEach((segment) => mergeSegment(id, segment)))
+      .catch(async () => {
+        // Failed lines are marked by the server and offer Retry; the English stays readable.
+        const latest = await api.call<Session>(`/sessions/${id}`).catch(() => undefined);
+        if (latest && sessionId.current === id) setSession(latest);
+      })
+      .finally(() => {
+        translating.current = false;
+      });
+  }, [active, capabilities?.ai, session, api, mergeSegment]);
 
   const go = (next: View) => {
     setView(next);
@@ -400,6 +413,7 @@ export function App() {
           />
         ) : (
           <SettingsView
+            api={api}
             capabilities={capabilities}
             active={active}
             busy={busy}
