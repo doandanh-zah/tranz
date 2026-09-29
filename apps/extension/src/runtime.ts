@@ -1,6 +1,6 @@
 import AgoraRTC, { type IAgoraRTCClient, type ILocalAudioTrack } from 'agora-rtc-sdk-ng';
 import AgoraRTM from 'agora-rtm';
-import { AgoraVoiceAI, AgoraVoiceAIEvents, MessageType, ModuleType, TurnStatus } from 'agora-agent-client-toolkit';
+import { AgoraVoiceAI, AgoraVoiceAIEvents, MessageType, ModuleType, TranscriptHelperMode, TurnStatus } from 'agora-agent-client-toolkit';
 import { Capture } from './capture';
 import { Api, ApiError } from './api';
 import type { Credentials, EndReason, Segment } from '../../../packages/shared/contracts';
@@ -103,8 +103,13 @@ export class Runtime {
       });
       await rtm.login({ token: creds.rtmToken });
       check();
+      // The agent publishes transcripts as RTM channel messages; without this subscription none arrive
+      // (found in the live Agora check; subscribeMessage below only binds the toolkit's parsers).
+      await rtm.subscribe(creds.channel);
+      check();
 
-      const voice = (this.ai = await AgoraVoiceAI.init({ rtcEngine: rtc, rtmEngine: rtm, enableLog: false, enableAgoraMetrics: false }));
+      // TEXT mode: word-timed rendering would wait for agent audio, which Tranz never subscribes to.
+      const voice = (this.ai = await AgoraVoiceAI.init({ rtcEngine: rtc, rtmEngine: rtm, renderMode: TranscriptHelperMode.TEXT, enableLog: false, enableAgoraMetrics: false }));
       check();
       // Full history arrives on every update; only changed user transcription becomes a new revision.
       voice.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, (items) => {
