@@ -16,7 +16,7 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
       <main style={{ padding: '24px 16px', lineHeight: 1.6 }} role="alert">
         <h1 style={{ fontSize: 20 }}>Tranz gặp sự cố ngoài ý muốn</h1>
         <p>Nếu đang nghe cuộc họp, việc nghe vẫn tiếp tục; mở lại panel sẽ kết nối lại.</p>
-        <p style={{ color: '#5d685f', fontSize: 13, overflowWrap: 'anywhere' }}>{this.state.error.message}</p>
+        <p style={{ color: '#8b9096', fontSize: 13, overflowWrap: 'anywhere' }}>{this.state.error.message}</p>
         <button onClick={() => location.reload()} style={{ minHeight: 44, padding: '10px 14px' }}>
           Tải lại panel
         </button>

@@ -45,10 +45,8 @@ export function Home({
 
   return (
     <>
-      <div className="section-heading home-hero">
-        <span className="hero-orb" aria-hidden="true">
-          <Headphones size={28} />
-        </span>
+      <div className="section-heading">
+        <span className="eyebrow">Họp tiếng Anh · Anh → Việt</span>
         <h1>Sẵn sàng cho cuộc họp</h1>
         <p>Nghe tiếng Anh, xem tiếng Việt và trả lời tự tin hơn.</p>
       </div>

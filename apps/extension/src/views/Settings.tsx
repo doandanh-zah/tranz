@@ -98,7 +98,7 @@ function ChatGptAccount({ api, onChanged }: { api: Api; onChanged: () => void })
               {account.plan ? ` · ${account.plan}` : ''}
             </strong>
           </p>
-          <button className="secondary" onClick={() => void signOut().then(onChanged)}>
+          <button key="sign-out" className="secondary" onClick={() => void signOut().then(onChanged)}>
             <LogOut size={15} aria-hidden="true" />
             Đăng xuất ChatGPT khỏi Tranz
           </button>
@@ -106,7 +106,7 @@ function ChatGptAccount({ api, onChanged }: { api: Api; onChanged: () => void })
       ) : (
         <>
           {account?.lastLoginError && <p className="caption error-text">Chưa đăng nhập xong: {account.lastLoginError}</p>}
-          <button className="primary full" disabled={waiting} onClick={() => void signIn()}>
+          <button key="sign-in" className="primary full" disabled={waiting} onClick={() => void signIn()}>
             {waiting ? <Spinner /> : <ExternalLink size={16} aria-hidden="true" />}
             {waiting ? 'Đang chờ bạn đăng nhập trên trang OpenAI…' : 'Đăng nhập ChatGPT'}
           </button>

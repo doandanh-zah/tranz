@@ -25,7 +25,8 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | 07 | Notes, keep/delete, restart recovery; PR #7 open | Real note quality; chunking over 60,000 characters deferred |
 | 08 | Runtime hardening, live Agora fixes (RTM subscribe, WASM CSP), docs, evidence, review guide; PR #8 open | AI provider gate; Google Meet; user review |
 | — | ChatGPT-plan provider (user request): PR #9 open; live eval 6/6 | You sign in with ChatGPT in the panel |
-| — | Simpler Vietnamese liquid-glass UI with automatic pairing (user review feedback): PR #10 open; Chromium harness 43/43 | Your review in the real side panel |
+| — | Simpler Vietnamese UI with automatic pairing (user review feedback): PR #10 open; Chromium harness 43/43 | Your review in the real side panel |
+| — | Monochrome black-and-white theme built with Zahlook (user request): PR open on `feat/monochrome-dark-ui`, stacked on #10; Chromium harness 43/43 | Your review in the real side panel |
 | 09 | Not authorized | Requires separate approval |
 
 ## Authorized remaining implementation checklist

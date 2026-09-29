@@ -329,39 +329,41 @@ export function App() {
 
   return (
     <div className="app">
-      <header className="masthead">
-        <button className="wordmark" onClick={() => go('meeting')} aria-label="Tranz, về màn hình cuộc họp">
-          <span className="mark" aria-hidden="true">
-            <AudioLines size={18} />
-          </span>
-          tranz
-        </button>
-        {session && signedIn && view !== 'meeting' && active && (
-          <button className="text-button live-link" onClick={() => go('meeting')}>
-            Quay lại cuộc họp
+      <div className="topbar">
+        <header className="masthead">
+          <button className="wordmark" onClick={() => go('meeting')} aria-label="Tranz, về màn hình cuộc họp">
+            <span className="mark" aria-hidden="true">
+              <AudioLines size={18} />
+            </span>
+            tranz
           </button>
-        )}
-        {signedIn && (
-          <button className="icon" aria-label="Cài đặt" title="Cài đặt" aria-current={view === 'settings' ? 'page' : undefined} onClick={() => go('settings')}>
-            <SettingsIcon size={18} />
-          </button>
-        )}
-      </header>
-      {signedIn && (
-        <nav className="tabs" aria-label="Điều hướng chính">
-          {(
-            [
-              ['meeting', 'Cuộc họp'],
-              ['context', 'Ngữ cảnh'],
-              ['library', 'Đã lưu'],
-            ] as const
-          ).map(([key, label]) => (
-            <button key={key} aria-current={view === key ? 'page' : undefined} onClick={() => go(key)}>
-              {label}
+          {session && signedIn && view !== 'meeting' && active && (
+            <button className="text-button live-link" onClick={() => go('meeting')}>
+              Quay lại cuộc họp
             </button>
-          ))}
-        </nav>
-      )}
+          )}
+          {signedIn && (
+            <button className="icon" aria-label="Cài đặt" title="Cài đặt" aria-current={view === 'settings' ? 'page' : undefined} onClick={() => go('settings')}>
+              <SettingsIcon size={18} />
+            </button>
+          )}
+        </header>
+        {signedIn && (
+          <nav className="tabs" aria-label="Điều hướng chính">
+            {(
+              [
+                ['meeting', 'Cuộc họp'],
+                ['context', 'Ngữ cảnh'],
+                ['library', 'Đã lưu'],
+              ] as const
+            ).map(([key, label]) => (
+              <button key={key} aria-current={view === key ? 'page' : undefined} onClick={() => go(key)}>
+                {label}
+              </button>
+            ))}
+          </nav>
+        )}
+      </div>
       <main>
         {error && (
           <Banner tone="error" onDismiss={() => setError('')}>
