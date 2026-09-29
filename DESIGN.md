@@ -271,3 +271,15 @@ Implementation status: rendered in the unpacked build with a mock AI provider; r
 - Settings shows **Sign in with ChatGPT** when the ChatGPT-plan provider is active. It opens OpenAI's own sign-in page in a new tab; the panel waits (up to five minutes) and then shows the account and plan, with a sign-out action.
 - The panel says that requests take several seconds and count toward the plan's Codex limits. Translation shows `Translating… (can take several seconds)` and arrives in batches.
 - Wherever AI is unavailable, copy points to Settings instead of mentioning API keys.
+
+## Simplified Vietnamese interface (implemented after user feedback, 2026-09-29)
+
+The first user review found the English, multi-step interface hard to use. The panel now:
+
+- is written in Vietnamese (`lang="vi"`); transcript lines, suggested replies and practice phrases stay in English because they are the meeting's language;
+- connects to the local backend automatically; the only sign-in a person sees is ChatGPT;
+- opens on **Sẵn sàng cho cuộc họp**: a three-step checklist (Đăng nhập ChatGPT, Cho phép micro, Mở cuộc họp Google Meet) that collapses to “Mọi thứ đã sẵn sàng”, then one large **Bắt đầu nghe** button;
+- treats pressing **Bắt đầu nghe** as the explicit consent, with the data-flow disclosure directly under the button (the separate consent checkbox was removed);
+- makes context optional (“Không dùng — Cuộc họp nhanh”) and moves context choice and keeping the session into a collapsed “Tuỳ chọn cho cuộc họp này”;
+- names live actions plainly: Tạm dừng/Tiếp tục, Dừng, Gợi ý câu trả lời, Tóm tắt vừa rồi, “Tôi muốn nói…”, Trả lời câu này; shows times in 24-hour Vietnamese format;
+- puts backend and provider details under a collapsed “Thông tin kỹ thuật” in Cài đặt.

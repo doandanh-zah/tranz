@@ -30,27 +30,27 @@ export function AfterMeeting({
   return (
     <>
       <section className="panel notes" aria-labelledby="notes-heading" aria-busy={session.processing === 'processing'}>
-        <h2 id="notes-heading">Meeting notes</h2>
+        <h2 id="notes-heading">Ghi chú cuộc họp</h2>
         {session.artifact ? (
           <Notes artifact={session.artifact} />
         ) : session.processing === 'processing' ? (
           <p className="muted" role="status">
-            <Spinner /> Writing notes from the final transcript… The session is already stopped.
+            <Spinner /> Đang viết ghi chú từ cuộc họp… (mất khoảng nửa phút)
           </p>
         ) : !hasTranscript ? (
-          <p className="muted">No final transcript was received, so there is nothing to summarise.</p>
+          <p className="muted">Không có câu nào được ghi lại, nên chưa có gì để tóm tắt.</p>
         ) : !aiReady ? (
-          <p className="muted">Notes need an AI provider: sign in with ChatGPT in Settings. The transcript below is still available.</p>
+          <p className="muted">Đăng nhập ChatGPT trong Cài đặt để tạo ghi chú. Bản ghi hội thoại vẫn còn bên dưới.</p>
         ) : (
           <>
             <p className={session.processing === 'error' ? 'banner error' : 'muted'} role={session.processing === 'error' ? 'alert' : undefined}>
               {session.processing === 'error'
-                ? (session.processingError ?? 'Notes could not be created.')
-                : 'Create a summary, decisions, next steps and useful phrases from the final transcript.'}
+                ? (session.processingError ?? 'Chưa tạo được ghi chú.')
+                : 'Tạo bản tóm tắt, các quyết định, việc cần làm và mẫu câu hữu ích từ cuộc họp.'}
             </p>
             <button className="secondary" disabled={!!busy} onClick={() => void generate()}>
               {busy === 'notes' ? <Spinner /> : <RefreshCw size={15} aria-hidden="true" />}
-              {session.processing === 'error' ? 'Retry notes' : 'Create notes'}
+              {session.processing === 'error' ? 'Thử lại' : 'Tạo ghi chú'}
             </button>
           </>
         )}
@@ -58,28 +58,28 @@ export function AfterMeeting({
 
       <section className="panel" aria-labelledby="keep-heading">
         <h2 id="keep-heading">
-          <ShieldCheck size={17} aria-hidden="true" /> {session.retain ? 'Kept on this computer' : 'Temporary session'}
+          <ShieldCheck size={17} aria-hidden="true" /> {session.retain ? 'Đã lưu trên máy này' : 'Phiên tạm thời'}
         </h2>
         {session.retain ? (
-          <p className="muted">Transcript, translations, context snapshot and notes are encrypted on this computer until you delete them.</p>
+          <p className="muted">Bản ghi, bản dịch, ngữ cảnh và ghi chú được mã hoá trên máy này cho tới khi bạn xoá.</p>
         ) : (
           <>
             <p className="muted">
-              Held only in backend memory. It is discarded one hour after the session ends or when the backend restarts. Keeping it
-              saves the transcript, translations, context snapshot and notes, encrypted, until you delete them.
+              Phiên này chỉ giữ tạm và tự xoá sau 1 giờ (hoặc khi Tranz khởi động lại). Bấm Lưu để giữ bản ghi, bản dịch và ghi chú
+              (đã mã hoá) trên máy này.
             </p>
             <button className="secondary" disabled={!!busy} onClick={() => void keep()}>
               {busy === 'save' ? <Spinner /> : null}
-              Keep this session
+              Lưu phiên này
             </button>
           </>
         )}
         <div className="button-row divider">
           <button className="primary" onClick={onNext}>
-            Prepare next meeting
+            Cuộc họp mới
             <ArrowRight size={16} aria-hidden="true" />
           </button>
-          <button className="icon danger" aria-label="Delete this session" onClick={onDelete}>
+          <button className="icon danger" aria-label="Xoá phiên này" onClick={onDelete}>
             <Trash2 size={18} />
           </button>
         </div>
@@ -90,12 +90,12 @@ export function AfterMeeting({
 
 function Notes({ artifact }: { artifact: Artifact }) {
   const lists = [
-    ['Decisions', artifact.decisions],
-    ['Next steps', artifact.actions],
+    ['Quyết định', artifact.decisions],
+    ['Việc cần làm', artifact.actions],
   ] as const;
   return (
     <>
-      <p className="caption">AI-generated from the mixed transcript. Speakers are not identified; check before sharing.</p>
+      <p className="caption">Do AI viết từ lời thoại của cả cuộc họp (không phân biệt người nói). Hãy kiểm tra trước khi chia sẻ.</p>
       <p lang="vi" className="summary">
         {artifact.summary}
       </p>
@@ -109,12 +109,12 @@ function Notes({ artifact }: { artifact: Artifact }) {
               ))}
             </ul>
           ) : (
-            <p className="caption">None found in the transcript.</p>
+            <p className="caption">Không có.</p>
           )}
         </div>
       ))}
-      <h3>Phrases you could use</h3>
-      <p className="caption">Illustrative rewrites of useful moments, not a record of what anyone said.</p>
+      <h3>Mẫu câu bạn có thể dùng</h3>
+      <p className="caption">Câu gợi ý để luyện tập, không phải lời ai đã nói.</p>
       {artifact.improvedReplies.length ? (
         <ul lang="en">
           {artifact.improvedReplies.map((item, index) => (
@@ -122,9 +122,9 @@ function Notes({ artifact }: { artifact: Artifact }) {
           ))}
         </ul>
       ) : (
-        <p className="caption">None suggested.</p>
+        <p className="caption">Không có.</p>
       )}
-      <h3>Words to take with you</h3>
+      <h3>Từ vựng đáng nhớ</h3>
       {artifact.vocabulary.length ? (
         <dl className="vocabulary">
           {artifact.vocabulary.map((item, index) => (
@@ -138,7 +138,7 @@ function Notes({ artifact }: { artifact: Artifact }) {
           ))}
         </dl>
       ) : (
-        <p className="caption">No vocabulary found.</p>
+        <p className="caption">Không có.</p>
       )}
     </>
   );

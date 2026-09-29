@@ -1059,3 +1059,91 @@ summary {
   padding-top: 14px;
   border-top: 1px solid var(--line);
 }
+
+/* Home: checklist and the single start action */
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.checklist li {
+  display: flex;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.checklist li:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.checklist li > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--muted);
+}
+
+.checklist li.done > svg {
+  color: var(--green);
+}
+
+.checklist li > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.checklist strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.checklist li.done strong {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.checklist p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.ready-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--green);
+  font-weight: 650;
+  margin: 0 0 14px;
+}
+
+.primary.start {
+  min-height: 56px;
+  font-size: 17px;
+  margin: 4px 0 10px;
+}
+
+.consent {
+  margin-bottom: 16px;
+}
+
+.error-text {
+  color: var(--danger);
+}
+
+.steps-plain {
+  padding-left: 20px;
+  margin: 0 0 16px;
+  line-height: 1.7;
+}
+
+.options summary {
+  padding: 0;
+}
+
+.options[open] summary {
+  margin-bottom: 12px;
+}

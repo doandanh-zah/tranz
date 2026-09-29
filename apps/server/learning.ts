@@ -50,14 +50,14 @@ export function learningRoutes(
   function finalize(id: string) {
     return life.exclusive(`finalize:${id}`, async () => {
       const session = life.get(id);
-      if (session.state !== 'stopped') throw new ApiError(409, 'Stop the session before creating notes.');
+      if (session.state !== 'stopped') throw new ApiError(409, 'Hãy dừng phiên trước khi tạo ghi chú.');
       if (session.artifact) return publicSession(session);
       const transcript = transcriptOf(session);
-      if (!transcript) throw new ApiError(409, 'There is no final transcript to summarise.');
+      if (!transcript) throw new ApiError(409, 'Chưa có câu nào hoàn chỉnh để tóm tắt.');
       if (transcript.length > MAX_NOTES_CHARACTERS) {
-        throw fail(session, 413, 'This transcript is too long for notes in this MVP. The transcript itself is still available.');
+        throw fail(session, 413, 'Cuộc họp quá dài để tạo ghi chú ở phiên bản này. Bản ghi hội thoại vẫn còn nguyên.');
       }
-      if (session.aiCalls >= SESSION_AI_LIMIT) throw fail(session, 429, 'This session reached its AI request limit.');
+      if (session.aiCalls >= SESSION_AI_LIMIT) throw fail(session, 429, 'Phiên này đã dùng hết giới hạn yêu cầu AI.');
       session.aiCalls++;
       session.processing = 'processing';
       session.processingError = undefined;
@@ -65,7 +65,7 @@ export function learningRoutes(
       try {
         const artifact = await ai.json(NOTES_INSTRUCTION, { transcript }, artifactSchema);
         // Deleted while the provider was working: drop the result so nothing is recreated.
-        if (store.sessions.get(id) !== session) throw new ApiError(409, 'This session was deleted.');
+        if (store.sessions.get(id) !== session) throw new ApiError(409, 'Phiên này đã bị xoá.');
         session.artifact = artifact;
         session.processing = 'ready';
         store.save();
@@ -74,7 +74,7 @@ export function learningRoutes(
         if (store.sessions.get(id) === session) {
           throw error instanceof ApiError
             ? fail(session, error.statusCode, error.message)
-            : fail(session, 502, 'Notes could not be created from the AI response. Retry.');
+            : fail(session, 502, 'Không tạo được ghi chú từ câu trả lời của AI. Vui lòng thử lại.');
         }
         throw error;
       }
@@ -103,7 +103,7 @@ export function learningRoutes(
     const { id } = idParams.parse(req.params);
     const session = life.get(id);
     if (!session.retain && !session.segments.length && !session.artifact) {
-      throw new ApiError(409, 'Nothing is left to keep. Temporary content is discarded when the backend restarts.');
+      throw new ApiError(409, 'Không còn nội dung để lưu: phiên tạm thời đã bị xoá khi Tranz khởi động lại.');
     }
     session.retain = true;
     store.save();

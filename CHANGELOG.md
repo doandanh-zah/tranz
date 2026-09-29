@@ -18,6 +18,11 @@ Implementation candidate on stacked, unmerged pull requests #2–#8. Live Agora,
 - Post-meeting notes (summary, decisions, next steps, illustrative phrases, vocabulary), opt-in keep and deletion.
 - Verification scripts: unpacked-extension UI checks, real Chromium tab-capture checks with synthetic audio, and a synthetic grounding evaluation for a configured provider.
 
+### Changed (after user review)
+
+- The side panel is in Vietnamese, connects to the local backend automatically (no access-token step) and opens on a three-step checklist with one **Bắt đầu nghe** button; context is optional.
+- Backend error messages are in Vietnamese.
+
 ### Added (ChatGPT plan)
 
 - Default AI provider uses the ChatGPT subscription through the official Codex runtime, with **Sign in with ChatGPT** in Settings and all Codex tools disabled ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md)).

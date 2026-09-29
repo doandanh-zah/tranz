@@ -22,12 +22,12 @@ const sessionGone = (error: unknown) => error instanceof ApiError && (error.stat
 function describeStartFailure(error: unknown) {
   if (error instanceof DOMException) {
     if (error.name === 'NotAllowedError') {
-      return 'Chrome blocked tab or microphone capture. Allow microphone access for Tranz (Prepare → Check microphone), then retry.';
+      return 'Chrome đã chặn quyền nghe tab hoặc micro. Cho phép micro cho Tranz (mục Chuẩn bị → Cho phép micro) rồi thử lại.';
     }
-    if (error.name === 'NotFoundError') return 'No microphone was found. Connect one and retry.';
-    if (error.name === 'NotReadableError') return 'The microphone is in use by another app or could not be opened.';
+    if (error.name === 'NotFoundError') return 'Không tìm thấy micro. Hãy cắm micro rồi thử lại.';
+    if (error.name === 'NotReadableError') return 'Micro đang bị ứng dụng khác dùng hoặc không mở được.';
   }
-  return error instanceof Error && error.message ? error.message : 'Audio session failed to start.';
+  return error instanceof Error && error.message ? error.message : 'Không bắt đầu nghe được. Vui lòng thử lại.';
 }
 
 /**
@@ -68,12 +68,12 @@ export class Runtime {
   }
 
   async start(id: string, token: string, streamId: string) {
-    if (this.id) throw new Error('An audio session is already running. Stop it first.');
+    if (this.id) throw new Error('Đang có một phiên nghe chạy. Hãy dừng nó trước.');
     this.id = id;
     this.api = new Api(token);
     const generation = ++this.generation;
     const check = () => {
-      if (generation !== this.generation) throw new Error('Start was cancelled.');
+      if (generation !== this.generation) throw new Error('Đã huỷ bắt đầu nghe.');
     };
     const api = this.api;
 
@@ -154,7 +154,7 @@ export class Runtime {
         await new Promise((resolve) => setTimeout(resolve, 100));
         check();
       }
-      if (!joined) throw new Error('The Agora transcriber did not join within 20 seconds. Check the Agora configuration and retry.');
+      if (!joined) throw new Error('Bộ chuyển giọng nói Agora không vào cuộc gọi sau 20 giây. Kiểm tra cấu hình Agora rồi thử lại.');
       this.started = true;
       await this.beat();
       this.timers.push(setInterval(() => void this.beat(), HEARTBEAT_INTERVAL));
@@ -225,13 +225,13 @@ export class Runtime {
   }
 
   async pause(value: boolean) {
-    if (!this.id) throw new Error('No audio session is running.');
+    if (!this.id) throw new Error('Không có phiên nghe nào đang chạy.');
     this.userPaused = value;
     this.applyGate();
   }
 
   mute(value: boolean) {
-    if (!this.id) throw new Error('No audio session is running.');
+    if (!this.id) throw new Error('Không có phiên nghe nào đang chạy.');
     this.muted = value;
     this.capture.setMuted(value);
   }

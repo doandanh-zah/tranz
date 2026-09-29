@@ -49,22 +49,30 @@ async function stopCapture(reason: string) {
   }
 }
 
+/** For the panel's checklist: is the tab Tranz was opened on a Google Meet meeting? */
+async function meetingStatus() {
+  const { meetingTabId } = await chrome.storage.session.get('meetingTabId');
+  if (typeof meetingTabId !== 'number') return { ready: false };
+  const tab = await chrome.tabs.get(meetingTabId).catch(() => undefined);
+  return { ready: !!tab?.url?.startsWith(MEETING_ORIGIN) };
+}
+
 async function startCapture(message: Record<string, unknown>) {
   const { meetingTabId } = await chrome.storage.session.get('meetingTabId');
   if (typeof meetingTabId !== 'number') {
-    throw new UserFacingError('Click the Tranz toolbar icon while your Google Meet tab is open, then press Start.');
+    throw new UserFacingError('Hãy mở cuộc họp Google Meet, bấm biểu tượng Tranz trên thanh công cụ ở chính tab đó, rồi bấm Bắt đầu nghe.');
   }
   const tab = await chrome.tabs.get(meetingTabId).catch(() => undefined);
-  if (!tab) throw new UserFacingError('The meeting tab was closed. Open the meeting and click the Tranz toolbar icon again.');
+  if (!tab) throw new UserFacingError('Tab cuộc họp đã bị đóng. Mở lại cuộc họp rồi bấm biểu tượng Tranz ở tab đó.');
   if (!tab.url?.startsWith(MEETING_ORIGIN)) {
-    throw new UserFacingError('Tranz only captures Google Meet tabs. Open the meeting, then click the Tranz toolbar icon on that tab.');
+    throw new UserFacingError('Tranz chỉ nghe được tab Google Meet. Mở cuộc họp rồi bấm biểu tượng Tranz ở tab đó.');
   }
   await ensureOffscreen();
   let streamId: string;
   try {
     streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: meetingTabId });
   } catch {
-    throw new UserFacingError('Chrome did not allow tab capture. Click the Tranz toolbar icon on the meeting tab again, then press Start.');
+    throw new UserFacingError('Chrome chưa cho phép nghe tab này. Bấm lại biểu tượng Tranz ở tab cuộc họp rồi bấm Bắt đầu nghe.');
   }
   return toOffscreen({ ...message, streamId });
 }
@@ -77,17 +85,19 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         return startCapture(message);
       case 'stop':
         return stopCapture(message.reason ?? 'user');
+      case 'meeting':
+        return meetingStatus();
       case 'status':
         return (await hasOffscreen()) ? toOffscreen({ type: 'status' }) : { active: false, paused: false, muted: false };
       default:
-        if (!(await hasOffscreen())) throw new UserFacingError('No audio session is running.');
+        if (!(await hasOffscreen())) throw new UserFacingError('Không có phiên nghe nào đang chạy.');
         return toOffscreen(message);
     }
   })()
     .then((result) => respond(result ?? { ok: true }))
     .catch((error) =>
       respond({
-        error: error instanceof UserFacingError ? error.message : 'Capture is unavailable. Reopen Tranz on the meeting tab and check microphone permission.',
+        error: error instanceof UserFacingError ? error.message : 'Chưa nghe được cuộc họp. Mở lại Tranz ở tab cuộc họp và kiểm tra quyền micro.',
       }),
     );
   return true;

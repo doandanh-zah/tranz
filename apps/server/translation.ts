@@ -37,7 +37,7 @@ export function translationRoutes(app: FastifyInstance, life: Lifecycle, ai: Tex
           { lines: batch.map(({ segment }) => ({ id: segment.id, text: segment.text })), glossary: session.context.glossary },
           output,
         );
-        if (life.store.sessions.get(sessionId) !== session) throw new ApiError(409, 'Session deleted.');
+        if (life.store.sessions.get(sessionId) !== session) throw new ApiError(409, 'Phiên này đã bị xoá.');
         const byId = new Map(result.translations.map((item) => [item.id, item.translation]));
         for (const { segment, revision } of batch) {
           if (segment.revision !== revision) continue; // corrected meanwhile; a new request will follow
@@ -62,7 +62,7 @@ export function translationRoutes(app: FastifyInstance, life: Lifecycle, ai: Tex
   }
 
   function limitReached(session: RecordSession) {
-    if (session.aiCalls >= SESSION_AI_LIMIT) throw new ApiError(429, 'Session AI request limit reached.');
+    if (session.aiCalls >= SESSION_AI_LIMIT) throw new ApiError(429, 'Phiên này đã dùng hết giới hạn yêu cầu AI.');
   }
 
   app.post('/api/sessions/:id/translate', async (req) => {
@@ -70,7 +70,7 @@ export function translationRoutes(app: FastifyInstance, life: Lifecycle, ai: Tex
     const session = life.get(id);
     const { segmentId, revision } = target.parse(req.body);
     const segment = session.segments.find((x) => x.id === segmentId);
-    if (!segment || segment.revision !== revision || !segment.final) throw new ApiError(409, 'Transcript changed or is not final.');
+    if (!segment || segment.revision !== revision || !segment.final) throw new ApiError(409, 'Câu này đã thay đổi hoặc chưa nói xong.');
     if (segment.translation) return segment;
     const existing = pending.get(keyOf(id, segment, revision));
     if (existing) {
@@ -79,7 +79,7 @@ export function translationRoutes(app: FastifyInstance, life: Lifecycle, ai: Tex
     }
     limitReached(session);
     await translate(id, session, [{ segment, revision }]);
-    if (segment.revision !== revision) throw new ApiError(409, 'Transcript changed or session deleted.');
+    if (segment.revision !== revision) throw new ApiError(409, 'Câu này đã thay đổi hoặc phiên đã bị xoá.');
     return segment;
   });
 

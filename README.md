@@ -56,7 +56,7 @@ npm run build      # builds dist/extension and dist/server
 npm run dev        # starts the backend on 127.0.0.1:4318
 ```
 
-Load `dist/extension` with **chrome://extensions → Developer mode → Load unpacked**, copy the extension ID into `EXTENSION_ID` in `.env`, restart the backend, open Google Meet, click the Tranz toolbar icon and paste `ACCESS_TOKEN`. In Settings, press **Sign in with ChatGPT** to use your ChatGPT plan for AI ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md)); set `AI_PROVIDER=openai` and `AI_API_KEY` to use an API key instead. The Vietnamese review guide is [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
+Load `dist/extension` with **chrome://extensions → Developer mode → Load unpacked**, copy the extension ID into `EXTENSION_ID` in `.env` and restart the backend. Open Google Meet and click the Tranz toolbar icon: the panel (in Vietnamese) connects by itself and shows a three-step checklist; press **Đăng nhập ChatGPT** to use your ChatGPT plan for AI ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md)); set `AI_PROVIDER=openai` and `AI_API_KEY` to use an API key instead. The Vietnamese review guide is [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
 
 Checks: `npm run verify` (lint, typecheck, tests, build into `artifacts/verify-build`), `npm run verify:ui`, `npm run verify:capture`, `npm run verify:live` (real Agora, synthetic speech) and, with an AI key, `npm run eval:grounding`. Only `npm run build` writes `dist/`; press Reload in `chrome://extensions` afterwards.
 

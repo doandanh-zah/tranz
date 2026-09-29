@@ -1,18 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, LogOut, RefreshCw, ShieldCheck } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
-import { isExtension } from '../platform';
+import { useChatGpt } from '../chatgpt';
 import { Spinner } from '../components';
 
 export function SettingsView({
   api,
   capabilities,
-  active,
   busy,
   run,
   onRefresh,
-  onDisconnect,
 }: {
   api: Api;
   capabilities?: Capabilities;
@@ -20,123 +17,72 @@ export function SettingsView({
   busy: string;
   run: Run;
   onRefresh: () => Promise<void>;
-  onDisconnect: () => void;
 }) {
   return (
     <>
       <div className="section-heading">
-        <span className="eyebrow">A workspace you control</span>
-        <h1>Connection and privacy</h1>
+        <h1>Cài đặt</h1>
       </div>
-      <section className="panel" aria-labelledby="backend-heading">
-        <h2 id="backend-heading">Local backend</h2>
-        <p className="caption">127.0.0.1:4318 · single-owner workspace on this computer</p>
-        <p className="setting-row">
-          <span>Agora speech-to-text</span>
-          <strong>{capabilities?.agora ? 'Credentials present' : 'Needs credentials'}</strong>
-        </p>
-        {capabilities?.provider === 'openai' && (
-          <p className="setting-row">
-            <span>AI text provider (API key)</span>
-            <strong>{capabilities.ai ? `Key present · ${capabilities.model}` : 'Needs API key'}</strong>
+      {capabilities?.provider === 'chatgpt' ? (
+        <ChatGptAccount api={api} onChanged={() => void onRefresh()} />
+      ) : (
+        <section className="panel" aria-labelledby="ai-heading">
+          <h2 id="ai-heading">AI</h2>
+          <p className="muted">
+            {capabilities?.ai
+              ? `Đang dùng API key (${capabilities.model}).`
+              : 'Chưa có API key. Đặt AI_PROVIDER=chatgpt trong .env để đăng nhập bằng gói ChatGPT thay thế.'}
           </p>
-        )}
-        <p className="caption">“Present” only means a value is configured. A live session is what proves it works.</p>
-        <button className="secondary" disabled={!!busy} onClick={() => void run('refresh', onRefresh)}>
-          <RefreshCw size={15} aria-hidden="true" />
-          Refresh status
-        </button>
-      </section>
-      {capabilities?.provider === 'chatgpt' && <ChatGptAccount api={api} busy={busy} run={run} onChanged={onRefresh} />}
-      <section className="panel" aria-labelledby="privacy-settings-heading">
-        <h2 id="privacy-settings-heading">
-          <ShieldCheck size={18} aria-hidden="true" /> Private by default
+        </section>
+      )}
+
+      <section className="panel" aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading">
+          <ShieldCheck size={18} aria-hidden="true" /> Quyền riêng tư
         </h2>
         <ul className="plain">
-          <li>Raw audio is never saved by Tranz.</li>
+          <li>Tranz không bao giờ lưu âm thanh.</li>
           <li>
-            Agora’s managed pipeline runs a language model on the transcript even though Tranz never uses or plays its replies.
-            That processing is billed to your Agora project.
+            Âm thanh được gửi tới Agora để chuyển thành chữ. Hệ thống của Agora cũng chạy một mô hình ngôn ngữ trên lời thoại (Tranz
+            bỏ qua và không phát kết quả đó), và phần xử lý này được tính phí vào dự án Agora.
           </li>
-          <li>Profiles and sessions you choose to keep are encrypted on this computer.</li>
-          <li>Temporary sessions live in backend memory and are discarded after one hour or on restart.</li>
-          <li>Deleting removes Tranz’s local copy only. It cannot recall data already processed by Agora or the AI provider.</li>
+          <li>Lời thoại và ngữ cảnh được gửi tới ChatGPT để dịch, gợi ý và tạo ghi chú, theo điều khoản tài khoản ChatGPT của bạn.</li>
+          <li>Phiên không lưu chỉ giữ tạm trong bộ nhớ và tự xoá sau 1 giờ hoặc khi Tranz khởi động lại.</li>
+          <li>Ngữ cảnh và phiên bạn chọn lưu được mã hoá trên máy này. Xoá chỉ xoá bản trên máy, không thu hồi được dữ liệu đã gửi đi.</li>
         </ul>
       </section>
-      <button className="secondary full" disabled={active} onClick={onDisconnect}>
-        Disconnect this browser
-      </button>
-      {active && <p className="caption">Stop the running session before disconnecting.</p>}
+
+      <details className="panel">
+        <summary>Thông tin kỹ thuật</summary>
+        <p className="setting-row">
+          <span>Tranz trên máy</span>
+          <strong>127.0.0.1:4318</strong>
+        </p>
+        <p className="setting-row">
+          <span>Chuyển giọng nói (Agora)</span>
+          <strong>{capabilities?.agora ? 'Đã cấu hình' : 'Chưa cấu hình'}</strong>
+        </p>
+        <p className="setting-row">
+          <span>AI</span>
+          <strong>{capabilities?.provider === 'chatgpt' ? 'Gói ChatGPT (qua Codex)' : 'API key'}</strong>
+        </p>
+        <button className="secondary" disabled={!!busy} onClick={() => void run('refresh', onRefresh)}>
+          <RefreshCw size={15} aria-hidden="true" />
+          Kiểm tra lại
+        </button>
+      </details>
     </>
   );
 }
 
-type Account = { signedIn: boolean; email: string | null; plan: string | null; pendingLogin: string | null; lastLoginError: string | null };
-
-/** "Sign in with ChatGPT": the backend's Codex runtime starts OpenAI's OAuth page; Tranz never sees the password. */
-function ChatGptAccount({ api, busy, run, onChanged }: { api: Api; busy: string; run: Run; onChanged: () => Promise<void> }) {
-  const [account, setAccount] = useState<Account>();
-  const [problem, setProblem] = useState('');
-  const [waiting, setWaiting] = useState(false);
-  const alive = useRef(true);
-
-  const read = async () => {
-    try {
-      const next = await api.call<Account>('/ai/account');
-      if (alive.current) {
-        setAccount(next);
-        setProblem('');
-      }
-      return next;
-    } catch (caught) {
-      if (alive.current) setProblem(caught instanceof Error ? caught.message : 'Could not reach the ChatGPT provider.');
-      return undefined;
-    }
-  };
-
-  useEffect(() => {
-    alive.current = true;
-    void read();
-    return () => {
-      alive.current = false;
-    };
-  }, []);
-
-  // While the OpenAI page is open, poll until Codex reports the sign-in finished (up to 5 minutes).
-  useEffect(() => {
-    if (!waiting) return;
-    const started = Date.now();
-    const timer = setInterval(async () => {
-      const next = await read();
-      if (next?.signedIn || next?.lastLoginError || Date.now() - started > 300000) {
-        setWaiting(false);
-        if (next?.signedIn) void onChanged();
-      }
-    }, 2000);
-    return () => clearInterval(timer);
-  }, [waiting]);
-
-  const signIn = () =>
-    run('chatgpt', async () => {
-      const { authUrl } = await api.call<{ authUrl: string }>('/ai/login', 'POST');
-      if (isExtension) await chrome.tabs.create({ url: authUrl });
-      else window.open(authUrl, '_blank', 'noopener');
-      setWaiting(true);
-    });
-
-  const signOut = () =>
-    run('chatgpt', async () => {
-      await api.call('/ai/logout', 'POST');
-      await read();
-      await onChanged();
-    });
-
+function ChatGptAccount({ api, onChanged }: { api: Api; onChanged: () => void }) {
+  const { account, problem, waiting, signIn, signOut } = useChatGpt(api, onChanged);
   return (
     <section className="panel" aria-labelledby="chatgpt-heading" aria-busy={waiting}>
-      <h2 id="chatgpt-heading">AI: your ChatGPT plan</h2>
+      <h2 id="chatgpt-heading">Tài khoản ChatGPT</h2>
       <p className="caption">
-        Translation, suggestions and notes run through OpenAI’s official Codex runtime on this computer, billed to your ChatGPT
-        subscription instead of an API key. Each request takes several seconds and counts toward your plan’s Codex limits.
+        Tranz dùng gói ChatGPT của bạn để dịch, gợi ý và tạo ghi chú, không cần API key. Mỗi yêu cầu mất vài giây và được tính vào
+        hạn mức Codex của gói.
       </p>
       {problem && (
         <p className="banner error" role="alert">
@@ -146,28 +92,25 @@ function ChatGptAccount({ api, busy, run, onChanged }: { api: Api; busy: string;
       {account?.signedIn ? (
         <>
           <p className="setting-row">
-            <span>Signed in</span>
+            <span>Đã đăng nhập</span>
             <strong>
-              {account.email ?? 'ChatGPT account'}
+              {account.email ?? 'Tài khoản ChatGPT'}
               {account.plan ? ` · ${account.plan}` : ''}
             </strong>
           </p>
-          <button className="secondary" disabled={!!busy} onClick={() => void signOut()}>
+          <button className="secondary" onClick={() => void signOut().then(onChanged)}>
             <LogOut size={15} aria-hidden="true" />
-            Sign out of ChatGPT in Tranz
+            Đăng xuất ChatGPT khỏi Tranz
           </button>
         </>
       ) : (
         <>
-          {account?.lastLoginError && <p className="caption" role="status">Sign-in did not finish: {account.lastLoginError}</p>}
-          <button className="primary full" disabled={!!busy || waiting} onClick={() => void signIn()}>
+          {account?.lastLoginError && <p className="caption error-text">Chưa đăng nhập xong: {account.lastLoginError}</p>}
+          <button className="primary full" disabled={waiting} onClick={() => void signIn()}>
             {waiting ? <Spinner /> : <ExternalLink size={16} aria-hidden="true" />}
-            {waiting ? 'Waiting for you to finish on the OpenAI page…' : 'Sign in with ChatGPT'}
+            {waiting ? 'Đang chờ bạn đăng nhập trên trang OpenAI…' : 'Đăng nhập ChatGPT'}
           </button>
-          <p className="caption">
-            Opens OpenAI’s sign-in page in a new tab. Codex keeps the login in Tranz’s own data folder, separate from any Codex
-            you use yourself.
-          </p>
+          <p className="caption">Mở trang đăng nhập của OpenAI trong tab mới. Tranz không thấy mật khẩu của bạn.</p>
         </>
       )}
     </section>

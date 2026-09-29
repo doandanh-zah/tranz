@@ -25,7 +25,7 @@ test('ChatGPT sign-in goes through the Codex login RPC and is required before an
     const before = await ai.account!();
     assert.equal(before.provider, 'chatgpt');
     assert.equal(before.ready, false);
-    await assert.rejects(ai.json('test', { value: 'x' }, schema), /Sign in with ChatGPT/);
+    await assert.rejects(ai.json('test', { value: 'x' }, schema), /đăng nhập ChatGPT/);
     const { authUrl } = await ai.login!();
     assert.match(authUrl, /^https:\/\/auth\.openai\.com\//);
     await new Promise((r) => setTimeout(r, 150));
@@ -52,7 +52,7 @@ test('requests use a structured output schema and return validated JSON', async 
 test('tool use is refused and any tool item discards the answer', async () => {
   const { ai, done } = adapter(true);
   try {
-    await assert.rejects(ai.json('test', { value: 'TOOL' }, schema), /attempted to use a tool/);
+    await assert.rejects(ai.json('test', { value: 'TOOL' }, schema), /cố dùng công cụ/);
   } finally {
     done();
   }
@@ -61,11 +61,11 @@ test('tool use is refused and any tool item discards the answer', async () => {
 test('failed turns and a missing Codex binary fail with actionable errors', async () => {
   const { ai, done } = adapter(true);
   try {
-    await assert.rejects(ai.json('test', { value: 'FAIL' }, schema), /could not complete/);
+    await assert.rejects(ai.json('test', { value: 'FAIL' }, schema), /không hoàn tất/);
   } finally {
     done();
   }
   const missing = codexAI({ bin: '/nonexistent/codex', home: mkdtempSync(join(tmpdir(), 'tranz-codex-home-')), effort: 'low' });
-  await assert.rejects(missing.account!(), /Codex CLI was not found/);
+  await assert.rejects(missing.account!(), /Chưa cài Codex CLI/);
   missing.close();
 });

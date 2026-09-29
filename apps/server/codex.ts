@@ -94,7 +94,7 @@ class AppServer {
     });
     this.child = child;
     const failed = new Promise<never>((_, reject) => {
-      child.once('error', () => reject(new ApiError(503, 'Codex CLI was not found. Install it (npm i -g @openai/codex) or set CODEX_BIN.')));
+      child.once('error', () => reject(new ApiError(503, 'Chưa cài Codex CLI trên máy nên chưa dùng được ChatGPT. Cài bằng lệnh: npm i -g @openai/codex (hoặc đặt CODEX_BIN).')));
     });
     child.stderr.resume(); // Codex logs are not forwarded: they can contain prompts.
     child.once('exit', () => {
@@ -108,7 +108,7 @@ class AppServer {
     });
     readline.createInterface({ input: child.stdout }).on('line', (line) => this.receive(line));
     const init = await Promise.race([this.request('initialize', { clientInfo: { name: 'tranz', title: 'Tranz', version: '0.1.0' }, capabilities: null }, false), failed]);
-    if (init.error) throw new ApiError(503, 'Codex app-server could not start. Check the Codex CLI installation.');
+    if (init.error) throw new ApiError(503, 'Không khởi động được Codex. Kiểm tra lại bản cài Codex CLI.');
     this.send({ method: 'initialized' });
   }
 
@@ -176,13 +176,13 @@ export function codexAI(options: CodexOptions): TextAI & { close(): void } {
     const params = message.params as { loginId: string | null; success: boolean; error: string | null };
     if (!login || params.loginId === login.loginId) {
       login = undefined;
-      lastLoginError = params.success ? undefined : (params.error ?? 'ChatGPT sign-in did not complete.');
+      lastLoginError = params.success ? undefined : (params.error ?? 'Đăng nhập ChatGPT chưa hoàn tất.');
     }
   });
 
   async function account(): Promise<AiAccount> {
     const response = await server.request('account/read', {});
-    if (response.error) throw new ApiError(503, 'Could not read the ChatGPT sign-in state from Codex.');
+    if (response.error) throw new ApiError(503, 'Không đọc được trạng thái đăng nhập ChatGPT.');
     const result = response.result as { account: { type: string; email?: string | null; planType?: string } | null };
     const signedIn = result.account?.type === 'chatgpt';
     return {
@@ -203,7 +203,7 @@ export function codexAI(options: CodexOptions): TextAI & { close(): void } {
       const response = await server.request('account/login/start', { type: 'chatgpt' });
       const result = response.result as { type: string; loginId?: string; authUrl?: string } | undefined;
       if (response.error || !result?.authUrl || !result.loginId) {
-        throw new ApiError(503, 'Codex could not start ChatGPT sign-in. Is another sign-in already open?');
+        throw new ApiError(503, 'Không bắt đầu được đăng nhập ChatGPT. Có thể một cửa sổ đăng nhập khác vẫn đang mở.');
       }
       login = { loginId: result.loginId, authUrl: result.authUrl };
       lastLoginError = undefined;
@@ -214,14 +214,14 @@ export function codexAI(options: CodexOptions): TextAI & { close(): void } {
       if (login) await server.request('account/login/cancel', { loginId: login.loginId });
       login = undefined;
       const response = await server.request('account/logout', undefined);
-      if (response.error) throw new ApiError(503, 'Codex could not sign out.');
+      if (response.error) throw new ApiError(503, 'Không đăng xuất được. Vui lòng thử lại.');
     },
 
     async json(instruction, data, schema) {
-      if (active >= MAX_CONCURRENT) throw new ApiError(429, 'AI is busy. Please retry shortly.');
+      if (active >= MAX_CONCURRENT) throw new ApiError(429, 'AI đang bận. Vui lòng thử lại sau giây lát.');
       active++;
       try {
-        if (!(await account()).signedIn) throw new ApiError(503, 'Sign in with ChatGPT in Tranz Settings to enable translation and assistance.');
+        if (!(await account()).signedIn) throw new ApiError(503, 'Hãy đăng nhập ChatGPT để dùng dịch và gợi ý.');
         const thread = await server.request('thread/start', {
           cwd: server.workdir,
           sandbox: 'read-only',
@@ -235,7 +235,7 @@ export function codexAI(options: CodexOptions): TextAI & { close(): void } {
             instruction,
         });
         const threadId = (thread.result as { thread?: { id?: string } } | undefined)?.thread?.id;
-        if (thread.error || !threadId) throw new ApiError(502, 'Codex could not open a conversation. Retry.');
+        if (thread.error || !threadId) throw new ApiError(502, 'Không mở được cuộc trò chuyện với ChatGPT. Vui lòng thử lại.');
 
         const items: ThreadItem[] = [];
         let unsubscribe = () => false as boolean;
@@ -260,20 +260,20 @@ export function codexAI(options: CodexOptions): TextAI & { close(): void } {
         const turnId = (started.result as { turn?: { id?: string } } | undefined)?.turn?.id;
         if (started.error) {
           unsubscribe();
-          throw new ApiError(502, 'ChatGPT did not accept the request. Your plan may have reached its usage limit; retry later.');
+          throw new ApiError(502, 'ChatGPT không nhận yêu cầu. Có thể gói của bạn đã chạm giới hạn sử dụng; hãy thử lại sau.');
         }
         const outcome = await finished;
         unsubscribe();
         if (outcome.status === 'timeout') {
           if (turnId) void server.request('turn/interrupt', { threadId, turnId });
-          throw new ApiError(504, 'ChatGPT did not answer within 60 seconds. Retry.');
+          throw new ApiError(504, 'ChatGPT không trả lời trong 60 giây. Vui lòng thử lại.');
         }
         if (outcome.status !== 'completed') {
-          throw new ApiError(502, 'ChatGPT could not complete the request. Your plan may have reached its usage limit; retry later.');
+          throw new ApiError(502, 'ChatGPT không hoàn tất được yêu cầu. Có thể gói của bạn đã chạm giới hạn sử dụng; hãy thử lại sau.');
         }
         if (items.some((item) => !SAFE_ITEMS.has(item.type))) {
           // Tools are disabled; any tool item means the lock-down did not hold, so the output is not trusted.
-          throw new ApiError(502, 'The AI attempted to use a tool, so the response was discarded.');
+          throw new ApiError(502, 'AI đã cố dùng công cụ nên câu trả lời bị bỏ qua để đảm bảo an toàn.');
         }
         const text = items
           .filter((item) => item.type === 'agentMessage')
@@ -282,7 +282,7 @@ export function codexAI(options: CodexOptions): TextAI & { close(): void } {
         try {
           return schema.parse(JSON.parse(text));
         } catch {
-          throw new ApiError(502, 'The AI response did not match the required format. Retry.');
+          throw new ApiError(502, 'Câu trả lời của AI không đúng định dạng. Vui lòng thử lại.');
         }
       } finally {
         active--;

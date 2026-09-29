@@ -46,3 +46,7 @@ First live runs of the Tranz runtime against the configured Agora project, with 
 Observed after the fixes: agent join to listening ~8 s, first final line ~1.5 s after listening, pause produced no new lines, resume recovered within ~2 s, stop was idempotent and the agent left the channel within ~1.5 s.
 
 **Important consequence:** the passive agent still runs its LLM on the transcript and produces replies (`assistant.transcription` events were observed). Tranz filters them out and never plays agent audio, but transcript text reaches Agora's managed LLM vendor and that processing is billed. The consent text and Settings now say so. Revisit with an STT-only Agora product or a BYOK transcription path if this is unacceptable.
+
+## Automatic pairing addendum (2026-09-29)
+
+People should not see or paste the local access token. `GET /api/pair` returns the token only when the request's `Origin` is exactly `chrome-extension://<EXTENSION_ID>` from `.env`. Browsers set `Origin` themselves, so web pages cannot obtain it; a local program can forge the header, but such a program can already read `.env`. Without `EXTENSION_ID` the endpoint refuses and the panel explains how to fix it. The developer preview page (`127.0.0.1:5173`) has no extension identity and still pastes the token by hand. A 401 during use triggers a fresh pairing instead of a sign-out screen.
