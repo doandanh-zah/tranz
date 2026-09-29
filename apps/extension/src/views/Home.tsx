@@ -143,13 +143,11 @@ export function Home({
           {busy === 'start' ? 'Đang kết nối… (khoảng 10 giây)' : 'Bắt đầu nghe'}
         </button>
         {!isExtension && <p className="caption">Bản xem thử giao diện · Mở extension trong Chrome để nghe cuộc họp.</p>}
-        <details className="data-details">
-          <summary>Cách Tranz xử lý âm thanh</summary>
-          <p className="caption consent">
-            Khi bấm <strong>Bắt đầu nghe</strong>, âm thanh của tab và micro được gửi qua Agora để chuyển thành chữ; lời thoại được
-            gửi tới ChatGPT để dịch và gợi ý. Hãy báo cho mọi người trong cuộc họp. Tranz không lưu âm thanh.
-          </p>
-        </details>
+        {/* Pressing the button is the consent (PR-004), so this stays visible rather than collapsed. */}
+        <p className="caption consent">
+          Khi bấm <strong>Bắt đầu nghe</strong>, âm thanh của tab và micro được gửi qua Agora để chuyển thành chữ; lời thoại được gửi
+          tới ChatGPT để dịch và gợi ý. Tranz không lưu âm thanh. Hãy báo cho mọi người trong cuộc họp.
+        </p>
       </section>
 
       <details className="panel options">

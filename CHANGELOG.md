@@ -21,7 +21,7 @@ Implementation candidate on stacked, unmerged pull requests #2–#8. Live Agora,
 ### Changed (after user review)
 
 - The side panel is in Vietnamese, connects to the local backend automatically (no access-token step) and opens on a three-step checklist with one **Bắt đầu nghe** button; context is optional.
-- The interface uses a calmer iOS-inspired liquid-glass system, with simpler setup copy, collapsed technical/privacy detail, glass navigation and controls, and opaque accessibility fallbacks.
+- The interface uses a calmer iOS-inspired liquid-glass system, with simpler setup copy, collapsed technical detail (the data-flow disclosure stays visible under the start button), glass navigation and controls, and opaque accessibility fallbacks.
 - Backend error messages are in Vietnamese.
 
 ### Added (ChatGPT plan)

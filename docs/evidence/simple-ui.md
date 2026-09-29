@@ -10,13 +10,13 @@ Ngày: 2026-09-29, cập nhật giao diện glass ngày 2026-09-30. Branch `feat
 - **Ngữ cảnh không bắt buộc** (mặc định "Cuộc họp nhanh"). Chọn ngữ cảnh và lưu phiên nằm trong "Tuỳ chọn cho cuộc họp này".
 - Cài đặt gọn lại: tài khoản ChatGPT, quyền riêng tư, "Thông tin kỹ thuật" thu gọn.
 - Panel không bao giờ trắng: nếu Tranz trên máy chưa chạy, panel hiện 3 bước khắc phục và nút Thử lại.
-- **Tinh giản glass:** header và điều hướng thành một dock kính mờ; màn hình chính chỉ còn biểu tượng, một lời hứa ngắn, trạng thái chuẩn bị và hành động chính. Chi tiết Agora và luồng dữ liệu được thu gọn nhưng vẫn truy cập được. Điều khiển phiên không bám dính để tránh che lời thoại khi cuộn.
+- **Tinh giản glass:** header và điều hướng thành một dock kính mờ; màn hình chính chỉ còn biểu tượng, một lời hứa ngắn, trạng thái chuẩn bị và hành động chính. Chi tiết cấu hình Agora được thu gọn; đoạn giải thích luồng dữ liệu luôn hiện ngay dưới nút Bắt đầu nghe (bấm nút là đồng ý, nên không được giấu). Điều khiển phiên không bám dính để tránh che lời thoại khi cuộn.
 - Glass có đường viền sáng, blur và độ sâu nhẹ; nội dung dài vẫn dùng nền sáng dễ đọc. Có fallback khi trình duyệt không hỗ trợ blur, `prefers-contrast: more` và `prefers-reduced-motion`.
 
 ## Kiểm chứng
 
 - `npm run verify`: 31/31 test (thêm: tự kết nối chỉ cho đúng origin extension; phiên không cần ngữ cảnh; regex thông báo tiếng Việt).
-- `npm run verify:ui`: 42/42 trên bản build unpacked sau thay đổi glass. Gồm: mở panel là tự kết nối, không có ô mật khẩu; checklist 3 bước; nút Bắt đầu nghe bị khoá đến khi AI, micro và Google Meet đều sẵn sàng; tạo ngữ cảnh; phiên mô phỏng bằng tiếng Việt; đăng nhập ChatGPT ngay từ checklist (với Codex giả lập, trang OpenAI chặn cục bộ); không tràn ngang ở 320–600 px; bàn phím; dialog xoá. Ảnh trong `simple-ui/`.
+- `npm run verify:ui`: 43/43 trên bản build unpacked sau thay đổi glass. Gồm: mở panel là tự kết nối, không có ô mật khẩu; checklist 3 bước; đoạn giải thích luồng dữ liệu hiện ngay dưới nút Bắt đầu nghe (không bị thu gọn); nút Bắt đầu nghe bị khoá đến khi AI, micro và Google Meet đều sẵn sàng; tạo ngữ cảnh; phiên mô phỏng bằng tiếng Việt; đăng nhập ChatGPT ngay từ checklist (với Codex giả lập, trang OpenAI chặn cục bộ); không tràn ngang ở 320–600 px; bàn phím; dialog xoá. Ảnh trong `simple-ui/`.
 - Backend thật của bạn đã khởi động lại với code mới; `/api/pair` từ chối mọi nguồn không phải extension.
 
 ## Giới hạn

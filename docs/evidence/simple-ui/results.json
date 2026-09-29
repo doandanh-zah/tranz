@@ -1,11 +1,11 @@
 {
-  "extensionId": "hlciacmigmkadpcjlceolnjdidjbaoen",
-  "at": "2026-09-29T17:41:00.297Z",
+  "extensionId": "kfboagfamcfgjibfmiahofkeacdjhbmd",
+  "at": "2026-09-29T18:04:41.881Z",
   "results": [
     {
       "name": "unpacked extension loads and registers its service worker",
       "pass": true,
-      "detail": "hlciacmigmkadpcjlceolnjdidjbaoen"
+      "detail": "kfboagfamcfgjibfmiahofkeacdjhbmd"
     },
     {
       "name": "manifest permissions are the expected narrow set",
@@ -29,6 +29,11 @@
     },
     {
       "name": "start stays disabled until AI, microphone and Google Meet are ready, and missing Agora is explained",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the data-flow disclosure is visible under the start button, not collapsed",
       "pass": true,
       "detail": ""
     },

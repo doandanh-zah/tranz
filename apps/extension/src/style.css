@@ -1518,23 +1518,8 @@ footer {
   border-radius: 14px;
 }
 
-.data-details {
-  margin-top: 7px;
-  text-align: center;
-}
-
-.data-details summary {
-  display: inline-flex;
-  align-items: center;
-  min-height: 36px;
-  padding: 0 8px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.data-details p {
-  margin: 0 4px 8px;
-  text-align: left;
+.start-zone .consent {
+  margin: 10px 4px 2px;
 }
 
 .options {

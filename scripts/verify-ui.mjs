@@ -23,7 +23,8 @@ const dataDir = mkdtempSync(join(tmpdir(), 'tranz-ui-'));
 const profileDir = mkdtempSync(join(tmpdir(), 'tranz-chromium-'));
 const results = [];
 // Matches VITE_TRANZ_BACKEND in build:verify, so a backend the person runs on 4318 is left alone.
-const PORT = 4328;
+// Override both together (TRANZ_VERIFY_PORT + a build with that backend) when 4328 is already in use.
+const PORT = Number(process.env.TRANZ_VERIFY_PORT ?? 4328);
 const backendApi = `http://127.0.0.1:${PORT}/api`;
 
 // Chrome derives an unpacked extension's ID from the SHA-256 of its absolute path.
@@ -160,6 +161,10 @@ async function main() {
     check(
       'start stays disabled until AI, microphone and Google Meet are ready, and missing Agora is explained',
       (await page.getByRole('button', { name: 'Bắt đầu nghe' }).isDisabled()) && (await page.getByText(/thiếu cấu hình Agora/).count()) === 1,
+    );
+    check(
+      'the data-flow disclosure is visible under the start button, not collapsed',
+      await page.locator('.start-zone .consent').isVisible(),
     );
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });

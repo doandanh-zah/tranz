@@ -281,7 +281,7 @@ The first user review found the English, multi-step interface hard to use. The p
 - is written in Vietnamese (`lang="vi"`); transcript lines, suggested replies and practice phrases stay in English because they are the meeting's language;
 - connects to the local backend automatically; the only sign-in a person sees is ChatGPT;
 - opens on **Sẵn sàng cho cuộc họp**: a three-step checklist (Đăng nhập ChatGPT, Cho phép micro, Mở cuộc họp Google Meet) that collapses to “Mọi thứ đã sẵn sàng”, then one large **Bắt đầu nghe** button;
-- treats pressing **Bắt đầu nghe** as the explicit consent, with a short “Cách Tranz xử lý âm thanh” disclosure directly under the button (the separate consent checkbox was removed);
+- treats pressing **Bắt đầu nghe** as the explicit consent, with the data-flow disclosure always visible directly under the button (never collapsed, because the button press is the consent) (the separate consent checkbox was removed);
 - makes context optional (“Không dùng — Cuộc họp nhanh”) and moves context choice and keeping the session into a collapsed “Tuỳ chọn cho cuộc họp này”;
 - names live actions plainly: Tạm dừng/Tiếp tục, Dừng, Gợi ý câu trả lời, Tóm tắt vừa rồi, “Tôi muốn nói…”, Trả lời câu này; shows times in 24-hour Vietnamese format;
 - puts backend and provider details under a collapsed “Thông tin kỹ thuật” in Cài đặt.
@@ -289,6 +289,6 @@ The first user review found the English, multi-step interface hard to use. The p
 ## Liquid-glass refinement (implemented after user feedback, 2026-09-30)
 
 - The header and three destinations are combined visually into a quiet glass dock; the live controls remain in document flow so they never cover transcript content while scrolling.
-- The home screen uses one product symbol, one short promise, one compact setup card and one primary start action. Technical Agora configuration and the longer data-flow explanation stay available in collapsed disclosures.
+- The home screen uses one product symbol, one short promise, one compact setup card and one primary start action. Technical Agora configuration stays in a collapsed disclosure; the short data-flow disclosure under the start button stays visible because pressing the button is the consent (PR-004).
 - Glass is a material cue, not decoration: content surfaces keep readable light fills, semantic states keep text labels, and the interface has reduced-motion, increased-contrast and no-backdrop-filter fallbacks.
 - The responsive harness renders the unpacked extension at 320, 360, 400, 480 and 600 px; real side-panel, screen-reader and live-meeting validation remain pending.
