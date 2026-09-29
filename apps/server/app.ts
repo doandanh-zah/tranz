@@ -3,12 +3,14 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { timingSafeEqual,createHash } from 'node:crypto';
 import { ZodError } from 'zod';
+import { textAI, type TextAI } from './ai';
+import { translationRoutes } from './translation';
 import { Store } from './store';
 import { agoraProvider, type VoiceProvider } from './agora';
 import { Lifecycle, sessionRoutes } from './sessions';
 import type { Config } from './config';
 export class ApiError extends Error { constructor(public statusCode:number,message:string){super(message);} }
-export async function createApp(config:Config,voice?:VoiceProvider){
+export async function createApp(config:Config,voice?:VoiceProvider,ai?:TextAI){
  const app=Fastify({logger:false,bodyLimit:256*1024});
  const allowed=new Set(['http://127.0.0.1:5173',`http://127.0.0.1:${config.PORT}`,...(config.EXTENSION_ID?[`chrome-extension://${config.EXTENSION_ID}`]:[])]);
  await app.register(cors,{origin:(origin,cb)=>cb(null,!origin||allowed.has(origin)),methods:['GET','POST','PUT','DELETE'],allowedHeaders:['Content-Type','Authorization']});
@@ -30,5 +32,6 @@ export async function createApp(config:Config,voice?:VoiceProvider){
  const store=new Store(config.DATA_DIR,config.DATA_KEY);
  const life=new Lifecycle(store,voice??agoraProvider(config));
  sessionRoutes(app,life);
+ translationRoutes(app,life,ai??textAI(config));
  return app;
 }
