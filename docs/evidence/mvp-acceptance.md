@@ -7,7 +7,7 @@ Mức bằng chứng:
 - **A** — test tự động (Node, mock provider/Agora).
 - **B** — extension unpacked thật trong Chromium, AI mock, session mô phỏng.
 - **C** — Chromium thật với audio synthetic (tab capture thật).
-- **L** — live với Agora thật, giọng nói synthetic từ một tab thật (`npm run verify:live`). Chưa có L cho AI provider thật và Google Meet.
+- **L** — live với Agora thật, giọng nói synthetic từ một tab thật (`npm run verify:live`). AI provider thật: gói ChatGPT Plus qua Codex (`eval:grounding`, 6/6). Chưa có L cho Google Meet.
 
 | # | Tiêu chí (kế hoạch mục 2 / PRODUCT) | Bằng chứng | Trạng thái |
 | --- | --- | --- | --- |
@@ -25,7 +25,7 @@ Mức bằng chứng:
 | PR-011 | Partial/final ổn định | A/B + L: transcript thật qua RTM, dòng final đầu ~1,5 s sau khi listening | Đạt (synthetic speech) |
 | PR-012 | Bản dịch gắn đúng segment/revision | A/B | Đạt (mock) |
 | PR-013/014 | Catch-up; phát hiện câu hỏi + gợi ý | A/B (heuristic có nhãn) | Đạt (mock) |
-| PR-015/016 | Chỉ dùng context + transcript; thiếu căn cứ → làm rõ | A (lọc evidence, injection chỉ là data) | Contract đạt; **chất lượng model chưa đo** |
+| PR-015/016 | Chỉ dùng context + transcript; thiếu căn cứ → làm rõ | A + L (gói ChatGPT, 6 tình huống synthetic) | Đạt trên bộ synthetic nhỏ; chưa đo trên cuộc họp thật |
 | PR-017 | Mute, pause, resume, stop | C + A + L (pause/resume/stop) | Đạt; mute chưa thử live |
 | PR-018 | Lỗi quyền/kết nối/agent/transcript hiển thị và phục hồi được | A/B | Một phần — lỗi RTC/RTM thật chưa tái hiện |
 | PR-020 | Kết thúc idempotent, một job xử lý | A | Đạt |
@@ -37,6 +37,6 @@ Mức bằng chứng:
 | Gate | Thiếu gì | Ai cần làm |
 | --- | --- | --- |
 | Agora live — reconnect thật khi mất mạng | Join, transcript, pause/resume, **gia hạn token qua 10 phút**, stop, cleanup đã đạt live (xem [live-agora.md](live-agora.md)); chưa tái hiện mất mạng có kiểm soát | Chạy thủ công theo REVIEW_GUIDE |
-| AI provider thật (dịch, gợi ý, notes; latency) | `AI_API_KEY` trong `.env` | Người dùng cấu hình, chạy `npm run eval:grounding` |
+| AI provider trong cuộc họp thật | Đã đạt live với gói ChatGPT (xem [chatgpt-provider.md](chatgpt-provider.md)); độ trễ 5–13 s cao hơn mục tiêu | Bạn đăng nhập ChatGPT trong Settings và đánh giá trong cuộc họp thật |
 | Google Meet + playback nghe được + side panel thật | Cuộc gọi Meet đã đăng nhập, người thao tác thật trên Chrome | Người dùng |
 | Screen reader, zoom trình duyệt 200% trong panel 320 px | Kiểm tra thủ công | Người dùng |

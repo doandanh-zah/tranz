@@ -187,7 +187,7 @@ export function Live({
             {busy === 'catch-up' ? 'Summarising…' : 'Catch me up (Tiếng Việt)'}
           </button>
         </div>
-        {!aiReady && <p className="caption">Add an AI API key to the backend to enable suggestions.</p>}
+        {!aiReady && <p className="caption">Connect an AI provider in Settings (ChatGPT sign-in or API key) to enable suggestions.</p>}
 
         {result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
 
@@ -256,7 +256,7 @@ function Translation({
   }
   return (
     <p className="translation muted">
-      {!aiReady ? 'Translation needs an AI API key on the backend.' : segment.translationState === 'pending' ? 'Translating…' : 'Waiting to translate…'}
+      {!aiReady ? 'Translation needs an AI provider (Settings).' : segment.translationState === 'pending' ? 'Translating… (can take several seconds)' : 'Waiting to translate…'}
     </p>
   );
 }

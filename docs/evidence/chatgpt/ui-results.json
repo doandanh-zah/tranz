@@ -1,0 +1,231 @@
+{
+  "extensionId": "hlciacmigmkadpcjlceolnjdidjbaoen",
+  "at": "2026-09-29T14:26:29.203Z",
+  "results": [
+    {
+      "name": "unpacked extension loads and registers its service worker",
+      "pass": true,
+      "detail": "hlciacmigmkadpcjlceolnjdidjbaoen"
+    },
+    {
+      "name": "manifest permissions are the expected narrow set",
+      "pass": true,
+      "detail": "{\"permissions\":[\"sidePanel\",\"offscreen\",\"tabCapture\",\"activeTab\",\"storage\"],\"hosts\":[\"http://127.0.0.1:4318/*\"]}"
+    },
+    {
+      "name": "panel renders the app instead of the loading fallback",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "signed-out view has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "signed-out view has no horizontal overflow at 360px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "signed-out view has no horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "signed-out view has no horizontal overflow at 480px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "signed-out view has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "invalid token shows an error",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "valid token opens the prepare view",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "start is blocked without a profile, Agora credentials or consent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "profile is created through the form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "prepare view has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "prepare view has no horizontal overflow at 360px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "prepare view has no horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "prepare view has no horizontal overflow at 480px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "prepare view has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "start stays disabled when Agora credentials are missing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "keyboard focus reaches controls with a visible outline",
+      "pass": true,
+      "detail": "12 stops"
+    },
+    {
+      "name": "final segments are translated one by one and linked to their source (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "partial text is shown separately from final text",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "detected question is labelled as a guess",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reply suggestion shows provenance and a verify warning",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 360px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 480px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "catch-up and Vietnamese composer round-trip through the backend (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reduced motion disables the live indicator animation",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "200% root text size keeps the live view free of horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "stopping triggers notes in the background and the panel shows them (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "kept session states its retention",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "improved replies are labelled as illustrative",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "after-meeting notes have no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "after-meeting notes have no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "library lists the kept session",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "delete dialog takes focus, closes on Escape and restores focus",
+      "pass": true,
+      "detail": "restored=Delete this session"
+    },
+    {
+      "name": "confirmed deletion removes the session from the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "an automatic stop explains why it happened",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a stopped temporary session is not listed until the user keeps it from the panel",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "backend offline shows a recovery screen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ChatGPT provider without sign-in offers \"Sign in with ChatGPT\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "sign-in opens the OpenAI page in a new tab and the panel then shows the signed-in plan",
+      "pass": true,
+      "detail": "https://auth.openai.com/oauth/authorize"
+    },
+    {
+      "name": "no script errors on extension pages",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

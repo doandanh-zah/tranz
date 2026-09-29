@@ -1,5 +1,5 @@
-// Small synthetic evaluation of translation and grounded assistance against the REAL configured
-// OpenAI-compatible provider. Checks are heuristic and the set is tiny: a pass is a smoke signal,
+// Small synthetic evaluation of translation and grounded assistance against the REAL configured AI
+// provider (ChatGPT plan via Codex, or an OpenAI-compatible API key). Checks are heuristic and the set is tiny: a pass is a smoke signal,
 // not proof of grounding quality. No real meeting content is used.
 // Usage: npm run eval:grounding   (reads AI_* from .env; costs a few provider requests)
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -13,8 +13,8 @@ import type { VoiceProvider } from '../apps/server/agora';
 type Case = { name: string; run: () => Promise<{ pass: boolean; output: unknown; ms: number }> };
 
 const parsed = configSchema.safeParse(process.env);
-if (!parsed.success || !parsed.data.AI_API_KEY) {
-  console.error('BLOCKED: configure ACCESS_TOKEN, DATA_KEY and AI_API_KEY in .env (npm run setup), then rerun.');
+if (!parsed.success || (parsed.data.AI_PROVIDER === 'openai' && !parsed.data.AI_API_KEY)) {
+  console.error('BLOCKED: configure .env (npm run setup) with AI_PROVIDER=chatgpt, or AI_PROVIDER=openai plus AI_API_KEY, then rerun.');
   process.exit(2);
 }
 
@@ -34,6 +34,15 @@ const call = async (method: string, url: string, payload?: object) => {
   const response = await app.inject({ method: method as 'GET', url, headers, ...(payload ? { payload } : {}) });
   return { status: response.statusCode, body: response.json(), ms: Math.round(performance.now() - started) };
 };
+
+const provider = await call('GET', '/api/ai/account');
+if (provider.status !== 200 || !provider.body.ready) {
+  console.error(`BLOCKED: the ${config.AI_PROVIDER} provider is not ready (${provider.body.error ?? 'not signed in'}). Sign in with ChatGPT in Tranz Settings or set CODEX_HOME to a signed-in Codex home.`);
+  await app.close();
+  rmSync(dir, { recursive: true, force: true });
+  process.exit(2);
+}
+console.log(`Provider: ${config.AI_PROVIDER}${provider.body.plan ? ` (plan ${provider.body.plan})` : ''}`);
 
 const profile = (
   await call('POST', '/api/profiles', {
@@ -133,7 +142,8 @@ try {
 }
 const outDir = resolve('artifacts/eval');
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, 'grounding.json'), JSON.stringify({ at: new Date().toISOString(), model: config.AI_MODEL, results }, null, 2));
+writeFileSync(join(outDir, 'grounding.json'), JSON.stringify({ at: new Date().toISOString(), provider: config.AI_PROVIDER, model: config.AI_PROVIDER === 'chatgpt' ? (config.CODEX_MODEL ?? 'ChatGPT default') : config.AI_MODEL, results }, null, 2));
 const passed = results.filter((r) => r.pass).length;
-console.log(`\n${passed}/${results.length} heuristic checks passed with model ${config.AI_MODEL}. Details: artifacts/eval/grounding.json`);
+const model = config.AI_PROVIDER === 'chatgpt' ? (config.CODEX_MODEL ?? 'ChatGPT default') : config.AI_MODEL;
+console.log(`\n${passed}/${results.length} heuristic checks passed with ${config.AI_PROVIDER} / ${model}. Details: artifacts/eval/grounding.json`);
 if (passed < results.length) process.exitCode = 1;

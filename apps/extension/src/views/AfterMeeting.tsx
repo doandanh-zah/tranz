@@ -40,7 +40,7 @@ export function AfterMeeting({
         ) : !hasTranscript ? (
           <p className="muted">No final transcript was received, so there is nothing to summarise.</p>
         ) : !aiReady ? (
-          <p className="muted">Notes need an AI API key on the backend. The transcript below is still available.</p>
+          <p className="muted">Notes need an AI provider: sign in with ChatGPT in Settings. The transcript below is still available.</p>
         ) : (
           <>
             <p className={session.processing === 'error' ? 'banner error' : 'muted'} role={session.processing === 'error' ? 'alert' : undefined}>

@@ -2,8 +2,24 @@ import { z } from 'zod';
 import type { Config } from './config';
 import { ApiError } from './app';
 
+/** What the panel shows about the configured provider; `ready` means requests can be attempted. */
+export type AiAccount = {
+  provider: 'chatgpt' | 'openai';
+  ready: boolean;
+  signedIn: boolean;
+  email: string | null;
+  plan: string | null;
+  pendingLogin: string | null;
+  lastLoginError: string | null;
+};
+
 export interface TextAI {
   json<T>(instruction: string, data: unknown, schema: z.ZodType<T>): Promise<T>;
+  /** Provider state; absent on test doubles, which count as ready. */
+  account?(): Promise<AiAccount>;
+  /** ChatGPT sign-in: returns the OpenAI authorization URL the person opens in their browser. */
+  login?(): Promise<{ authUrl: string }>;
+  logout?(): Promise<void>;
 }
 
 const MAX_CONCURRENT = 3;
@@ -27,6 +43,10 @@ function providerError(status: number) {
 export function textAI(c: Config): TextAI {
   let active = 0;
   return {
+    async account() {
+      const ready = !!c.AI_API_KEY;
+      return { provider: 'openai', ready, signedIn: ready, email: null, plan: null, pendingLogin: null, lastLoginError: null };
+    },
     async json(instruction, data, schema) {
       if (!c.AI_API_KEY) throw new ApiError(503, 'Configure AI_API_KEY locally to enable translation and assistance.');
       if (active >= MAX_CONCURRENT) throw new ApiError(429, 'AI is busy. Please retry shortly.');

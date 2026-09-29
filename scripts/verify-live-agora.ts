@@ -108,7 +108,7 @@ async function prepareExtension() {
 function startBackend(extensionId: string, dataDir: string, token: string) {
   const child = spawn(process.execPath, [join(buildDir, 'server/index.js')], {
     // Provider values come from this process's environment (.env via tsx); overrides isolate the run.
-    env: { ...process.env, PORT: String(PORT), ACCESS_TOKEN: token, DATA_KEY: randomBytes(32).toString('hex'), DATA_DIR: dataDir, EXTENSION_ID: extensionId, AI_API_KEY: '' },
+    env: { ...process.env, PORT: String(PORT), ACCESS_TOKEN: token, DATA_KEY: randomBytes(32).toString('hex'), DATA_DIR: dataDir, EXTENSION_ID: extensionId, AI_PROVIDER: 'openai', AI_API_KEY: '' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   return new Promise<ChildProcess>((resolveChild, reject) => {

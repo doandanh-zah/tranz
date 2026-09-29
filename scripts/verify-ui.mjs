@@ -45,7 +45,7 @@ function mockProvider() {
       const system = body.messages?.[0]?.content ?? '';
       const data = JSON.parse(body.messages?.[1]?.content ?? '{}');
       let content;
-      if (system.includes('Translate')) content = { translation: `[MOCK] Bản dịch mô phỏng: ${data.text}` };
+      if (system.includes('Translate')) content = { translations: data.lines.map((line) => ({ id: line.id, translation: `[MOCK] Bản dịch mô phỏng: ${line.text}` })) };
       else if (system.includes('Summarize')) {
         content = {
           summary: '[MOCK] Tóm tắt mô phỏng cho cuộc họp thử nghiệm.',
@@ -70,21 +70,27 @@ function mockProvider() {
   return new Promise((resolveServer) => server.listen(4319, '127.0.0.1', () => resolveServer(server)));
 }
 
-function startBackend() {
+const dataKey = randomBytes(32).toString('hex');
+const backends = [];
+
+function startBackend(overrides = {}) {
   const child = spawn(process.execPath, [join(buildDir, 'server/index.js')], {
     env: {
       PATH: process.env.PATH,
       PORT: String(PORT),
       ACCESS_TOKEN: token,
-      DATA_KEY: randomBytes(32).toString('hex'),
+      DATA_KEY: dataKey,
       DATA_DIR: dataDir,
+      AI_PROVIDER: 'openai',
       AI_BASE_URL: 'http://127.0.0.1:4319/v1',
       AI_API_KEY: 'mock-key-not-a-real-credential',
       AI_MODEL: 'mock-model',
       EXTENSION_ID: extensionId,
+      ...overrides,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+  backends.push(child);
   return new Promise((resolveChild, reject) => {
     child.stdout.on('data', (chunk) => String(chunk).includes('ready') && resolveChild(child));
     child.stderr.on('data', (chunk) => process.stderr.write(chunk));
@@ -342,11 +348,34 @@ async function main() {
     check('backend offline shows a recovery screen', true);
     await shoot(page, '10-backend-offline-360');
 
+    // ChatGPT provider with the synthetic Codex stand-in. The OpenAI page is intercepted locally,
+    // so nothing is sent to OpenAI.
+    await context.route('https://auth.openai.com/**', (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<title>Synthetic sign-in</title>Synthetic OpenAI sign-in page (test)' }),
+    );
+    await startBackend({ AI_PROVIDER: 'chatgpt', AI_API_KEY: '', CODEX_BIN: resolve('tests/fixtures/fake-codex.mjs'), FAKE_CODEX_SIGNED_IN: '0' });
+    await page.reload();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Sign in with ChatGPT' }).waitFor();
+    check('ChatGPT provider without sign-in offers "Sign in with ChatGPT"', true);
+    await shoot(page, '14-chatgpt-signin-360');
+    const opened = context.waitForEvent('page');
+    await page.getByRole('button', { name: 'Sign in with ChatGPT' }).click();
+    const authPage = await opened;
+    await page.getByText('Signed in', { exact: true }).waitFor({ timeout: 15000 });
+    check(
+      'sign-in opens the OpenAI page in a new tab and the panel then shows the signed-in plan',
+      authPage.url().startsWith('https://auth.openai.com/') && (await page.getByText(/· plus/).count()) > 0,
+      authPage.url().split('?')[0],
+    );
+    await authPage.close();
+    await shoot(page, '15-chatgpt-signed-in-360');
+
     check('no script errors on extension pages', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));
   } finally {
     clearInterval(heartbeat);
     await context.close();
-    backend.kill('SIGTERM');
+    for (const child of backends) child.kill('SIGTERM');
     provider.close();
     rmSync(dataDir, { recursive: true, force: true });
     rmSync(profileDir, { recursive: true, force: true });

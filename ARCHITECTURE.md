@@ -51,7 +51,7 @@ Google Meet tab ──tabCapture stream ID──► service worker ──► off
 Side panel (React) ◄──── polling ────► Fastify backend on 127.0.0.1:4318
                                           ├─ sessions: lifecycle, heartbeat watchdog, end reasons
                                           ├─ agora: scoped RTC/RTM tokens (10 min), agent start/stop/cleanup
-                                          ├─ translation / assistance / notes via OpenAI-compatible API
+                                          ├─ translation / assistance / notes via ChatGPT plan (codex app-server) or an OpenAI-compatible API
                                           └─ encrypted local JSON store (AES-256-GCM, single process)
 ```
 
@@ -60,11 +60,12 @@ Side panel (React) ◄──── polling ────► Fastify backend on 12
 | Pairing and auth | Random local bearer token, exact extension origin, rate limit, loopback bind | Automated tests; unpacked build | Hosted identity (out of scope) |
 | Capture | Tab + mic mix, pause/mute gates, stop releases tracks, offscreen closed after stop | Real Chromium tab capture with a synthetic tone and synthetic mic | Google Meet, audible playback, device changes |
 | Agora lifecycle | Server-owned channel/UID, 10-minute tokens with renewal, wait for agent join, RTM channel subscription, RTC/RTM degraded gate, watchdog, orphan cleanup after lost start | Tests; **live Agora session with synthetic speech from a real tab**: join, RTM transcript, pause/resume, token renewal past 10 minutes, stop, cleanup | Real network loss and recovery; Google Meet audio; the agent's LLM still runs and is billed |
-| Translation | Final lines only, revision-linked, stale results rejected | Tests; mock provider in browser | Real quality and latency |
-| Assistance | Reply, catch-up, composer; evidence filtered; clarification fallback | Tests incl. prompt injection as data; mock in browser | Real grounding accuracy (`npm run eval:grounding`) |
+| AI provider | ChatGPT plan through the official `codex app-server` (OAuth sign-in, tools disabled, output schema) or an API key; see ADR 0003 | Tests with a Codex stand-in; **live eval with the real ChatGPT Plus plan, 6/6** | In-meeting usefulness of 5–13 s latency |
+| Translation | Final lines only, batched up to 8 per request, revision-linked, stale results rejected | Tests; mock in browser; real plan in eval | Latency above the 3 s target |
+| Assistance | Reply, catch-up, composer; evidence filtered; clarification fallback | Tests incl. prompt injection as data; mock in browser; real plan passed the synthetic eval | Grounding accuracy beyond the 6 synthetic cases |
 | Notes and retention | Background notes after stop, keep/delete, restart recovery | Tests; mock in browser | Real note quality; chunking over 60,000 characters |
 
-Trust boundaries in the implementation: provider secrets and the App Certificate exist only in the backend `.env`; the browser receives a pairing token (kept in `chrome.storage.session`) and 10-minute Agora tokens; transcript and profile text go to Agora and the configured AI provider only for the features the user triggers or opts into; raw audio is never written anywhere by Tranz.
+Trust boundaries in the implementation: the App Certificate and any API key exist only in the backend `.env`; the ChatGPT login is held by the Codex runtime in `.tranz-data/codex-home`, and Codex runs with every tool disabled; the browser receives a pairing token (kept in `chrome.storage.session`) and 10-minute Agora tokens; transcript and profile text go to Agora and the configured AI provider only for the features the user triggers or opts into; raw audio is never written anywhere by Tranz.
 
 ## Proposed MVP system
 

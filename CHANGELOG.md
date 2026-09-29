@@ -18,6 +18,11 @@ Implementation candidate on stacked, unmerged pull requests #2–#8. Live Agora,
 - Post-meeting notes (summary, decisions, next steps, illustrative phrases, vocabulary), opt-in keep and deletion.
 - Verification scripts: unpacked-extension UI checks, real Chromium tab-capture checks with synthetic audio, and a synthetic grounding evaluation for a configured provider.
 
+### Added (ChatGPT plan)
+
+- Default AI provider uses the ChatGPT subscription through the official Codex runtime, with **Sign in with ChatGPT** in Settings and all Codex tools disabled ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md)).
+- Batched translation of up to 8 final lines per request.
+
 ### Fixed
 
 - Agora RTM transcripts never arrived: the runtime now subscribes to the RTM channel and the extension CSP allows WebAssembly for RTM (found in the first live Agora run).
