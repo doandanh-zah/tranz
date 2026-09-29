@@ -2,9 +2,10 @@
 // extension captures it with chrome.tabCapture, a synthetic 880 Hz oscillator stands in for the
 // microphone (the real microphone is never opened), and the outgoing mix level is measured while
 // pausing, muting and stopping. Chromium's fake-device flag is not used: it replaces tab capture too.
-// SYNTHETIC ONLY: no Google Meet, no people, no Agora. Headless Chromium has no speakers, so audible
-// playback preservation is NOT verified here. Runs a headed, off-screen browser window.
-// Usage: npm run build && [TRANZ_CHROMIUM=...] node scripts/verify-capture.mjs [outputDir]
+// SYNTHETIC ONLY: no Google Meet, no people, no Agora. The test is kept silent, so audible
+// playback preservation is NOT verified here. Runs a headed, minimised browser window and is
+// silent: the tab plays only while captured and the test page renders audio to no device.
+// Usage: [TRANZ_CHROMIUM=...] npm run verify:capture [-- outputDir]
 import { chromium } from 'playwright';
 import { build } from 'esbuild';
 import { createHash } from 'node:crypto';
@@ -20,19 +21,41 @@ const check = (name, pass, detail = '') => {
   console.log(`${pass ? 'PASS' : 'FAIL'} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
-const MEETING_PAGE = `<!doctype html><title>Synthetic meeting</title><body>Synthetic meeting tab (440 Hz tone)
+const MEETING_PAGE = `<!doctype html><title>Tranz test · synthetic meeting</title><body style="font:16px sans-serif;padding:24px">Tranz automated test page. Synthetic audio only; safe to ignore. This window closes by itself. (440 Hz tone)
 <script>
 const ctx = new AudioContext(); let osc;
 window.play = async () => { await ctx.resume(); osc = ctx.createOscillator(); const g = ctx.createGain(); g.gain.value = 0.4; osc.frequency.value = 440; osc.connect(g).connect(ctx.destination); osc.start(); };
 window.silence = () => { osc?.stop(); osc = undefined; };
-window.play();
 </script></body>`;
+
+/** Minimises a headed test window so it does not cover the person's screen (headless cannot capture tab audio). */
+async function minimise(page) {
+  try {
+    const cdp = await page.context().newCDPSession(page);
+    const { windowId } = await cdp.send('Browser.getWindowForTarget');
+    await cdp.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'minimized' } });
+    await cdp.detach();
+  } catch {
+    // Best effort only.
+  }
+}
+
+/** Opens the synthetic meeting as a background tab (keeps the window minimised) and returns its tab ID. */
+async function openMeetingTab(context, worker, url) {
+  const tabId = await worker.evaluate(async (target) => (await chrome.tabs.create({ url: target, active: false })).id, url);
+  for (let i = 0; i < 50; i++) {
+    const page = context.pages().find((candidate) => candidate.url() === url);
+    if (page) return { tabId, meeting: page };
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  throw new Error('Synthetic meeting tab did not open');
+}
 
 async function prepareExtension() {
   const dir = mkdtempSync(join(tmpdir(), 'tranz-capture-ext-'));
-  cpSync(resolve('dist/extension'), dir, { recursive: true });
+  cpSync(resolve(process.env.TRANZ_BUILD_DIR ?? 'artifacts/verify-build', 'extension'), dir, { recursive: true });
   await build({ entryPoints: [resolve('tests/browser/capture-entry.ts')], bundle: true, format: 'esm', outfile: join(dir, 'capture-test.js'), logLevel: 'silent' });
-  writeFileSync(join(dir, 'capture-test.html'), '<!doctype html><title>capture test</title><script type="module" src="capture-test.js"></script>');
+  writeFileSync(join(dir, 'capture-test.html'), '<!doctype html><title>Tranz test · capture</title><body style="font:16px sans-serif;padding:24px">Tranz automated test page. Synthetic audio only; safe to ignore. This window closes by itself.</body><script type="module" src="capture-test.js"></script>');
   // realpath matters on macOS (/var → /private/var) for the derived extension ID.
   const real = (await import('node:fs')).realpathSync(dir);
   const id = [...createHash('sha256').update(real).digest('hex').slice(0, 32)].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join('');
@@ -74,17 +97,15 @@ async function main() {
   try {
     const { context, worker, profile } = await launch(ext, []);
     cleanup.push(() => context.close(), () => rmSync(profile, { recursive: true, force: true }));
-    const meeting = await context.newPage();
-    await meeting.goto(meetingUrl);
-    // Without the "tabs" permission URLs are hidden, so identify the meeting tab as the active one.
-    await meeting.bringToFront();
-    const tabId = await worker.evaluate(async () => (await chrome.tabs.query({ active: true, lastFocusedWindow: true })).at(0)?.id);
-    if (typeof tabId !== 'number') throw new Error('Synthetic meeting tab not found');
     const tester = await context.newPage();
+    await minimise(tester);
+    const { tabId, meeting } = await openMeetingTab(context, worker, meetingUrl);
     await tester.goto(`chrome-extension://${ext.id}/capture-test.html`);
     await tester.waitForFunction(() => 'captureTest' in window);
 
     const started = await tester.evaluate((id) => window.captureTest.start(id), tabId);
+    // Start the tone only now: while captured, Chrome mutes the tab's own output.
+    await meeting.evaluate(() => window.play());
     check('tab audio and microphone are both acquired', started.tabTracks === 1 && started.micTracks === 1, JSON.stringify(started));
     const level = () => tester.evaluate(() => window.captureTest.level());
     const live = await level();
@@ -109,7 +130,6 @@ async function main() {
 
     const denied = await tester.evaluate((id) => window.captureTest.denied(id), tabId);
     check('microphone denial after tab capture releases the tab track (simulated denial)', denied.rejected && denied.name === 'NotAllowedError' && denied.tabReleased, JSON.stringify(denied));
-    await meeting.screenshot({ path: join(out, 'synthetic-meeting-tab.png') });
   } finally {
     for (const fn of cleanup.reverse()) await fn();
     server.close();

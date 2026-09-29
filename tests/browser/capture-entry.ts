@@ -3,6 +3,15 @@
 // tab-capture stream and a synthetic microphone, and measures the mixed output level.
 import { Capture } from '../../apps/extension/src/capture';
 
+// Keep test runs silent: every AudioContext in this page renders to no output device, so the
+// playback Capture restores for the person is processed but never reaches the speakers.
+const AudioContextToDevice = window.AudioContext;
+window.AudioContext = class extends AudioContextToDevice {
+  constructor(options?: AudioContextOptions) {
+    super({ ...options, sinkId: { type: 'none' } } as AudioContextOptions);
+  }
+} as typeof AudioContext;
+
 type Internals = { tab?: MediaStream; mic?: MediaStream };
 
 let capture: Capture | undefined;
