@@ -1,0 +1,60 @@
+{
+  "at": "2026-09-29T13:40:32.457Z",
+  "renewal": false,
+  "metrics": {
+    "startToListeningMs": 10030,
+    "firstPartialAfterListeningMs": 2267,
+    "firstFinalAfterListeningMs": 2267,
+    "sampleTranscript": "Hello, team. | This is a synthetic test of the trans transcript. | The beta will be ready after QA sign off. | Can you share when the next milestone is planned? | Hello, team. | This is a synthetic",
+    "agentGoneAfterStopMs": 1335
+  },
+  "results": [
+    {
+      "name": "real agent accepted, joined the channel and the runtime reached listening",
+      "pass": true,
+      "detail": "10030 ms"
+    },
+    {
+      "name": "real speech-to-text arrives over RTM as partial and final lines",
+      "pass": true,
+      "detail": "partial 2267 ms, final 2267 ms after listening"
+    },
+    {
+      "name": "transcript matches the synthetic script",
+      "pass": true,
+      "detail": "Hello, team. | This is a synthetic test of the trans transcript. | The beta will be ready after QA sign off. | Can you share when the next milestone is planned?"
+    },
+    {
+      "name": "pause is reported to the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no new speech is transcribed while paused (at most one in-flight turn)",
+      "pass": true,
+      "detail": "0 new line(s) in 15 s"
+    },
+    {
+      "name": "transcription resumes after resume",
+      "pass": true,
+      "detail": "3032 ms"
+    },
+    {
+      "name": "stop releases the runtime and stops the session with reason \"user\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "duplicate stop requests are idempotent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no agent is left running in the channel after stop (idle timeout is 60 s, so < 45 s means stop worked)",
+      "pass": true,
+      "detail": "1335 ms, []"
+    }
+  ],
+  "consoleErrors": [],
+  "note": "Synthetic macOS speech only; silent run (tab plays only while captured, test page audio to no device)."
+}

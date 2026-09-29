@@ -1,4 +1,5 @@
-export const BACKEND_ORIGIN = 'http://127.0.0.1:4318';
+/** Verification builds point at a throwaway backend so they never touch the one a person is running. */
+export const BACKEND_ORIGIN: string = import.meta.env?.VITE_TRANZ_BACKEND ?? 'http://127.0.0.1:4318';
 
 /** `status` is 0 when the backend could not be reached at all. */
 export class ApiError extends Error {

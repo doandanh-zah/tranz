@@ -4,6 +4,18 @@ This file contains future priorities and deferred ideas. It is not an execution 
 
 Only work listed in [TODOS.md](TODOS.md) and explicitly approved by the user is in scope. When a future phase is approved, move only its agreed tasks into `TODOS.md` with acceptance criteria.
 
+## Discovered during MVP implementation (2026-09-29)
+
+Deferred, not authorized:
+
+- Chunked or incremental notes for transcripts over 60,000 characters.
+- Transactional, multi-process storage before any hosted deployment.
+- Separate tab and microphone tracks with speaker labelling.
+- Push updates (SSE/WebSocket) instead of 1.5-second polling.
+- Formatting the remaining dense early-phase source files with a shared formatter.
+- Code-splitting or trimming the 2.9 MB offscreen bundle if start latency proves it matters.
+- Chrome Web Store listing, privacy policy and hosted identity (Phase 08 store readiness items that were out of the local MVP scope).
+
 ## Priority model
 
 - **P0:** required to validate the central product and privacy assumptions.

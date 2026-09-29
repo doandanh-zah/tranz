@@ -6,9 +6,9 @@ Tranz helps Vietnamese professionals understand difficult English conversations,
 
 **Version:** `0.1.0`
 
-**Stage:** Product definition and technical validation
+**Stage:** Local MVP implementation candidate — awaiting integrated review and live validation
 
-**Current delivery phase:** Phase 01 — project handbook and repository governance
+**Current delivery phase:** Phases 02–08 implemented on stacked pull requests; none merged
 
 ## Product loop
 
@@ -33,11 +33,31 @@ Tranz produces a concise summary, decisions, action items, improved answers, and
 
 ## Current status
 
-The official Agora Conversational AI Next.js quickstart has been validated end to end. RTC, RTM, microphone publication, live transcripts, TTS, agent lifecycle, API contracts, typechecking, linting, and production build were verified.
+Three levels of certainty are kept apart:
 
-This proves the Agora voice-agent baseline, but it does not yet prove the final silent meeting-copilot architecture. Meeting-tab capture, silent operation, translation latency, and context-grounded suggestions remain explicit validation tasks.
+| Level | What it covers |
+| --- | --- |
+| **Validated baseline** | The official Agora Conversational AI quickstart ran end to end on 2026-09-28 (RTC, RTM, live transcript, TTS). See [ADR 0001](docs/decisions/0001-agora-convoai-baseline.md). |
+| **Implemented and tested** | A local, single-owner MVP: Chrome MV3 extension + loopback Fastify backend. Automated tests, the unpacked extension rendered in Chromium at 320–600 px with a mock AI provider and simulated transcript, and real Chromium tab capture with a synthetic tone. See [docs/evidence](docs/evidence/). |
+| **Live, synthetic speech** | The real Tranz runtime against the configured Agora project with macOS-generated speech played in a real tab: agent join, transcript over RTM, pause/resume, token renewal past 10 minutes, stop and cleanup (`npm run verify:live`). |
+| **Not yet proven** | Google Meet capture with audible playback, the real side-panel frame, real network-loss recovery, and real AI provider quality and latency (no AI key configured). |
 
-No Tranz application code has been scaffolded yet.
+Because the live gates are open, this is an **implementation candidate**, not a completed MVP.
+
+## Run it locally
+
+Requirements: Node.js 22.12+, npm, Chrome 116+.
+
+```bash
+npm ci
+npm run setup      # creates a private .env with ACCESS_TOKEN and DATA_KEY; fill in provider values yourself
+npm run build      # builds dist/extension and dist/server
+npm run dev        # starts the backend on 127.0.0.1:4318
+```
+
+Load `dist/extension` with **chrome://extensions → Developer mode → Load unpacked**, copy the extension ID into `EXTENSION_ID` in `.env`, restart the backend, open Google Meet, click the Tranz toolbar icon and paste `ACCESS_TOKEN`. The Vietnamese review guide is [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
+
+Checks: `npm run verify` (lint, typecheck, tests, build into `artifacts/verify-build`), `npm run verify:ui`, `npm run verify:capture`, `npm run verify:live` (real Agora, synthetic speech) and, with an AI key, `npm run eval:grounding`. Only `npm run build` writes `dist/`; press Reload in `chrome://extensions` afterwards.
 
 ## Project documentation
 
@@ -53,6 +73,8 @@ No Tranz application code has been scaffolded yet.
 | [CHANGELOG.md](CHANGELOG.md) | Completed changes grouped by version |
 | [AGENTS.md](AGENTS.md) | Mandatory operating instructions for coding agents |
 | [ADR 0001](docs/decisions/0001-agora-convoai-baseline.md) | Agora baseline evidence and carried-forward constraints |
+| [ADR 0002](docs/decisions/0002-local-mvp.md) | Local MVP stack, storage, retention and runtime decisions |
+| [Evidence](docs/evidence/) | Per-phase verification records and the MVP acceptance matrix (Vietnamese) |
 
 ## MVP boundaries
 
@@ -67,7 +89,7 @@ No Tranz application code has been scaffolded yet.
 
 The official Agora sample used for technical validation remains in the ignored local directory `agora-baseline/`. It is reference evidence, not Tranz product code, and must not be committed or pushed.
 
-Application scaffolding begins only after the current phase is reviewed and the next phase is explicitly approved.
+Phases 02–08 were implemented under the user's 2026-09-29 end-to-end authorization as stacked pull requests. Nothing is merged or released without explicit approval.
 
 ## Delivery model
 

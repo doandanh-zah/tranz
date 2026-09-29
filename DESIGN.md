@@ -2,9 +2,7 @@
 
 ## Design status
 
-This document defines the intended Tranz experience before implementation. It is a product and interaction contract, not evidence of a completed or browser-validated interface.
-
-Phase 02 must turn these principles into a concrete design system and verify the result in a real Chrome side panel at supported widths.
+This document defines the intended Tranz experience. The MVP interface now implements it (see the implementation sections at the end); it was verified by rendering the unpacked extension build in Chromium at 320–600 px with a mock AI provider. Verification inside the real Chrome side-panel frame, with a screen reader, and during a live meeting is still pending.
 
 ## Experience goal
 
@@ -260,3 +258,10 @@ Implementation status: rendered in the unpacked build with a mock AI provider; r
 - Stop never waits for AI. When a session with final transcript stops and AI is configured, notes are created once in the background; the panel shows `Writing notes…`, then the notes, or the error with `Retry notes`.
 - Notes order: summary (Vietnamese), decisions, next steps, illustrative phrases, vocabulary. Notes state that speakers are not identified, and illustrative phrases say they are not a record of what anyone said.
 - Temporary sessions say they live only in backend memory. `Keep this session` explains what will be saved before saving it.
+
+## MVP runtime transparency (implemented in Phase 08)
+
+- Every automatic stop explains why it happened (meeting tab closed, capture ended, transcriber left or failed, connection lost, credentials not renewed, backend unreachable or shut down, one-hour limit, runtime silent). A user stop shows no extra message.
+- While the real-time connection recovers, audio sending is gated and the status reads `Reconnecting`; it resumes automatically unless the user paused.
+- When the panel reopens during a session it reads pause/mute state from the audio runtime, and warns if the backend lists a session that has no capture running in this browser.
+- In a stopped session, untranslated lines offer `Translate` instead of implying a pending job.

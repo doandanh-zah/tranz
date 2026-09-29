@@ -12,7 +12,8 @@ export async function writeToken(token: string) {
   else sessionStorage.setItem('tranz-token', token);
 }
 
-export type CaptureCommand = 'start' | 'pause' | 'mute' | 'stop';
+export type CaptureCommand = 'start' | 'pause' | 'mute' | 'stop' | 'status';
+export type CaptureStatus = { active: boolean; paused: boolean; muted: boolean };
 
 export async function sendCommand<T = { ok: true }>(type: CaptureCommand, extra: Record<string, unknown> = {}) {
   if (!isExtension) {

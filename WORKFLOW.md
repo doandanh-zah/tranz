@@ -24,15 +24,15 @@ Finishing a phase does not authorize the next one. Work resumes only after the u
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 00 | Validate the official Agora Conversational AI baseline | Complete |
-| 01 | Establish product, architecture, design, agent, and Git documentation | In progress |
-| 02 | Scaffold the Chrome extension and backend foundation | Planned; not authorized |
-| 03 | Validate meeting-tab and microphone audio capture | Planned; not authorized |
-| 04 | Integrate Agora real-time session and transcript lifecycle | Planned; not authorized |
-| 05 | Add linked English-to-Vietnamese translation | Planned; not authorized |
-| 06 | Add context-grounded reply suggestions | Planned; not authorized |
-| 07 | Add post-meeting learning artifacts | Planned; not authorized |
-| 08 | Harden privacy, accessibility, reliability, and Chrome Web Store readiness | Planned; not authorized |
-| 09 | Run a measured private beta | Planned; not authorized |
+| 01 | Establish product, architecture, design, agent, and Git documentation | PR #1 open; synchronised in Phase 08 |
+| 02 | Scaffold the Chrome extension and backend foundation | Implemented; PR #2 open |
+| 03 | Validate meeting-tab and microphone audio capture | Implemented; PR #3 open; Chromium synthetic capture passed, Google Meet pending |
+| 04 | Integrate Agora real-time session and transcript lifecycle | Implemented; PR #4 open; live Agora pending credentials |
+| 05 | Add linked English-to-Vietnamese translation | Implemented; PR #5 open; real provider pending key |
+| 06 | Add context-grounded reply suggestions | Implemented; PR #6 open |
+| 07 | Add post-meeting learning artifacts | Implemented; PR #7 open |
+| 08 | Harden privacy, accessibility, reliability, and Chrome Web Store readiness | Implemented; PR #8 open; store readiness out of scope |
+| 09 | Run a measured private beta | Not authorized |
 
 Detailed future work belongs in [BACKLOG.md](BACKLOG.md). Only [TODOS.md](TODOS.md) defines the current approved checklist.
 

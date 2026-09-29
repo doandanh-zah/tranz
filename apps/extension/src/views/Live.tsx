@@ -2,12 +2,27 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, Copy, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
-import type { AssistKind, ReplyStyle, Segment, Session, Suggestion } from '../../../../packages/shared/contracts';
+import type { AssistKind, EndReason, ReplyStyle, Segment, Session, Suggestion } from '../../../../packages/shared/contracts';
 import { Banner, ContextDetails, Spinner, StatusPill } from '../components';
 import { AfterMeeting } from './AfterMeeting';
 
 // Heuristic only: the user can always pick another line with "Use for reply".
 const QUESTION = /\?\s*$|^(what|why|how|when|where|who|which|can|could|would|will|should|do|does|did|is|are|have|has)\b/i;
+
+/** Every automatic stop is explained; a user stop needs no message. */
+const endedMessages: Partial<Record<EndReason, string>> = {
+  'tab-closed': 'Stopped because the meeting tab was closed.',
+  'capture-ended': 'Stopped because Chrome ended the tab or microphone capture (for example a device was unplugged or permission was revoked).',
+  'agent-left': 'Stopped because the Agora transcriber left the call.',
+  'transcriber-error': 'Stopped because the Agora transcriber reported a speech-to-text error.',
+  'connection-lost': 'Stopped because the real-time connection was lost and did not recover.',
+  'credentials-expired': 'Stopped because the session credentials could not be renewed.',
+  'backend-unreachable': 'Stopped because the local backend stopped answering.',
+  'ended-by-backend': 'Stopped by the backend (it was shutting down or the session had already ended).',
+  'start-failed': 'Start did not complete, so everything was released.',
+  inactive: 'Stopped because the audio runtime stopped reporting for more than 75 seconds.',
+  'time-limit': 'Stopped at the one-hour session limit.',
+};
 
 const time = (at: number) => new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -84,6 +99,7 @@ export function Live({
       </div>
 
       {session.error && <Banner tone="error">{session.error}</Banner>}
+      {!active && session.endedReason && endedMessages[session.endedReason] && <Banner>{endedMessages[session.endedReason]}</Banner>}
       {session.state === 'paused' && (
         <Banner>
           Paused: no tab or microphone audio is sent. The meeting keeps playing. The provider session stays connected and may
@@ -128,7 +144,7 @@ export function Live({
             <p className="original" lang="en">
               {latestFinal.text}
             </p>
-            <Translation segment={latestFinal} aiReady={aiReady} onRetry={onTranslate} />
+            <Translation segment={latestFinal} aiReady={aiReady} active={active} onRetry={onTranslate} />
           </>
         ) : (
           !partial && (
@@ -199,7 +215,17 @@ export function Live({
   );
 }
 
-function Translation({ segment, aiReady, onRetry }: { segment: Segment; aiReady: boolean; onRetry: (s: Segment) => void }) {
+function Translation({
+  segment,
+  aiReady,
+  active,
+  onRetry,
+}: {
+  segment: Segment;
+  aiReady: boolean;
+  active: boolean;
+  onRetry: (s: Segment) => void;
+}) {
   if (segment.translation) {
     return (
       <p className="translation" lang="vi">
@@ -214,6 +240,16 @@ function Translation({ segment, aiReady, onRetry }: { segment: Segment; aiReady:
         <button className="text-button" onClick={() => onRetry(segment)}>
           <RefreshCw size={13} aria-hidden="true" />
           Retry
+        </button>
+      </p>
+    );
+  }
+  if (aiReady && !active && segment.translationState !== 'pending') {
+    return (
+      <p className="translation muted">
+        Not translated.{' '}
+        <button className="text-button" onClick={() => onRetry(segment)}>
+          Translate
         </button>
       </p>
     );
@@ -325,7 +361,9 @@ function History({
       <h2 id="history-heading">
         <button className="history-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
           Conversation
-          <span>{segments.length} lines</span>
+          <span>
+            {segments.length} {segments.length === 1 ? 'line' : 'lines'}
+          </span>
         </button>
       </h2>
       {open && (

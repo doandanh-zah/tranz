@@ -188,9 +188,19 @@ Long-term features remain backlog items until user research, cost, privacy, and 
 - Provider costs may remain high after ambassador credits end.
 - Users may become dependent on translation unless learning features preserve original English.
 
+## MVP decisions taken during implementation (2026-09-29)
+
+These are working choices for the local MVP, to be revisited with measured use:
+
+- Reply suggestions are user-triggered only; a heuristic marks a likely question but never calls the AI by itself.
+- Only final transcript lines are translated, one at a time; partial text is shown untranslated.
+- Notes are created automatically once after a session stops (when AI is configured); stopping never waits for them.
+- Nothing is retained unless the user opts in before start or presses `Keep this session` afterwards.
+- The transcript mixes tab and microphone audio; speakers are never identified.
+
 ## Open product decisions
 
-- Should reply suggestions be automatic, user-triggered, or hybrid?
+- Should reply suggestions eventually become automatic or hybrid?
 - How much recent transcript should be visible by default?
 - Which post-meeting artifacts should be saved automatically, if any?
 - How should Tranz communicate low-confidence transcript or translation segments?

@@ -6,9 +6,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+Implementation candidate on stacked, unmerged pull requests #2–#8. Live Agora, Google Meet and real AI provider validation are pending.
+
 ### Added
 
-- Nothing yet.
+- Local single-owner MVP: Chrome MV3 extension (side panel, service worker, offscreen capture) and loopback Fastify backend with encrypted local storage.
+- Meeting-tab and microphone capture with pause, microphone mute and stop; no raw-audio storage.
+- Server-owned Agora session lifecycle with scoped 10-minute tokens, agent-join readiness, reconnect gating, watchdog and end reasons.
+- Revision-linked English-to-Vietnamese translation of final transcript lines.
+- Context profiles with immutable session snapshots; grounded reply suggestions, Vietnamese catch-up and a Vietnamese-to-English composer with cited sources and clarification fallback.
+- Post-meeting notes (summary, decisions, next steps, illustrative phrases, vocabulary), opt-in keep and deletion.
+- Verification scripts: unpacked-extension UI checks, real Chromium tab-capture checks with synthetic audio, and a synthetic grounding evaluation for a configured provider.
+
+### Fixed
+
+- Agora RTM transcripts never arrived: the runtime now subscribes to the RTM channel and the extension CSP allows WebAssembly for RTM (found in the first live Agora run).
+- The side panel no longer shows a blank page while loading or after a rendering error.
+
+### Security
+
+- Consent and Settings disclose that Agora's managed pipeline runs a language model on the transcript.
+- Provider credentials stay in the backend `.env`; the extension receives only a pairing token and short-lived Agora tokens.
+- Temporary sessions never write transcript, context or notes to disk; kept sessions are AES-256-GCM encrypted.
 
 ## [0.1.0] - 2026-09-29
 

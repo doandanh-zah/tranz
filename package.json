@@ -14,7 +14,12 @@
     "lint": "eslint apps packages tests scripts",
     "test": "tsx --test tests/*.test.ts",
     "build": "vite build && esbuild apps/extension/src/worker.ts --bundle --format=esm --outfile=dist/extension/worker.js && esbuild apps/server/index.ts --bundle --platform=node --packages=external --format=esm --outfile=dist/server/index.js",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run build"
+    "build:verify": "VITE_TRANZ_BACKEND=http://127.0.0.1:4328 vite build --outDir ../../artifacts/verify-build/extension --emptyOutDir && esbuild apps/extension/src/worker.ts --bundle --format=esm --outfile=artifacts/verify-build/extension/worker.js && esbuild apps/server/index.ts --bundle --platform=node --packages=external --format=esm --outfile=artifacts/verify-build/server/index.js",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build:verify",
+    "verify:ui": "npm run build:verify && node scripts/verify-ui.mjs",
+    "verify:capture": "npm run build:verify && node scripts/verify-capture.mjs",
+    "verify:live": "npm run build:verify && tsx --env-file-if-exists=.env scripts/verify-live-agora.ts",
+    "eval:grounding": "tsx --env-file-if-exists=.env scripts/eval-grounding.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",

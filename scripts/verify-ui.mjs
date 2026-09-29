@@ -4,7 +4,7 @@
 // - "live" sessions are SIMULATED by posting synthetic transcript segments to the API;
 // - no Agora credentials are used, so no real audio, RTC or RTM is exercised.
 // It proves rendering, wiring, keyboard and layout behaviour of the real build only.
-// Usage: npm run build && [TRANZ_CHROMIUM=/path/to/chrome-for-testing] node scripts/verify-ui.mjs [outputDir]
+// Usage: [TRANZ_CHROMIUM=/path/to/chrome-for-testing] npm run verify:ui [-- outputDir]
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -14,13 +14,17 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const out = resolve(process.argv[2] ?? 'artifacts/ui');
-const extensionPath = resolve('dist/extension');
+// Tests use their own build so the dist/extension a person has loaded in Chrome is never rewritten.
+const buildDir = resolve(process.env.TRANZ_BUILD_DIR ?? 'artifacts/verify-build');
+const extensionPath = join(buildDir, 'extension');
 const widths = [320, 360, 400, 480, 600];
 const token = randomBytes(32).toString('hex');
 const dataDir = mkdtempSync(join(tmpdir(), 'tranz-ui-'));
 const profileDir = mkdtempSync(join(tmpdir(), 'tranz-chromium-'));
 const results = [];
-const backendApi = 'http://127.0.0.1:4318/api';
+// Matches VITE_TRANZ_BACKEND in build:verify, so a backend the person runs on 4318 is left alone.
+const PORT = 4328;
+const backendApi = `http://127.0.0.1:${PORT}/api`;
 
 // Chrome derives an unpacked extension's ID from the SHA-256 of its absolute path.
 const extensionId = [...createHash('sha256').update(extensionPath).digest('hex').slice(0, 32)]
@@ -67,9 +71,10 @@ function mockProvider() {
 }
 
 function startBackend() {
-  const child = spawn(process.execPath, ['dist/server/index.js'], {
+  const child = spawn(process.execPath, [join(buildDir, 'server/index.js')], {
     env: {
       PATH: process.env.PATH,
+      PORT: String(PORT),
       ACCESS_TOKEN: token,
       DATA_KEY: randomBytes(32).toString('hex'),
       DATA_DIR: dataDir,
@@ -135,6 +140,12 @@ async function main() {
     page.on('console', (m) => m.type() === 'error' && !m.text().startsWith('Failed to load resource') && consoleErrors.push(m.text()));
     page.on('pageerror', (error) => consoleErrors.push(String(error)));
     const panel = `chrome-extension://${extensionId}/index.html`;
+
+    // The static "Loading Tranz…" fallback must be replaced by the app, never left blank.
+    await page.setViewportSize({ width: 360, height: 760 });
+    await page.goto(panel);
+    await page.getByRole('heading', { name: 'Connect to Tranz' }).waitFor();
+    check('panel renders the app instead of the loading fallback', !(await page.locator('#root').textContent()).includes('Loading Tranz'));
 
     // Signed out
     for (const width of widths) {
@@ -313,8 +324,9 @@ async function main() {
     await api('PUT', `/sessions/${temporaryId}/segments`, [{ id: 't-1', text: 'Synthetic temporary line.', final: true, revision: 1, at: Date.now() }]);
     await page.reload();
     await page.getByText('In the meeting').waitFor();
-    await api('POST', `/sessions/${temporaryId}/stop`);
+    await api('POST', `/sessions/${temporaryId}/stop`, { reason: 'tab-closed' });
     await page.getByRole('heading', { name: /Temporary session/ }).waitFor({ timeout: 10000 });
+    check('an automatic stop explains why it happened', (await page.getByText('Stopped because the meeting tab was closed.').count()) === 1);
     const listedBefore = (await api('GET', '/sessions')).some((s) => s.id === temporaryId);
     await shoot(page, '13-temporary-360');
     await page.getByRole('button', { name: 'Keep this session' }).click();

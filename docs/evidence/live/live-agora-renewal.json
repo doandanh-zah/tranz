@@ -1,0 +1,67 @@
+{
+  "at": "2026-09-29T13:55:44.064Z",
+  "renewal": true,
+  "metrics": {
+    "startToListeningMs": 4630,
+    "firstPartialAfterListeningMs": 2532,
+    "firstFinalAfterListeningMs": 2533,
+    "sampleTranscript": "Hello, team. | This is a synthetic test of the trans transcript. | The beta will be ready after QA sign off. | Can you share when the next milestone is planned? | Hello, team. | This is a synthetic",
+    "agentGoneAfterStopMs": 2898
+  },
+  "results": [
+    {
+      "name": "real agent accepted, joined the channel and the runtime reached listening",
+      "pass": true,
+      "detail": "4630 ms"
+    },
+    {
+      "name": "real speech-to-text arrives over RTM as partial and final lines",
+      "pass": true,
+      "detail": "partial 2532 ms, final 2533 ms after listening"
+    },
+    {
+      "name": "transcript matches the synthetic script",
+      "pass": true,
+      "detail": "Hello, team. | This is a synthetic test of the trans transcript. | The beta will be ready after QA sign off. | Can you share when the next milestone is planned?"
+    },
+    {
+      "name": "pause is reported to the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no new speech is transcribed while paused (at most one in-flight turn)",
+      "pass": true,
+      "detail": "0 new line(s) in 15 s"
+    },
+    {
+      "name": "transcription resumes after resume",
+      "pass": true,
+      "detail": "2013 ms"
+    },
+    {
+      "name": "session survives token expiry (renewal) past 10 minutes",
+      "pass": true,
+      "detail": "692 s, listening"
+    },
+    {
+      "name": "stop releases the runtime and stops the session with reason \"user\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "duplicate stop requests are idempotent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no agent is left running in the channel after stop (idle timeout is 60 s, so < 45 s means stop worked)",
+      "pass": true,
+      "detail": "2898 ms, []"
+    }
+  ],
+  "consoleErrors": [
+    "WebSocket connection to 'wss://192-169-113-39.edge.agora.io:9593/' failed: WebSocket opening handshake timed out"
+  ],
+  "note": "Synthetic macOS speech only; silent run; session kept ~11.5 min to cross the 600 s token lifetime."
+}
