@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AudioLines, Settings as SettingsIcon } from 'lucide-react';
 import { Api, ApiError } from './api';
-import { errorMessage, isExtension, readToken, sendCommand, writeToken } from './platform';
+import { errorMessage, isExtension, readToken, sendCommand, writeToken, type CaptureStatus } from './platform';
 import { Banner, ConfirmDialog, Spinner } from './components';
 import { Connect } from './views/Connect';
 import { Prepare } from './views/Prepare';
@@ -86,7 +86,16 @@ export function App() {
     setCapabilities(status);
     // Re-attach to a session still running in the background (e.g. after the panel was closed).
     const ongoing = sessions.find((s) => isActive(s));
-    if (ongoing) setSession(ongoing);
+    if (ongoing) {
+      setSession(ongoing);
+      if (isExtension) {
+        const runtime = await sendCommand<CaptureStatus>('status').catch(() => undefined);
+        setMuted(!!runtime?.muted);
+        if (runtime && !runtime.active && ongoing.state !== 'created') {
+          setError('The backend still lists a running session, but no audio capture is active in this browser. Press Stop to end it.');
+        }
+      }
+    }
   }, []);
 
   const connectWith = useCallback(
