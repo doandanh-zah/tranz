@@ -14,6 +14,21 @@ Ngày: 2026-09-30. Branch `feat/monochrome-dark-ui`, xếp chồng trên PR #10.
 - Thanh trên cùng không cố định, vì thanh cố định che lời thoại khi cuộn (đã kiểm chứng trong ảnh chụp và gỡ bỏ).
 - Không thay đổi backend, quyền riêng tư, Agora hay logic cuộc họp. Đoạn giải thích luồng dữ liệu vẫn luôn hiện dưới nút Bắt đầu nghe.
 
+## Lượt review thứ hai: tinh gọn
+
+Bạn xem ở bề ngang 400 px và thấy giao diện "hơi khó nhìn", nên muốn gọn hơn; Home là chức năng chính và cần ít nút. Tôi đã sửa như sau:
+
+- **Bỏ khung viền:** các phần giờ chỉ cách nhau bằng đường kẻ mảnh và khoảng trắng.
+- **Nhãn phụ viết thường:** nhãn phụ là chữ thường màu xám. Chữ mono chỉ còn dùng cho giờ và bộ đếm.
+- **Link không gạch chân:** link và nút phụ chỉ gạch chân khi rê chuột. Bỏ phần chân trang.
+- **Home:**
+  - chỉ còn tiêu đề và một dòng mô tả;
+  - ba bước chuẩn bị, mỗi bước là một dòng; bước chưa xong có một nút nhỏ bên phải;
+  - link "Mở trong tab" chỉ hiện khi xin quyền micro thất bại;
+  - nút Bắt đầu nghe khi chưa bấm được là khung viền trầm, chữ vẫn đọc được;
+  - đoạn giải thích luồng dữ liệu được rút gọn và vẫn luôn hiển thị.
+- **Demo xem thử:** `npm run demo:ui` mở giao diện trong trình duyệt bất kỳ, dùng dữ liệu giả lập và AI giả, không đọc `.env`. Thêm `-- --live` để mô phỏng một cuộc họp đang chạy.
+
 ## Kiểm chứng
 
 - `npm run verify`: lint, typecheck, 31/31 test, build đều đạt.

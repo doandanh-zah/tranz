@@ -192,7 +192,7 @@ export function Live({
         {result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
 
         <details className="composer">
-          <summary>Tôi muốn nói… (viết tiếng Việt, Tranz chuyển sang tiếng Anh)</summary>
+          <summary>Tôi muốn nói… (viết tiếng Việt, Tranz dịch sang tiếng Anh)</summary>
           <label>
             Điều bạn muốn nói, bằng tiếng Việt
             <textarea value={draft} maxLength={2000} onChange={(event) => setDraft(event.target.value)} lang="vi" placeholder="Điều bạn muốn nói…" />

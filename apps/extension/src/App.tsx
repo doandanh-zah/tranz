@@ -464,12 +464,6 @@ export function App() {
           />
         )}
       </main>
-      <footer>
-        <span>
-          TR<span className="accent">/</span>NZ
-        </span>
-        <span>{isExtension ? 'Chạy trên máy của bạn' : 'Bản xem thử giao diện'} · 0.1</span>
-      </footer>
       {deletion && (
         <ConfirmDialog
           title={deletion.kind === 'profile' ? `Xoá ngữ cảnh “${deletion.name}”?` : `Xoá phiên “${deletion.name}”?`}
