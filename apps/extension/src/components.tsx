@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, CircleAlert, Info, X } from 'lucide-react';
 import type { Profile, SessionState } from '../../../packages/shared/contracts';
 
 export function ContextDetails({ profile }: { profile: Profile }) {
@@ -56,7 +56,13 @@ export function Banner({
 }) {
   return (
     <div role={tone === 'error' ? 'alert' : 'status'} className={`banner ${tone}`}>
-      {tone === 'success' && <Check size={16} aria-hidden="true" />}
+      {tone === 'success' ? (
+        <Check size={16} aria-hidden="true" />
+      ) : tone === 'error' ? (
+        <CircleAlert size={16} aria-hidden="true" />
+      ) : (
+        <Info size={16} aria-hidden="true" />
+      )}
       <span>{children}</span>
       {onDismiss && (
         <button className="icon small" aria-label="Đóng thông báo" onClick={onDismiss}>

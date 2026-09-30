@@ -60,6 +60,8 @@ Load `dist/extension` with **chrome://extensions → Developer mode → Load unp
 
 Checks: `npm run verify` (lint, typecheck, tests, build into `artifacts/verify-build`), `npm run verify:ui`, `npm run verify:capture`, `npm run verify:live` (real Agora, synthetic speech) and, with an AI key, `npm run eval:grounding`. Only `npm run build` writes `dist/`; press Reload in `chrome://extensions` afterwards.
 
+UI review without the extension: `npm run demo:ui` (add `-- --live` for a simulated meeting) serves the panel at http://127.0.0.1:5173 against a throwaway backend with synthetic data and a mock AI; it reads nothing from `.env`, and the demo token it prints only unlocks that backend.
+
 ## Project documentation
 
 | Document | Purpose |

@@ -49,7 +49,7 @@ The interface is not a transcript dashboard. Its primary job is to reduce the us
 ### Purposeful visual language
 
 - Favor calm density, sharp hierarchy, and restrained accents.
-- Use translucent material only to clarify navigation, controls, status and grouping; avoid decorative glass layers, oversized headings, and animation that competes with the meeting.
+- Avoid decorative gradients, glass and blur effects, glows, oversized headings, and animation that competes with the meeting.
 - Every color, icon, badge, and motion must communicate state or action.
 
 ## Core experience flows
@@ -175,16 +175,17 @@ Loading states must preserve the last reliable content when safe. Error states m
 
 ## Visual system direction
 
-The visual system follows an iOS-inspired liquid-glass direction requested in the first user review, while preserving the calm meeting-copilot goal:
+The visual system is a fixed, true-black monochrome theme, requested by the user on 2026-09-30 with X's dark mode as the colour reference and the Zahlook skill ("dark editorial network") as the design method. It replaces the earlier liquid-glass direction:
 
-- a softly tinted, low-distraction foundation with restrained green and blue ambient color;
-- translucent surfaces with blur, a light inner highlight, a hairline border and shallow depth for navigation, controls and grouped content;
-- one restrained accent for primary actions and live state;
-- semantic colors reserved for success, warning, error, and privacy states;
-- the local Apple system font stack, with a distinct treatment for transcript content and no external font dependency;
-- an 8 px spacing rhythm with optical exceptions documented in the design system;
-- 14–24 px radii that reflect the surface hierarchy rather than turning every row into a separate card;
-- an opaque high-contrast fallback when blur is unsupported or the user requests increased contrast.
+- canvas `#000000`, primary text `#FFFFFF`, secondary text `#D6D9DB`, muted `#8B9096`, hairlines `#2F3336`, strong lines `#536471`; the theme is intentionally dark-only (`color-scheme: dark`);
+- white is the only accent: the one main action per screen is a white button with black text; other actions are hairline-outlined or underlined text buttons, so links and actions are told apart by shape, not colour;
+- semantic colours carry state only: success `#00BA7C` (listening, done), warning `#FFD400` (paused, connecting, setup needed), danger `#F4212E` (stop, delete, errors);
+- hierarchy from type, weight and separators; no blur, glow, gradient, or drop shadow;
+- three type roles on local system fonts (no external font dependency): display (heavy system sans) for page titles, sans for reading, mono for short uppercase labels, counters, timestamps and status;
+- 4 px control radii and 8 px frames; pills only for the session status mark;
+- rem-based type, so browser text scaling enlarges content (checked at 200 %);
+- in the live view the Vietnamese translation is the brightest, largest line and the English original sits above it in secondary text;
+- restrained CSS-only motion (colour feedback on hover, the live pulse); everything stops under reduced motion; increased contrast raises muted text and lines.
 
 Color alone must never carry status. Icons require labels or accessible names.
 
@@ -286,9 +287,11 @@ The first user review found the English, multi-step interface hard to use. The p
 - names live actions plainly: Tạm dừng/Tiếp tục, Dừng, Gợi ý câu trả lời, Tóm tắt vừa rồi, “Tôi muốn nói…”, Trả lời câu này; shows times in 24-hour Vietnamese format;
 - puts backend and provider details under a collapsed “Thông tin kỹ thuật” in Cài đặt.
 
-## Liquid-glass refinement (implemented after user feedback, 2026-09-30)
+## Monochrome dark refinement (implemented after user feedback, 2026-09-30)
 
-- The header and three destinations are combined visually into a quiet glass dock; the live controls remain in document flow so they never cover transcript content while scrolling.
-- The home screen uses one product symbol, one short promise, one compact setup card and one primary start action. Technical Agora configuration stays in a collapsed disclosure; the short data-flow disclosure under the start button stays visible because pressing the button is the consent (PR-004).
-- Glass is a material cue, not decoration: content surfaces keep readable light fills, semantic states keep text labels, and the interface has reduced-motion, increased-contrast and no-backdrop-filter fallbacks.
-- The responsive harness renders the unpacked extension at 320, 360, 400, 480 and 600 px; real side-panel, screen-reader and live-meeting validation remain pending.
+- Replaces the short-lived liquid-glass pass: the user asked for pure black and white in X's dark tone, built with the Zahlook skill.
+- The header and X-style tabs (equal columns, active label bold with a short white rule) scroll with the page; nothing is sticky, so no bar covers transcript lines or focused controls.
+- Home is the main task and carries few controls: a title and one line, three compact setup rows (status icon, title, one-line hint and at most one small action on the right, shown only while the step is not done), then one white **Bắt đầu nghe** button. The "open in a tab" microphone fallback appears only after a failed permission request. Technical Agora configuration stays in a collapsed disclosure; the data-flow disclosure under the start button stays visible because pressing the button is the consent (PR-004).
+- Second review ("khó nhìn"): sections are separated by hairlines and spacing instead of framed cards; secondary labels are sentence-case muted text (mono is kept for times and counters only); quiet actions are not underlined until hover; the footer is gone; a locked main button is a quiet outline with readable text instead of a faded white block.
+- Every banner has an icon (information, success, error) so colour is never the only cue.
+- The responsive harness renders the unpacked extension at 320, 360, 400, 480 and 600 px and at 200 % text; real side-panel, screen-reader and live-meeting validation remain pending.

@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "tsx --env-file=.env apps/server/index.ts",
     "dev:ui": "vite --host 127.0.0.1",
+    "demo:ui": "node scripts/demo-ui.mjs",
     "setup": "node scripts/setup.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint apps packages tests scripts",
