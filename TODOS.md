@@ -27,7 +27,7 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | — | ChatGPT-plan provider (user request): PR #9 open; live eval 6/6 and signed-in panel use passed | Multi-person meeting quality |
 | — | Simpler Vietnamese UI with automatic pairing (user review feedback): PR #10 open; Chromium harness 43/43; Cốc Cốc pairing fixed and exercised | User review |
 | — | Monochrome black-and-white theme built with Zahlook: stacked branch/PR; Chromium harness 43/43; real Meet side panel exercised | Manual full-width and screen-reader review |
-| 08R | Integrated Google Meet hardening on `fix/google-meet-e2e` | Incoming Meet-tab audio/playback, tab-close and network-loss checks remain |
+| 08R | Integrated Google Meet hardening on `fix/google-meet-e2e`; PR #12 open | Incoming Meet-tab audio/playback, tab-close and network-loss checks remain |
 | 09 | Not authorized | Requires separate approval |
 
 ## Phase 08R checklist

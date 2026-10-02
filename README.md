@@ -8,7 +8,7 @@ Tranz helps Vietnamese professionals understand difficult English conversations,
 
 **Stage:** Local MVP implementation candidate — integrated synthetic review complete; bounded live gates remain
 
-**Current delivery phase:** Phase 08R Google Meet integration hardening on a review branch; none merged
+**Current delivery phase:** Phase 08R Google Meet integration hardening in PR #12; none merged
 
 ## Product loop
 

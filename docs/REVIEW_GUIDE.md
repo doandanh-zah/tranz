@@ -1,6 +1,6 @@
 # Hướng dẫn cài đặt, chạy và review Tranz MVP
 
-Tài liệu cho người review bản tích hợp trên branch hiện tại `fix/google-meet-e2e` (xếp chồng trên `feat/monochrome-dark-ui`). Đây là **implementation candidate**: Agora và ChatGPT thật đã được kiểm tra bằng dữ liệu synthetic; side panel thật cũng đã chạy trong một cuộc gọi Google Meet đã đăng nhập. Âm thanh người tham gia từ tab, playback nghe được và giá trị trong cuộc họp nhiều người vẫn chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md) và [bằng chứng tích hợp Meet](evidence/google-meet-integration-2026-10-02.md).
+Tài liệu cho người review bản tích hợp trên `fix/google-meet-e2e` (PR #12, xếp chồng trên `feat/monochrome-dark-ui`). Đây là **implementation candidate**: Agora và ChatGPT thật đã được kiểm tra bằng dữ liệu synthetic; side panel thật cũng đã chạy trong một cuộc gọi Google Meet đã đăng nhập. Âm thanh người tham gia từ tab, playback nghe được và giá trị trong cuộc họp nhiều người vẫn chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md) và [bằng chứng tích hợp Meet](evidence/google-meet-integration-2026-10-02.md).
 
 ## 1. Chuẩn bị
 

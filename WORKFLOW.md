@@ -32,7 +32,7 @@ Finishing a phase does not authorize the next one. Work resumes only after the u
 | 06 | Add context-grounded reply suggestions | Implemented; PR #6 open; real ChatGPT synthetic eval and Meet-side-panel actions passed |
 | 07 | Add post-meeting learning artifacts | Implemented; PR #7 open; real-provider synthetic artifact plus local save/delete passed |
 | 08 | Harden privacy, accessibility, reliability, and Chrome Web Store readiness | Implemented; PR #8 open; store readiness out of scope |
-| 08R | Harden and verify the integrated Google Meet flow | In review on `fix/google-meet-e2e`; automatic pairing and ChatGPT auto-finalize regressions fixed; bounded live evidence recorded |
+| 08R | Harden and verify the integrated Google Meet flow | PR #12 open on `fix/google-meet-e2e`; automatic pairing and ChatGPT auto-finalize regressions fixed; bounded live evidence recorded |
 | 09 | Run a measured private beta | Not authorized |
 
 Detailed future work belongs in [BACKLOG.md](BACKLOG.md). Only [TODOS.md](TODOS.md) defines the current approved checklist.
