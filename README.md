@@ -6,9 +6,9 @@ Tranz helps Vietnamese professionals understand difficult English conversations,
 
 **Version:** `0.1.0`
 
-**Stage:** Local MVP implementation candidate — awaiting integrated review and live validation
+**Stage:** Local MVP implementation candidate — integrated synthetic review complete; bounded live gates remain
 
-**Current delivery phase:** Phases 02–08 implemented on stacked pull requests; none merged
+**Current delivery phase:** Phase 08R Google Meet integration hardening on a review branch; none merged
 
 ## Product loop
 
@@ -41,9 +41,10 @@ Three levels of certainty are kept apart:
 | **Implemented and tested** | A local, single-owner MVP: Chrome MV3 extension + loopback Fastify backend. Automated tests, the unpacked extension rendered in Chromium at 320–600 px with a mock AI provider and simulated transcript, and real Chromium tab capture with a synthetic tone. See [docs/evidence](docs/evidence/). |
 | **Live, synthetic speech** | The real Tranz runtime against the configured Agora project with macOS-generated speech played in a real tab: agent join, transcript over RTM, pause/resume, token renewal past 10 minutes, stop and cleanup (`npm run verify:live`). |
 | **Live, ChatGPT plan** | Translation, grounded replies, catch-up and composer through the user's ChatGPT Plus plan via the official Codex runtime (`npm run eval:grounding`, 6/6 synthetic cases, 5–13 s per request). |
-| **Not yet proven** | Google Meet capture with audible playback, the real side-panel frame, real network-loss recovery, and in-meeting usefulness of multi-second AI latency. |
+| **Google Meet integrated, synthetic input** | In a signed-in Google Meet call on 2026-10-02, the real side panel paired automatically, started tab capture, joined Agora, received microphone-fed synthetic speech, displayed transcript and Vietnamese translation, and produced context-grounded reply/catch-up/composer output through ChatGPT. Stop, notes generation, save/delete, context deletion and empty Agora-channel cleanup were verified. |
+| **Not yet proven** | Incoming participant audio from the Meet tab, audible meeting playback while capture is active, tab-close recovery in Meet, real network-loss recovery, screen-reader use, and usefulness/latency in a real multi-person meeting. |
 
-Because the live gates are open, this is an **implementation candidate**, not a completed MVP.
+Because important live gates remain, this is an **implementation candidate**, not a completed MVP or private beta.
 
 ## Run it locally
 

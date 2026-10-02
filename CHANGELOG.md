@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
-Implementation candidate on stacked, unmerged pull requests #2–#8. Live Agora, Google Meet and real AI provider validation are pending.
+Implementation candidate on stacked, unmerged review branches. Live Agora and ChatGPT are proven with synthetic data; bounded Google Meet integration evidence exists, while incoming participant audio/playback and real multi-person usefulness remain pending.
 
 ### Added
 
@@ -33,6 +33,8 @@ Implementation candidate on stacked, unmerged pull requests #2–#8. Live Agora,
 
 - Agora RTM transcripts never arrived: the runtime now subscribes to the RTM channel and the extension CSP allows WebAssembly for RTM (found in the first live Agora run).
 - The side panel no longer shows a blank page while loading or after a rendering error.
+- Automatic pairing now works in Chromium variants that omit the extension `Origin`: the extension supplies its runtime ID and the backend also requires the observed extension fetch metadata. Requests with a web origin, `Origin: null`, a wrong ID or incomplete metadata remain rejected.
+- Stopping a ChatGPT-plan session now automatically starts post-meeting notes even when no API-key provider is configured.
 
 ### Security
 

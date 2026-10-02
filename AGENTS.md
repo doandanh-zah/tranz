@@ -45,7 +45,7 @@ Only work inside the phase explicitly approved by the user.
 - Version `0.1.0`; no newer version is tagged or released.
 - The Agora Conversational AI baseline is proven end to end (Phase 00).
 - A local, single-owner MVP (Phases 02–08) is implemented on stacked, unmerged pull requests: MV3 extension in `apps/extension`, loopback Fastify backend in `apps/server`, shared contracts in `packages/shared`.
-- It is tested with automated tests, the unpacked build rendered in Chromium with a mock AI provider, and real Chromium tab capture with synthetic audio. Real Agora sessions, Google Meet playback, the real side-panel frame and real AI provider quality are **not** yet proven.
+- It is tested with automated tests, the unpacked build rendered in Chromium with a mock AI provider, real Chromium tab capture with synthetic audio, real Agora sessions, a real ChatGPT-plan provider, and a signed-in Google Meet call using the real side panel plus microphone-fed synthetic speech. Incoming Meet-tab audio, audible playback, network-loss recovery, screen-reader use, and real multi-person meeting quality are **not** yet proven.
 - Keep validated facts, implemented-and-tested behaviour, and unproven or long-term hypotheses distinct.
 
 ## Agora baseline boundary

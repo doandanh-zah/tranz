@@ -11,11 +11,15 @@ export class ApiError extends Error {
   }
 }
 
-/** Automatic pairing: the backend hands its local access token only to the paired extension origin. */
+/** Automatic pairing: prove the extension identity even in Chromium variants that omit Origin. */
 export async function pairToken(): Promise<string> {
   let response: Response;
   try {
-    response = await fetch(`${BACKEND_ORIGIN}/api/pair`, { signal: AbortSignal.timeout(10000) });
+    const extensionId = globalThis.chrome?.runtime?.id;
+    response = await fetch(`${BACKEND_ORIGIN}/api/pair`, {
+      headers: extensionId ? { 'X-Tranz-Extension-Id': extensionId } : undefined,
+      signal: AbortSignal.timeout(10000),
+    });
   } catch {
     throw new ApiError('Tranz trên máy chưa chạy.', 0);
   }

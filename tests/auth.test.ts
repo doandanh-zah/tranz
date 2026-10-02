@@ -11,7 +11,7 @@ test('health is public; private API needs auth and rejects unknown origins',asyn
  try{assert.equal((await app.inject('/health')).statusCode,200);assert.equal((await app.inject('/api/status')).statusCode,401);assert.equal((await app.inject({url:'/api/status',headers:{authorization:'Bearer '+'test-only-'.repeat(8),origin:'https://evil.example'}})).statusCode,403);}finally{await app.close();rmSync(dir,{recursive:true,force:true});}
 });
 
-test('automatic pairing gives the token only to the paired extension origin', async () => {
+test('automatic pairing gives the token only to the paired extension identity', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'tranz-pair-'));
   const token = 'test-only-'.repeat(8);
   const extension = 'a'.repeat(32);
@@ -20,7 +20,26 @@ test('automatic pairing gives the token only to the paired extension origin', as
     const paired = await app.inject({ url: '/api/pair', headers: { origin: `chrome-extension://${extension}` } });
     assert.equal(paired.statusCode, 200);
     assert.equal(paired.json().token, token);
+    const chromiumVariant = await app.inject({
+      url: '/api/pair',
+      headers: {
+        'x-tranz-extension-id': extension,
+        'sec-fetch-site': 'none',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-dest': 'empty',
+      },
+    });
+    assert.equal(chromiumVariant.statusCode, 200);
+    assert.equal(chromiumVariant.json().token, token);
     assert.equal((await app.inject({ url: '/api/pair' })).statusCode, 403);
+    assert.equal((await app.inject({ url: '/api/pair', headers: { 'x-tranz-extension-id': extension } })).statusCode, 403);
+    assert.equal((await app.inject({ url: '/api/pair', headers: {
+      origin: 'null',
+      'x-tranz-extension-id': extension,
+      'sec-fetch-site': 'none',
+      'sec-fetch-mode': 'cors',
+      'sec-fetch-dest': 'empty',
+    } })).statusCode, 403);
     assert.equal((await app.inject({ url: '/api/pair', headers: { origin: 'http://127.0.0.1:5173' } })).statusCode, 403);
     assert.equal((await app.inject({ url: '/api/pair', headers: { origin: `chrome-extension://${'b'.repeat(32)}` } })).statusCode, 403);
     assert.equal((await app.inject({ url: '/api/pair', headers: { origin: 'https://evil.example' } })).statusCode, 403);

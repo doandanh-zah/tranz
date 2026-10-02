@@ -1,13 +1,13 @@
 # Hướng dẫn cài đặt, chạy và review Tranz MVP
 
-Tài liệu cho người review bản tích hợp (branch `feat/simple-vietnamese-ui`, PR #10, xếp chồng trên #9). Đây là **implementation candidate**: Agora thật với giọng nói synthetic và AI provider thật đã được kiểm tra; Google Meet, side panel thật và giá trị sử dụng trong cuộc họp vẫn chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md).
+Tài liệu cho người review bản tích hợp trên branch hiện tại `fix/google-meet-e2e` (xếp chồng trên `feat/monochrome-dark-ui`). Đây là **implementation candidate**: Agora và ChatGPT thật đã được kiểm tra bằng dữ liệu synthetic; side panel thật cũng đã chạy trong một cuộc gọi Google Meet đã đăng nhập. Âm thanh người tham gia từ tab, playback nghe được và giá trị trong cuộc họp nhiều người vẫn chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md) và [bằng chứng tích hợp Meet](evidence/google-meet-integration-2026-10-02.md).
 
 ## 1. Chuẩn bị
 
 Yêu cầu: macOS/Linux, Node.js 22.12+, npm, Chrome 116+, Codex CLI (`codex --version`) cho provider ChatGPT.
 
 ```bash
-git switch feat/mvp-hardening
+git switch fix/google-meet-e2e
 npm ci
 npm run setup
 ```
@@ -24,7 +24,7 @@ npm run setup
 ## 2. Build và chạy backend
 
 ```bash
-npm run verify     # lint, typecheck, 31 test, build
+npm run verify     # lint, typecheck, test, build
 npm run dev        # backend tại http://127.0.0.1:4318
 ```
 
@@ -55,7 +55,7 @@ Không dùng nội dung cuộc họp thật cho đến khi chính sách lưu gi�
 
 ```bash
 npm run verify           # lint, typecheck, test, build
-npm run verify:ui        # extension unpacked trong Chromium, AI mock, 42 check
+npm run verify:ui        # extension unpacked trong Chromium, AI mock, 43 check
 npm run verify:capture   # tab capture thật trong Chromium với âm synthetic, 9 check (cửa sổ thu nhỏ, im lặng)
 npm run verify:live      # Agora thật + giọng nói synthetic (say), khoảng 2 phút, tốn phút Agora
 npm run verify:live -- --renewal   # giữ phiên ~11 phút để kiểm tra gia hạn token
@@ -69,8 +69,9 @@ Nếu Playwright báo thiếu trình duyệt, đặt `TRANZ_CHROMIUM` trỏ tớ
 ## 6. Checklist live còn mở (cần bạn thực hiện hoặc cấp điều kiện)
 
 - [x] Agent Agora thật: accepted → join → transcript qua RTM → stop, không còn agent trong kênh — đạt với giọng nói synthetic (`verify:live`).
+- [x] Side panel thật trong Google Meet đã đăng nhập: tự ghép extension, start, tab capture active, mic synthetic → transcript → dịch/gợi ý ChatGPT, stop và cleanup.
 - [ ] Mất mạng ngắn → **Đang kết nối lại** → tự phục hồi; mất lâu → dừng với lý do.
-- [ ] Âm thanh cuộc họp vẫn nghe được trong lúc capture, pause, mute; người khác không nghe thấy gì từ Tranz.
+- [ ] Người tham gia thứ hai nói → audio từ tab Meet vào transcript; âm thanh cuộc họp vẫn nghe được trong lúc capture, pause, mute; người khác không nghe thấy gì từ Tranz.
 - [ ] Đóng tab Meet khi đang nghe → phiên dừng với lý do **Đã dừng vì tab cuộc họp đã đóng**.
 - [ ] Side panel thật ở các độ rộng 320–600 px (kéo mép panel), zoom 200%, VoiceOver.
 - [ ] Chất lượng/latency dịch và gợi ý với provider thật; chi phí Agora khi agent LLM/TTS vẫn chạy ở chế độ im lặng.
