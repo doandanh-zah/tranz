@@ -2,7 +2,7 @@
 
 ## Design status
 
-This document defines the intended Tranz experience. The MVP interface now implements it (see the implementation sections at the end); it was verified by rendering the unpacked extension build in Chromium at 320–600 px with a mock AI provider. Verification inside the real Chrome side-panel frame, with a screen reader, and during a live meeting is still pending.
+This document defines the intended Tranz experience. The MVP interface now implements it (see the implementation sections at the end); it was verified by rendering the unpacked extension build in Chromium at 320–600 px with a mock AI provider. The real side panel was also exercised in a signed-in Google Meet call with synthetic microphone input and the real Agora/ChatGPT path. Screen-reader use, incoming participant audio, audible playback and a real multi-person meeting remain pending.
 
 ## Experience goal
 
@@ -243,7 +243,7 @@ Microphone mute disables microphone samples sent to Agora; it does not mute the 
 
 ## MVP assistance behaviour (implemented in Phase 06)
 
-Implementation status: rendered in the unpacked extension build with a mock AI provider and simulated transcript. Real provider quality, latency and live-meeting usefulness are not yet validated.
+Implementation status: rendered in the unpacked extension build with a mock provider and exercised in the real Meet side panel with the ChatGPT-plan provider using synthetic meeting context and speech. Quality and latency in a real multi-person meeting are not yet validated.
 
 - Suggestions are user-triggered only. Tranz never requests a reply automatically, which bounds cost and distraction; revisit after measured use.
 - Question detection is a heuristic over the last five final lines (a trailing question mark or an interrogative first word). It is labelled `Detected question (automatic guess)`; the user can pick any final line with `Use for reply`.
@@ -256,7 +256,7 @@ Implementation status: rendered in the unpacked extension build with a mock AI p
 
 ## MVP after-meeting behaviour (implemented in Phase 07)
 
-Implementation status: rendered in the unpacked build with a mock AI provider; real note quality is not validated.
+Implementation status: rendered in the unpacked build with a mock provider; one synthetic Meet-side-panel session produced a real-provider artifact that was then saved and deleted. Real meeting note quality is not validated.
 
 - Stop never waits for AI. When a session with final transcript stops and AI is configured, notes are created once in the background; the panel shows `Writing notes…`, then the notes, or the error with `Retry notes`.
 - Notes order: summary (Vietnamese), decisions, next steps, illustrative phrases, vocabulary. Notes state that speakers are not identified, and illustrative phrases say they are not a record of what anyone said.
@@ -294,4 +294,4 @@ The first user review found the English, multi-step interface hard to use. The p
 - Home is the main task and carries few controls: a title and one line, three compact setup rows (status icon, title, one-line hint and at most one small action on the right, shown only while the step is not done), then one white **Bắt đầu nghe** button. The "open in a tab" microphone fallback appears only after a failed permission request. Technical Agora configuration stays in a collapsed disclosure; the data-flow disclosure under the start button stays visible because pressing the button is the consent (PR-004).
 - Second review ("khó nhìn"): sections are separated by hairlines and spacing instead of framed cards; secondary labels are sentence-case muted text (mono is kept for times and counters only); quiet actions are not underlined until hover; the footer is gone; a locked main button is a quiet outline with readable text instead of a faded white block.
 - Every banner has an icon (information, success, error) so colour is never the only cue.
-- The responsive harness renders the unpacked extension at 320, 360, 400, 480 and 600 px and at 200 % text; real side-panel, screen-reader and live-meeting validation remain pending.
+- The responsive harness renders the unpacked extension at 320, 360, 400, 480 and 600 px and at 200 % text. The real side panel was exercised at its current browser width during a signed-in Meet call; manual resizing across every width, screen-reader use and a real multi-person meeting remain pending.

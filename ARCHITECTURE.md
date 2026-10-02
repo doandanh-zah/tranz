@@ -5,7 +5,7 @@
 This document deliberately separates three levels of certainty:
 
 - **Validated:** observed in a real working baseline.
-- **Implemented and tested:** built in this repository and covered by automated or browser checks, but not yet proven in a live meeting with real providers.
+- **Implemented and tested:** built in this repository and covered by automated or browser checks. Any bounded live evidence is called out separately; this label alone is not a production claim.
 - **Proposed:** the MVP design direction, still requiring implementation or verification.
 - **Long-term:** a direction that must not constrain the MVP prematurely.
 
@@ -35,9 +35,9 @@ Validated limitations and observations:
 
 See [ADR 0001](docs/decisions/0001-agora-convoai-baseline.md) for evidence.
 
-## Implemented local MVP (2026-09-29)
+## Implemented local MVP (updated 2026-10-02)
 
-Status: **implemented and tested**, not validated live. Decisions are recorded in [ADR 0002](docs/decisions/0002-local-mvp.md); evidence in [docs/evidence](docs/evidence/).
+Status: **implemented and tested with bounded live validation**, not a completed MVP. Decisions are recorded in [ADR 0002](docs/decisions/0002-local-mvp.md); evidence in [docs/evidence](docs/evidence/).
 
 ```text
 Google Meet tab ──tabCapture stream ID──► service worker ──► offscreen document
@@ -57,13 +57,13 @@ Side panel (React) ◄──── polling ────► Fastify backend on 12
 
 | Area | Implemented | Evidence level | Not yet proven |
 | --- | --- | --- | --- |
-| Pairing and auth | Random local bearer token handed automatically to the exact paired extension origin (`/api/pair`), rate limit, loopback bind | Automated tests; unpacked build | Hosted identity (out of scope) |
-| Capture | Tab + mic mix, pause/mute gates, stop releases tracks, offscreen closed after stop | Real Chromium tab capture with a synthetic tone and synthetic mic | Google Meet, audible playback, device changes |
-| Agora lifecycle | Server-owned channel/UID, 10-minute tokens with renewal, wait for agent join, RTM channel subscription, RTC/RTM degraded gate, watchdog, orphan cleanup after lost start | Tests; **live Agora session with synthetic speech from a real tab**: join, RTM transcript, pause/resume, token renewal past 10 minutes, stop, cleanup | Real network loss and recovery; Google Meet audio; the agent's LLM still runs and is billed |
-| AI provider | ChatGPT plan through the official `codex app-server` (OAuth sign-in, tools disabled, output schema) or an API key; see ADR 0003 | Tests with a Codex stand-in; **live eval with the real ChatGPT Plus plan, 6/6** | In-meeting usefulness of 5–13 s latency |
-| Translation | Final lines only, batched up to 8 per request, revision-linked, stale results rejected | Tests; mock in browser; real plan in eval | Latency above the 3 s target |
-| Assistance | Reply, catch-up, composer; evidence filtered; clarification fallback | Tests incl. prompt injection as data; mock in browser; real plan passed the synthetic eval | Grounding accuracy beyond the 6 synthetic cases |
-| Notes and retention | Background notes after stop, keep/delete, restart recovery | Tests; mock in browser | Real note quality; chunking over 60,000 characters |
+| Pairing and auth | Random local bearer token handed automatically to the configured extension (`/api/pair`), rate limit, loopback bind | Automated tests; unpacked build; real Cốc Cốc side panel | Hosted identity (out of scope) |
+| Capture | Tab + mic mix, pause/mute gates, stop releases tracks, offscreen closed after stop | Real Chromium tab capture with synthetic tone/mic; real Meet tab reported active capture and microphone-fed speech reached Agora | Incoming Meet-tab participant audio, audible playback, device changes |
+| Agora lifecycle | Server-owned channel/UID, 10-minute tokens with renewal, wait for agent join, RTM channel subscription, RTC/RTM degraded gate, watchdog, orphan cleanup after lost start | Tests; **live Agora synthetic sessions**, including one started from the real Meet side panel: join, transcript, stop, cleanup | Real network loss and recovery; incoming Meet-tab audio; the agent's LLM still runs and is billed |
+| AI provider | ChatGPT plan through the official `codex app-server` (OAuth sign-in, tools disabled, output schema) or an API key; see ADR 0003 | Tests with a Codex stand-in; **live eval 6/6**; real Meet-side-panel translation and grounded assistance | Usefulness and latency in a real multi-person meeting |
+| Translation | Final lines only, batched up to 8 per request, revision-linked, stale results rejected | Tests; mock in browser; real plan in eval and Meet-side-panel run | Latency above the 3 s target |
+| Assistance | Reply, catch-up, composer; evidence filtered; clarification fallback | Tests incl. prompt injection as data; mock in browser; real plan in eval and Meet-side-panel run | Grounding accuracy beyond synthetic cases |
+| Notes and retention | Background notes after stop, keep/delete, restart recovery | Tests; mock in browser; real provider artifact plus save/delete cleanup; ChatGPT auto-finalize regression test | Quality in a real meeting; chunking over 60,000 characters |
 
 Trust boundaries in the implementation: the App Certificate and any API key exist only in the backend `.env`; the ChatGPT login is held by the Codex runtime in `.tranz-data/codex-home`, and Codex runs with every tool disabled; the browser receives a pairing token (kept in `chrome.storage.session`) and 10-minute Agora tokens; transcript and profile text go to Agora and the configured AI provider only for the features the user triggers or opts into; raw audio is never written anywhere by Tranz.
 

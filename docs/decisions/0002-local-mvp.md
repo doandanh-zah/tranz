@@ -1,8 +1,8 @@
 # ADR 0002: Local MVP implementation boundaries
 
-- Status: implementation decision under the user's 2026-09-29 end-to-end MVP authorization; runtime validation pending.
+- Status: implementation decision under the user's 2026-09-29 end-to-end MVP authorization; bounded live validation recorded through 2026-10-02.
 - Stack: TypeScript, React/Vite MV3 extension, Node 22 Fastify loopback backend, npm lockfile.
-- Authentication: local single-owner random bearer token, never browser-shipped provider credentials. Bind to 127.0.0.1; exact extension origin paired in server configuration. This is not a hosted multi-user identity system.
+- Authentication: local single-owner random bearer token, never browser-shipped provider credentials. Bind to 127.0.0.1; pair only the configured extension identity, using its exact origin or the constrained originless Chromium path documented below. This is not a hosted multi-user identity system.
 - Storage: AES-256-GCM encrypted local JSON with atomic writes, mode 0600, single backend process. Profiles persist; transcript and artifacts persist only for opt-in sessions. No audio files. No cloud database required for local review. Replace with transactional storage before multi-process deployment.
 - AI: user-approved OpenAI-compatible adapter configured locally; no fallback fabricated output when configuration or providers fail. Superseded as the default by [ADR 0003](0003-chatgpt-subscription-provider.md) (ChatGPT plan via Codex); the API-key adapter remains available.
 - Capture: Chrome 116+ service-worker tabCapture stream ID consumed by offscreen document. Playback routed to speakers; microphone never locally played. Mixed source audio has no participant identity claim.
@@ -47,6 +47,10 @@ Observed after the fixes: agent join to listening ~8 s, first final line ~1.5 s 
 
 **Important consequence:** the passive agent still runs its LLM on the transcript and produces replies (`assistant.transcription` events were observed). Tranz filters them out and never plays agent audio, but transcript text reaches Agora's managed LLM vendor and that processing is billed. The consent text and Settings now say so. Revisit with an STT-only Agora product or a BYOK transcription path if this is unacceptable.
 
-## Automatic pairing addendum (2026-09-29)
+## Automatic pairing addendum (updated 2026-10-02)
 
-People should not see or paste the local access token. `GET /api/pair` returns the token only when the request's `Origin` is exactly `chrome-extension://<EXTENSION_ID>` from `.env`. Browsers set `Origin` themselves, so web pages cannot obtain it; a local program can forge the header, but such a program can already read `.env`. Without `EXTENSION_ID` the endpoint refuses and the panel explains how to fix it. The developer preview page (`127.0.0.1:5173`) has no extension identity and still pastes the token by hand. A 401 during use triggers a fresh pairing instead of a sign-out screen.
+People should not see or paste the local access token. `GET /api/pair` returns the token when the request's `Origin` exactly matches `chrome-extension://<EXTENSION_ID>` from `.env`. Cốc Cốc was observed to omit `Origin` for this extension fetch, so an originless request is also accepted only when `X-Tranz-Extension-Id` matches the configured ID and Chromium supplies `Sec-Fetch-Site: none`, `Sec-Fetch-Mode: cors` and `Sec-Fetch-Dest: empty`. A web page cannot set the custom header without a preflight from its real origin; requests with a web origin, `Origin: null`, a wrong ID or incomplete metadata are rejected. A local program can forge these values, but such a program can already read `.env`; this remains a local single-owner boundary, not hosted authentication. Without `EXTENSION_ID` the endpoint refuses and the panel explains how to fix it. The developer preview page (`127.0.0.1:5173`) has no extension identity and still pastes the token by hand. A 401 during use triggers a fresh pairing instead of a sign-out screen.
+
+## Phase 08R Google Meet integration evidence (2026-10-02)
+
+A signed-in Google Meet call exercised the real side panel, the Cốc Cốc originless pairing path, tab-capture activation, Agora join, microphone-fed synthetic transcript, ChatGPT translation and grounded assistance. Stop produced a real-provider learning artifact; save/delete and profile deletion succeeded; the Agora channel then contained no active agent. This does not prove incoming participant audio from the Meet tab, audible local playback, tab-close behavior, network-loss recovery, screen-reader use or quality in a real multi-person meeting. See [Google Meet integration evidence](../evidence/google-meet-integration-2026-10-02.md).

@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { shouldAutoFinalize } from '../apps/server/app';
+import { configSchema } from '../apps/server/config';
 import { Store } from '../apps/server/store';
-import { listeningSession, mockAI, testApp } from './helpers';
+import { listeningSession, mockAI, testApp, TOKEN } from './helpers';
 
 // Synthetic transcript and MOCK notes only; these tests cover lifecycle and privacy contracts, not note quality.
 const notes = {
@@ -23,6 +25,13 @@ function gatedAI() {
 }
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 20));
+
+test('ChatGPT sessions automatically generate notes after stop without an API key', () => {
+  const base = { ACCESS_TOKEN: TOKEN, DATA_KEY: 'f'.repeat(64) };
+  assert.equal(shouldAutoFinalize(configSchema.parse({ ...base, AI_PROVIDER: 'chatgpt' })), true);
+  assert.equal(shouldAutoFinalize(configSchema.parse({ ...base, AI_PROVIDER: 'openai' })), false);
+  assert.equal(shouldAutoFinalize(configSchema.parse({ ...base, AI_PROVIDER: 'openai', AI_API_KEY: 'synthetic' })), true);
+});
 
 test('stop returns before notes finish and duplicate finalize calls share one provider job', async () => {
   const { ai, calls, release } = gatedAI();
