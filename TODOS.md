@@ -30,7 +30,7 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | — | Simpler Vietnamese UI with automatic pairing (user review feedback): PR #10 open; Chromium harness 43/43; Cốc Cốc pairing fixed and exercised | User review |
 | — | Monochrome black-and-white theme built with Zahlook: stacked branch/PR; Chromium harness 43/43; real Meet side panel exercised | Manual full-width and screen-reader review |
 | 08R | Integrated Google Meet hardening on `fix/google-meet-e2e`; PR #12 open | Incoming Meet-tab audio/playback, tab-close and network-loss checks remain |
-| 08T | On-device EN→VI translation on `feat/fast-translation`; Chrome fast path + explicit ChatGPT fallback implemented | User review; real multi-person translation quality remains unproven |
+| 08T | On-device EN→VI translation on `feat/fast-translation`; PR #13 open; Chrome fast path + explicit ChatGPT fallback implemented | User review; real multi-person translation quality remains unproven |
 | 09 | Not authorized | Requires separate approval |
 
 ## Phase 08T checklist

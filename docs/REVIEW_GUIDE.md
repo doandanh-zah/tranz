@@ -1,6 +1,6 @@
 # Hướng dẫn cài đặt, chạy và review Tranz MVP
 
-Tài liệu cho người review bản tích hợp trên `feat/fast-translation` (Phase 08T, xếp chồng trên `fix/google-meet-e2e`/PR #12). Đây là **implementation candidate**: Agora và ChatGPT thật đã được kiểm tra bằng dữ liệu synthetic; side panel thật cũng đã chạy trong một cuộc gọi Google Meet đã đăng nhập. Dịch EN→VI trên thiết bị được đo riêng bằng câu synthetic. Âm thanh người tham gia từ tab, playback nghe được và giá trị trong cuộc họp nhiều người vẫn chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md), [bằng chứng tích hợp Meet](evidence/google-meet-integration-2026-10-02.md) và [bằng chứng dịch nhanh](evidence/fast-translation-2026-10-03.md).
+Tài liệu cho người review bản tích hợp trên `feat/fast-translation` (Phase 08T/PR #13, xếp chồng trên `fix/google-meet-e2e`/PR #12). Đây là **implementation candidate**: Agora và ChatGPT thật đã được kiểm tra bằng dữ liệu synthetic; side panel thật cũng đã chạy trong một cuộc gọi Google Meet đã đăng nhập. Dịch EN→VI trên thiết bị được đo riêng bằng câu synthetic. Âm thanh người tham gia từ tab, playback nghe được và giá trị trong cuộc họp nhiều người vẫn chưa được chứng minh. Xem [ma trận nghiệm thu](evidence/mvp-acceptance.md), [bằng chứng tích hợp Meet](evidence/google-meet-integration-2026-10-02.md) và [bằng chứng dịch nhanh](evidence/fast-translation-2026-10-03.md).
 
 ## 1. Chuẩn bị
 

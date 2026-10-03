@@ -1,6 +1,6 @@
 # Bằng chứng dịch nhanh trên thiết bị — 2026-10-03
 
-Phạm vi: Phase 08T trên `feat/fast-translation`, xếp chồng trên `fix/google-meet-e2e`. Không dùng nội dung họp thật, không bật Google Cloud API và không tạo chi phí hay credential mới.
+Phạm vi: Phase 08T trên `feat/fast-translation`/PR #13, xếp chồng trên `fix/google-meet-e2e`/PR #12. Không dùng nội dung họp thật, không bật Google Cloud API và không tạo chi phí hay credential mới.
 
 ## Kết quả runtime thật
 
