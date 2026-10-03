@@ -8,6 +8,7 @@ import {randomUUID} from 'node:crypto';
 import {Store} from '../apps/server/store';
 import {Lifecycle} from '../apps/server/sessions';
 import {translationRoutes} from '../apps/server/translation';
+import { BrowserTranslator } from '../apps/extension/src/browser-translator';
 test('a delayed translation cannot overwrite a corrected transcript revision',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'tranz-trans-'));const app=Fastify();try{
  const store=new Store(dir,'e'.repeat(64));const id=randomUUID();const segment={id:'seg',text:'Synthetic sentence.',final:true,revision:1,at:0};
@@ -51,4 +52,71 @@ test('batched translation links each result to its own line and revision', async
   } finally {
     await close();
   }
+});
+
+test('on-device translations are bounded and cannot overwrite a newer transcript revision', async () => {
+  const { listeningSession, mockAI, testApp } = await import('./helpers');
+  const { ai, calls } = mockAI(() => {
+    throw new Error('the AI provider must not be called');
+  });
+  const { request, close } = await testApp({ ai });
+  try {
+    const { id } = await listeningSession(request, ['Synthetic one.', 'Synthetic two.']);
+    await request('PUT', `/api/sessions/${id}/segments`, [
+      { id: 's2', text: 'Synthetic two, corrected.', final: true, revision: 2, at: 1 },
+    ]);
+    const response = await request('PUT', `/api/sessions/${id}/translations`, {
+      items: [
+        { segmentId: 's1', revision: 1, translation: 'Bản dịch trên thiết bị.' },
+        { segmentId: 's2', revision: 1, translation: 'Bản dịch đã cũ.' },
+      ],
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.body.segments.map((segment: { id: string }) => segment.id), ['s1']);
+    const session = (await request('GET', `/api/sessions/${id}`)).body;
+    assert.equal(session.segments[0].translation, 'Bản dịch trên thiết bị.');
+    assert.equal(session.segments[0].translationState, 'ready');
+    assert.equal(session.segments[1].translation, undefined);
+    assert.equal(calls.length, 0);
+    assert.equal(
+      (await request('PUT', `/api/sessions/${id}/translations`, {
+        items: [{ segmentId: 's2', revision: 2, translation: 'x'.repeat(8001) }],
+      })).status,
+      400,
+    );
+  } finally {
+    await close();
+  }
+});
+
+test('browser translator downloads once, reports progress and serializes translations', async () => {
+  let active = 0;
+  let maximumActive = 0;
+  let creates = 0;
+  const translator = new BrowserTranslator({
+    availability: async () => 'downloadable',
+    create: async ({ monitor }) => {
+      creates++;
+      const target = new EventTarget();
+      monitor?.(target);
+      target.dispatchEvent(Object.assign(new Event('downloadprogress'), { loaded: 0.5 }));
+      return {
+        async translate(text: string) {
+          active++;
+          maximumActive = Math.max(maximumActive, active);
+          await new Promise((resolve) => setTimeout(resolve, 5));
+          active--;
+          return `VI: ${text}`;
+        },
+      };
+    },
+  });
+  const statuses: string[] = [];
+  translator.subscribe((status) => statuses.push(`${status.state}:${status.progress ?? ''}`));
+  await translator.prepare();
+  assert.deepEqual(await Promise.all([translator.translate('one'), translator.translate('two')]), ['VI: one', 'VI: two']);
+  assert.equal(creates, 1);
+  assert.equal(maximumActive, 1);
+  assert.ok(statuses.includes('downloading:0.5'));
+  assert.equal(translator.snapshot().state, 'ready');
 });

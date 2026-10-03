@@ -19,6 +19,7 @@
     "verify": "npm run lint && npm run typecheck && npm test && npm run build:verify",
     "verify:ui": "npm run build:verify && node scripts/verify-ui.mjs",
     "verify:capture": "npm run build:verify && node scripts/verify-capture.mjs",
+    "verify:translator": "node scripts/verify-translator.mjs",
     "verify:live": "npm run build:verify && tsx --env-file-if-exists=.env scripts/verify-live-agora.ts",
     "eval:grounding": "tsx --env-file-if-exists=.env scripts/eval-grounding.ts"
   },

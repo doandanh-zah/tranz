@@ -17,12 +17,14 @@ Implementation candidate on stacked, unmerged review branches. Live Agora and Ch
 - Context profiles with immutable session snapshots; grounded reply suggestions, Vietnamese catch-up and a Vietnamese-to-English composer with cited sources and clarification fallback.
 - Post-meeting notes (summary, decisions, next steps, illustrative phrases, vocabulary), opt-in keep and deletion.
 - Verification scripts: unpacked-extension UI checks, real Chromium tab-capture checks with synthetic audio, and a synthetic grounding evaluation for a configured provider.
+- Browser-native EN→VI translation fast path with visible language-pack progress, a reusable capability/latency check and explicit ChatGPT fallback ([ADR 0004](docs/decisions/0004-on-device-fast-translation.md)).
 
 ### Changed (after user review)
 
 - The side panel is in Vietnamese, connects to the local backend automatically (no access-token step) and opens on a three-step checklist with one **Bắt đầu nghe** button; context is optional.
 - The interface uses a true-black monochrome theme in the tone of X's dark mode (white text and one white main action, hairline separators, state-only colours, no glass or blur), with simpler setup copy, collapsed technical detail and the data-flow disclosure always visible under the start button. Text now scales with the browser text size.
 - Backend error messages are in Vietnamese.
+- Final-line translation now runs on-device when supported and the side panel polls transcript updates every 750 ms; ChatGPT remains the fallback and continues to provide assistance and notes.
 
 ### Added (ChatGPT plan)
 

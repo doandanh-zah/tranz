@@ -23,7 +23,7 @@ Mức bằng chứng:
 | PR-003/004 | EN→VI; không capture khi chưa bấm Start + consent | B | Đạt |
 | PR-010 | Capture tab + micro | C + L: tab capture active trong Meet, micro synthetic → Agora thật | Một phần — chưa chứng minh incoming audio từ tab Meet hoặc playback nghe được |
 | PR-011 | Partial/final ổn định | A/B + L: transcript thật qua RTM, dòng final đầu ~1,5 s sau khi listening | Đạt (synthetic speech) |
-| PR-012 | Bản dịch gắn đúng segment/revision | A/B + L: bản dịch thật xuất hiện trong side panel Meet | Đạt trên phiên synthetic nhỏ |
+| PR-012 | Bản dịch gắn đúng segment/revision | A/B + L: bản dịch thật xuất hiện trong side panel Meet; Phase 08T kiểm tra fast path trên thiết bị, fallback và stale revision | Đạt trên câu/phiên synthetic nhỏ; chưa đo chất lượng họp nhiều người |
 | PR-013/014 | Catch-up; phát hiện câu hỏi + gợi ý | A/B + L: reply/catch-up/composer gọi ChatGPT thật trong phiên Meet | Đạt trên phiên synthetic nhỏ |
 | PR-015/016 | Chỉ dùng context + transcript; thiếu căn cứ → làm rõ | A + L (gói ChatGPT, 6 tình huống synthetic) | Đạt trên bộ synthetic nhỏ; chưa đo trên cuộc họp thật |
 | PR-017 | Mute, pause, resume, stop | C + A + L (pause/resume/stop) | Đạt; mute chưa thử live |

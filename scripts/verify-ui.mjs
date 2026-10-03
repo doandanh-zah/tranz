@@ -22,6 +22,7 @@ const token = randomBytes(32).toString('hex');
 const dataDir = mkdtempSync(join(tmpdir(), 'tranz-ui-'));
 const profileDir = mkdtempSync(join(tmpdir(), 'tranz-chromium-'));
 const results = [];
+let translationProviderCalls = 0;
 // Matches VITE_TRANZ_BACKEND in build:verify, so a backend the person runs on 4318 is left alone.
 // Override both together (TRANZ_VERIFY_PORT + a build with that backend) when 4328 is already in use.
 const PORT = Number(process.env.TRANZ_VERIFY_PORT ?? 4328);
@@ -46,7 +47,10 @@ function mockProvider() {
       const system = body.messages?.[0]?.content ?? '';
       const data = JSON.parse(body.messages?.[1]?.content ?? '{}');
       let content;
-      if (system.includes('Translate')) content = { translations: data.lines.map((line) => ({ id: line.id, translation: `[MOCK] Bản dịch mô phỏng: ${line.text}` })) };
+      if (system.includes('Translate')) {
+        translationProviderCalls++;
+        content = { translations: data.lines.map((line) => ({ id: line.id, translation: `[MOCK] Bản dịch mô phỏng: ${line.text}` })) };
+      }
       else if (system.includes('Summarize')) {
         content = {
           summary: '[MOCK] Tóm tắt mô phỏng cho cuộc họp thử nghiệm.',
@@ -118,18 +122,34 @@ async function shoot(page, name) {
 
 async function main() {
   mkdirSync(out, { recursive: true });
-  const provider = await mockProvider();
-  const backend = await startBackend();
-  // TRANZ_CHROMIUM may point at a Chrome for Testing / Chromium build (branded Chrome ignores --load-extension).
-  const context = await chromium.launchPersistentContext(profileDir, {
-    ...(process.env.TRANZ_CHROMIUM ? { executablePath: process.env.TRANZ_CHROMIUM } : { channel: 'chromium' }),
-    headless: true,
-    timeout: 30000,
-    args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
-  });
   const consoleErrors = [];
+  let provider;
+  let backend;
+  let context;
   let heartbeat;
   try {
+    provider = await mockProvider();
+    backend = await startBackend();
+    // TRANZ_CHROMIUM may point at a Chrome for Testing / Chromium build (branded Chrome ignores --load-extension).
+    context = await chromium.launchPersistentContext(profileDir, {
+      ...(process.env.TRANZ_CHROMIUM ? { executablePath: process.env.TRANZ_CHROMIUM } : { channel: 'chromium' }),
+      headless: true,
+      timeout: 30000,
+      args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+    });
+    await context.addInitScript(() => {
+      if (globalThis.location.search.includes('translation-fallback')) {
+        Object.defineProperty(globalThis, 'Translator', { configurable: true, value: undefined });
+        return;
+      }
+      Object.defineProperty(globalThis, 'Translator', {
+        configurable: true,
+        value: {
+          availability: async () => 'available',
+          create: async () => ({ translate: async (text) => `[DEVICE] Bản dịch trên thiết bị: ${text}` }),
+        },
+      });
+    });
     let [worker] = context.serviceWorkers();
     worker ??= await context.waitForEvent('serviceworker');
     const loadedId = new URL(worker.url()).host;
@@ -166,6 +186,7 @@ async function main() {
       'the data-flow disclosure is visible under the start button, not collapsed',
       await page.locator('.start-zone .consent').isVisible(),
     );
+    check('home reports that on-device EN→VI translation is ready', (await page.getByText(/Dịch nhanh EN→VI đã sẵn sàng/).count()) === 1);
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
       check(`home has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
@@ -210,6 +231,21 @@ async function main() {
     await page.getByRole('heading', { name: 'Cài đặt', exact: true }).waitFor();
     await shoot(page, '05-settings-360');
 
+    // Explicitly remove the browser Translator API in a separate panel document. This proves the
+    // disclosed ChatGPT fallback without racing the primary on-device panel.
+    const fallbackId = randomUUID();
+    await api('POST', '/sessions', { id: fallbackId, retain: false });
+    await api('POST', `/sessions/${fallbackId}/heartbeat`, { state: 'listening' });
+    await api('PUT', `/sessions/${fallbackId}/segments`, [
+      { id: 'fallback-1', text: 'Synthetic fallback sentence.', final: true, revision: 1, at: Date.now() },
+    ]);
+    const fallbackPage = await context.newPage();
+    await fallbackPage.goto(`${panel}?translation-fallback=1`);
+    await fallbackPage.getByText('[MOCK] Bản dịch mô phỏng: Synthetic fallback sentence.').waitFor({ timeout: 15000 });
+    check('missing browser Translator API falls back to the mock AI provider', translationProviderCalls === 1);
+    await fallbackPage.close();
+    await api('DELETE', `/sessions/${fallbackId}`);
+
     // Simulated live session: synthetic segments posted straight to the API (no audio, no Agora).
     const profiles = await api('GET', '/profiles');
     const sessionId = randomUUID();
@@ -231,8 +267,8 @@ async function main() {
     );
     await page.goto(panel);
     await page.getByText('Trong cuộc họp').waitFor();
-    await page.getByText('[MOCK] Bản dịch mô phỏng: Can you share').waitFor({ timeout: 15000 });
-    check('final lines are translated (batched) and linked to their source (mock provider)', true);
+    await page.getByText('[DEVICE] Bản dịch trên thiết bị: Can you share').waitFor({ timeout: 15000 });
+    check('final lines use the on-device translator and do not call the AI translation provider', translationProviderCalls === 1);
     check('partial text is shown separately from final text', (await page.getByText('Đang nghe…', { exact: true }).count()) === 1);
     check('the detected question is labelled as a guess', (await page.getByText('Câu hỏi Tranz đoán được').count()) === 1);
     await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
@@ -357,9 +393,9 @@ async function main() {
     check('no script errors on extension pages', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));
   } finally {
     clearInterval(heartbeat);
-    await context.close();
+    await context?.close();
     for (const child of backends) child.kill('SIGTERM');
-    provider.close();
+    provider?.close();
     rmSync(dataDir, { recursive: true, force: true });
     rmSync(profileDir, { recursive: true, force: true });
     writeFileSync(join(out, 'results.json'), JSON.stringify({ extensionId, at: new Date().toISOString(), results }, null, 2));

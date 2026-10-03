@@ -11,7 +11,7 @@ Deferred, not authorized:
 - Chunked or incremental notes for transcripts over 60,000 characters.
 - Transactional, multi-process storage before any hosted deployment.
 - Separate tab and microphone tracks with speaker labelling.
-- Push updates (SSE/WebSocket) instead of 1.5-second polling.
+- Push updates (SSE/WebSocket) instead of 750 ms polling.
 - Formatting the remaining dense early-phase source files with a shared formatter.
 - Code-splitting or trimming the 2.9 MB offscreen bundle if start latency proves it matters.
 - Chrome Web Store listing, privacy policy and hosted identity (Phase 08 store readiness items that were out of the local MVP scope).

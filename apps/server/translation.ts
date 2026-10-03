@@ -18,6 +18,7 @@ const output = z.object({
 });
 const idParams = z.object({ id: z.string().uuid() });
 const target = z.object({ segmentId: z.string(), revision: z.number().int() });
+const deviceTranslation = target.extend({ translation: z.string().trim().min(1).max(8000) });
 
 /**
  * Translates final segments, each tied to the revision it was requested for. A completion is dropped
@@ -96,5 +97,24 @@ export function translationRoutes(app: FastifyInstance, life: Lifecycle, ai: Tex
     if (!batch.length) return { segments: [] };
     limitReached(session);
     return { segments: await translate(id, session, batch) };
+  });
+
+  /**
+   * Persists translations produced by the browser's on-device model. The panel is trusted only as
+   * an authenticated client: ids, final state, revision and output bounds are checked again here.
+   */
+  app.put('/api/sessions/:id/translations', async (req) => {
+    const { id } = idParams.parse(req.params);
+    const session = life.get(id);
+    const { items } = z.object({ items: z.array(deviceTranslation).min(1).max(MAX_BATCH) }).parse(req.body);
+    const segments = items.flatMap(({ segmentId, revision, translation }) => {
+      const segment = session.segments.find((candidate) => candidate.id === segmentId);
+      if (!segment || !segment.final || segment.revision !== revision) return [];
+      segment.translation = translation;
+      segment.translationState = 'ready';
+      return [segment];
+    });
+    if (segments.length) life.store.save();
+    return { segments };
   });
 }

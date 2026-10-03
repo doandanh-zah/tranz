@@ -247,7 +247,7 @@ Implementation status: rendered in the unpacked extension build with a mock prov
 
 - Suggestions are user-triggered only. Tranz never requests a reply automatically, which bounds cost and distraction; revisit after measured use.
 - Question detection is a heuristic over the last five final lines (a trailing question mark or an interrogative first word). It is labelled `Detected question (automatic guess)`; the user can pick any final line with `Use for reply`.
-- The live view shows the latest final English line with its linked Vietnamese translation. In-progress text appears separately as `Hearing…` and is never translated. Final lines are translated one at a time.
+- The live view shows the latest final English line with its linked Vietnamese translation. In-progress text appears separately as `Hearing…` and is never translated. Final lines are translated one at a time by the browser's on-device EN→VI model where available; the configured AI provider is the disclosed fallback.
 - Each result states whether it cites the user's context, transcript lines, both or nothing, and always says `verify before using`. Cited sources are expandable. A valid citation does not prove the answer is correct.
 - A reply that cites no known source is replaced with a clarification request and marked uncertain.
 - `Catch me up` explains recent speech in Vietnamese. The composer rewrites a Vietnamese draft as spoken English without adding facts.
@@ -272,8 +272,15 @@ Implementation status: rendered in the unpacked build with a mock provider; one 
 ## ChatGPT sign-in (implemented, ADR 0003)
 
 - Settings shows **Sign in with ChatGPT** when the ChatGPT-plan provider is active. It opens OpenAI's own sign-in page in a new tab; the panel waits (up to five minutes) and then shows the account and plan, with a sign-out action.
-- The panel says that requests take several seconds and count toward the plan's Codex limits. Translation shows `Translating… (can take several seconds)` and arrives in batches.
+- The panel says that ChatGPT assistance/notes requests take several seconds and count toward the plan's Codex limits. Translation uses those limits only while the on-device mode is unavailable or has failed.
 - Wherever AI is unavailable, copy points to Settings instead of mentioning API keys.
+
+## Fast translation status (implemented, ADR 0004)
+
+- Home shows one compact status outside the three required setup steps: checking, language-pack download with progress, on-device ready, or slower ChatGPT fallback.
+- Language-pack download does not block **Bắt đầu nghe**. Once ready, final lines translate locally and sequentially; untranslated lines catch up when the panel is reopened.
+- Settings names the active translation mode and explains that ChatGPT receives translation text only during fallback.
+- Consent continues to disclose Agora audio/transcript processing and now distinguishes local translation from ChatGPT assistance, notes and fallback translation.
 
 ## Simplified Vietnamese interface (implemented after user feedback, 2026-09-29)
 

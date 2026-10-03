@@ -193,12 +193,12 @@ Long-term features remain backlog items until user research, cost, privacy, and 
 These are working choices for the local MVP, to be revisited with measured use:
 
 - Reply suggestions are user-triggered only; a heuristic marks a likely question but never calls the AI by itself.
-- Only final transcript lines are translated, one at a time; partial text is shown untranslated.
+- Only final transcript lines are translated, one at a time; partial text is shown untranslated. Chrome's on-device EN→VI translator is the fast path, with the configured AI provider as an explicit fallback ([ADR 0004](docs/decisions/0004-on-device-fast-translation.md)).
 - Notes are created automatically once after a session stops (when AI is configured); stopping never waits for them.
 - Nothing is retained unless the user opts in before start or presses `Keep this session` afterwards.
 - The transcript mixes tab and microphone audio; speakers are never identified.
 - The interface language is Vietnamese; meeting content (transcript, suggested replies) stays English.
-- AI runs on the user's ChatGPT plan by default (sign-in, no API key), accepting multi-second latency ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md)).
+- Assistance and notes run on the user's ChatGPT plan by default (sign-in, no API key), accepting multi-second latency. Live EN→VI translation uses the browser's on-device model where available, avoiding that latency and Codex usage ([ADR 0003](docs/decisions/0003-chatgpt-subscription-provider.md), [ADR 0004](docs/decisions/0004-on-device-fast-translation.md)).
 
 ## Open product decisions
 
