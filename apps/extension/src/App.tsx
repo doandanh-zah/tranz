@@ -9,6 +9,7 @@ import { Live } from './views/Live';
 import { ContextProfiles } from './views/ContextProfiles';
 import { Library } from './views/Library';
 import { SettingsView } from './views/Settings';
+import { browserTranslator, type DeviceTranslationStatus } from './browser-translator';
 import type { Profile, Segment, Session } from '../../../packages/shared/contracts';
 import './style.css';
 
@@ -39,6 +40,7 @@ export function App() {
   const [deletion, setDeletion] = useState<Deletion>();
   const [editRequest, setEditRequest] = useState<{ profile?: Profile; nonce: number }>();
   const [problem, setProblem] = useState('');
+  const [deviceTranslation, setDeviceTranslation] = useState<DeviceTranslationStatus>(() => browserTranslator.snapshot());
 
   const api = useMemo(() => new Api(token), [token]);
   const sessionId = useRef<string | undefined>(undefined);
@@ -153,6 +155,14 @@ export function App() {
     void connect();
   }, [connect]);
 
+  // Warm the browser's EN→VI language pack as soon as the panel opens. This is local to Chrome;
+  // meeting start remains available while it downloads because ChatGPT is a transparent fallback.
+  useEffect(() => {
+    const unsubscribe = browserTranslator.subscribe(setDeviceTranslation);
+    void browserTranslator.prepare().catch(() => {});
+    return unsubscribe;
+  }, []);
+
   // Poll the backend for transcript/processing updates. The last good snapshot stays visible on failure.
   const shouldPoll = !!token && !!session && (active || session.processing === 'processing');
   const polledId = session?.id;
@@ -177,7 +187,7 @@ export function App() {
             setBackendLost(true);
           }
         });
-    }, 1500);
+    }, 750);
     return () => {
       controller.abort();
       clearInterval(timer);
@@ -201,6 +211,14 @@ export function App() {
       if (!id) return;
       mergeSegment(id, { ...segment, translationState: 'pending' });
       try {
+        if (deviceTranslation.state === 'ready') {
+          const translation = await browserTranslator.translate(segment.text);
+          const result = await api.call<{ segments: Segment[] }>(`/sessions/${id}/translations`, 'PUT', {
+            items: [{ segmentId: segment.id, revision: segment.revision, translation }],
+          });
+          if (result.segments[0]) mergeSegment(id, result.segments[0]);
+          return;
+        }
         mergeSegment(id, await api.call<Segment>(`/sessions/${id}/translate`, 'POST', { segmentId: segment.id, revision: segment.revision }));
       } catch {
         // The server marks the segment as failed; the source text stays readable and offers a retry.
@@ -208,23 +226,31 @@ export function App() {
         if (next && sessionId.current === id) setSession(next);
       }
     },
-    [api, mergeSegment],
+    [api, deviceTranslation.state, mergeSegment],
   );
 
-  // Translate new final lines in batches of up to 8, one request at a time, so a slower provider
-  // (ChatGPT via Codex takes several seconds per request) does not fall behind the conversation.
+  // Translate final lines with Chrome's local EN→VI model. Only browsers without that capability,
+  // or a failed local model, use the slower ChatGPT batch route.
   const translating = useRef(false);
   useEffect(() => {
-    if (!active || !capabilities?.ai || translating.current || !session) return;
+    const canUseDevice = deviceTranslation.state === 'ready';
+    const needsFallback = deviceTranslation.state === 'unsupported' || deviceTranslation.state === 'error';
+    if (!active || translating.current || !session || (!canUseDevice && (!needsFallback || !capabilities?.ai))) return;
     const next = session.segments.filter((s) => s.final && !s.translation && !s.translationState).slice(0, 8);
     if (!next.length) return;
     const id = session.id;
     translating.current = true;
     for (const segment of next) mergeSegment(id, { ...segment, translationState: 'pending' });
-    void api
-      .call<{ segments: Segment[] }>(`/sessions/${id}/translate-batch`, 'POST', {
-        items: next.map((s) => ({ segmentId: s.id, revision: s.revision })),
-      })
+    const job = canUseDevice
+      ? Promise.all(next.map(async (segment) => ({
+          segmentId: segment.id,
+          revision: segment.revision,
+          translation: await browserTranslator.translate(segment.text),
+        }))).then((items) => api.call<{ segments: Segment[] }>(`/sessions/${id}/translations`, 'PUT', { items }))
+      : api.call<{ segments: Segment[] }>(`/sessions/${id}/translate-batch`, 'POST', {
+          items: next.map((s) => ({ segmentId: s.id, revision: s.revision })),
+        });
+    void job
       .then(({ segments }) => segments.forEach((segment) => mergeSegment(id, segment)))
       .catch(async () => {
         // Failed lines are marked by the server and offer Retry; the English stays readable.
@@ -234,7 +260,7 @@ export function App() {
       .finally(() => {
         translating.current = false;
       });
-  }, [active, capabilities?.ai, session, api, mergeSegment]);
+  }, [active, capabilities?.ai, deviceTranslation.state, session, api, mergeSegment]);
 
   const go = (next: View) => {
     setView(next);
@@ -424,6 +450,7 @@ export function App() {
               profileId={profileId}
               onSelect={setProfileId}
               capabilities={capabilities}
+              deviceTranslation={deviceTranslation}
               busy={busy}
               onStart={start}
               onCapabilitiesChanged={() => void load(api)}
@@ -454,6 +481,7 @@ export function App() {
           <SettingsView
             api={api}
             capabilities={capabilities}
+            deviceTranslation={deviceTranslation}
             active={active}
             busy={busy}
             run={run}

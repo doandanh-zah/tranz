@@ -757,6 +757,38 @@ summary:hover {
   font-size: 0.8125rem;
 }
 
+.translation-readiness {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--text-2);
+  background: var(--surface-soft);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.translation-readiness.ready-line {
+  display: flex;
+  margin-bottom: 16px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.translation-readiness.fallback {
+  border-color: rgb(255 212 0 / 35%);
+  background: var(--warning-wash);
+}
+
+.translation-readiness progress,
+.panel progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--success);
+}
+
 .checklist {
   list-style: none;
   margin: 0 0 20px;

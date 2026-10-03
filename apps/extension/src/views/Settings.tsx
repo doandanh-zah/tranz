@@ -1,18 +1,21 @@
 import { ExternalLink, LogOut, RefreshCw, ShieldCheck } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
+import type { DeviceTranslationStatus } from '../browser-translator';
 import { useChatGpt } from '../chatgpt';
 import { Spinner } from '../components';
 
 export function SettingsView({
   api,
   capabilities,
+  deviceTranslation,
   busy,
   run,
   onRefresh,
 }: {
   api: Api;
   capabilities?: Capabilities;
+  deviceTranslation: DeviceTranslationStatus;
   active: boolean;
   busy: string;
   run: Run;
@@ -36,6 +39,21 @@ export function SettingsView({
         </section>
       )}
 
+      <section className="panel" aria-labelledby="translation-heading">
+        <h2 id="translation-heading">Bản dịch EN→VI</h2>
+        <p className="setting-row">
+          <span>Chế độ hiện tại</span>
+          <strong>{translationMode(deviceTranslation)}</strong>
+        </p>
+        {deviceTranslation.state === 'downloading' && (
+          <progress value={deviceTranslation.progress ?? 0} max={1} aria-label="Tiến độ tải gói dịch" />
+        )}
+        <p className="caption">
+          Tranz ưu tiên mô hình dịch của trình duyệt chạy ngay trên thiết bị. ChatGPT chỉ dịch dự phòng khi trình duyệt không hỗ trợ
+          hoặc gói ngôn ngữ gặp lỗi.
+        </p>
+      </section>
+
       <section className="panel" aria-labelledby="privacy-heading">
         <h2 id="privacy-heading">
           <ShieldCheck size={18} aria-hidden="true" /> Quyền riêng tư
@@ -46,7 +64,11 @@ export function SettingsView({
             Âm thanh được gửi tới Agora để chuyển thành chữ. Hệ thống của Agora cũng chạy một mô hình ngôn ngữ trên lời thoại (Tranz
             bỏ qua và không phát kết quả đó), và phần xử lý này được tính phí vào dự án Agora.
           </li>
-          <li>Lời thoại và ngữ cảnh được gửi tới ChatGPT để dịch, gợi ý và tạo ghi chú, theo điều khoản tài khoản ChatGPT của bạn.</li>
+          <li>Bản dịch EN→VI chạy trên thiết bị khi hỗ trợ; nội dung cần dịch không rời máy cho bước này.</li>
+          <li>
+            Lời thoại và ngữ cảnh được gửi tới ChatGPT để gợi ý và tạo ghi chú; khi dịch trên thiết bị không dùng được, ChatGPT cũng
+            nhận các câu cần dịch, theo điều khoản tài khoản của bạn.
+          </li>
           <li>Phiên không lưu chỉ giữ tạm trong bộ nhớ và tự xoá sau 1 giờ hoặc khi Tranz khởi động lại.</li>
           <li>Ngữ cảnh và phiên bạn chọn lưu được mã hoá trên máy này. Xoá chỉ xoá bản trên máy, không thu hồi được dữ liệu đã gửi đi.</li>
         </ul>
@@ -66,6 +88,10 @@ export function SettingsView({
           <span>AI</span>
           <strong>{capabilities?.provider === 'chatgpt' ? 'Gói ChatGPT (qua Codex)' : 'API key'}</strong>
         </p>
+        <p className="setting-row">
+          <span>Dịch EN→VI</span>
+          <strong>{translationMode(deviceTranslation)}</strong>
+        </p>
         <button className="secondary" disabled={!!busy} onClick={() => void run('refresh', onRefresh)}>
           <RefreshCw size={15} aria-hidden="true" />
           Kiểm tra lại
@@ -81,8 +107,8 @@ function ChatGptAccount({ api, onChanged }: { api: Api; onChanged: () => void })
     <section className="panel" aria-labelledby="chatgpt-heading" aria-busy={waiting}>
       <h2 id="chatgpt-heading">Tài khoản ChatGPT</h2>
       <p className="caption">
-        Tranz dùng gói ChatGPT của bạn để dịch, gợi ý và tạo ghi chú, không cần API key. Mỗi yêu cầu mất vài giây và được tính vào
-        hạn mức Codex của gói.
+        Tranz dùng gói ChatGPT của bạn để gợi ý, tạo ghi chú và dịch dự phòng, không cần API key. Mỗi yêu cầu ChatGPT mất vài giây
+        và được tính vào hạn mức Codex của gói.
       </p>
       {problem && (
         <p className="banner error" role="alert">
@@ -115,4 +141,11 @@ function ChatGptAccount({ api, onChanged }: { api: Api; onChanged: () => void })
       )}
     </section>
   );
+}
+
+function translationMode(status: DeviceTranslationStatus) {
+  if (status.state === 'ready') return 'Trên thiết bị · sẵn sàng';
+  if (status.state === 'downloading') return `Đang tải trên thiết bị · ${Math.round((status.progress ?? 0) * 100)}%`;
+  if (status.state === 'unsupported' || status.state === 'error') return 'ChatGPT dự phòng';
+  return 'Đang kiểm tra';
 }

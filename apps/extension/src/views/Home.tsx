@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { CheckCircle2, Circle, Headphones } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities } from '../App';
+import type { DeviceTranslationStatus } from '../browser-translator';
 import type { Profile } from '../../../../packages/shared/contracts';
 import { useChatGpt } from '../chatgpt';
 import { Spinner } from '../components';
@@ -17,6 +18,7 @@ export function Home({
   profileId,
   onSelect,
   capabilities,
+  deviceTranslation,
   busy,
   onStart,
   onCapabilitiesChanged,
@@ -27,6 +29,7 @@ export function Home({
   profileId: string;
   onSelect: (id: string) => void;
   capabilities?: Capabilities;
+  deviceTranslation: DeviceTranslationStatus;
   busy: string;
   onStart: (retain: boolean) => void;
   onCapabilitiesChanged: () => void;
@@ -60,6 +63,8 @@ export function Home({
         </details>
       )}
 
+      <TranslationReadiness status={deviceTranslation} />
+
       {allReady ? (
         <p className="ready-line">
           <CheckCircle2 size={18} aria-hidden="true" /> Mọi thứ đã sẵn sàng.
@@ -69,7 +74,7 @@ export function Home({
           <Step
             done={aiReady}
             title={usesChatGpt ? 'Đăng nhập ChatGPT' : 'Kết nối AI'}
-            detail={usesChatGpt ? 'Để dịch và gợi ý câu trả lời.' : 'Chưa có API key AI trên máy này.'}
+            detail={usesChatGpt ? 'Để gợi ý, tóm tắt và dự phòng khi không thể dịch trên máy.' : 'Chưa có API key AI trên máy này.'}
             note={aiReady && chatgpt.account?.email ? `Đã đăng nhập: ${chatgpt.account.email}` : undefined}
             action={
               usesChatGpt && (
@@ -123,8 +128,9 @@ export function Home({
         {!isExtension && <p className="caption">Bản xem thử giao diện · Mở extension trong Chrome để nghe cuộc họp.</p>}
         {/* Pressing the button is the consent (PR-004), so this stays visible rather than collapsed. */}
         <p className="caption consent">
-          Âm thanh tab và micro được gửi tới Agora để chuyển thành chữ, lời thoại tới ChatGPT để dịch và gợi ý. Tranz không lưu âm
-          thanh. Hãy báo cho mọi người trong cuộc họp.
+          Âm thanh tab và micro được gửi tới Agora để chuyển thành chữ. Bản dịch EN→VI chạy trên thiết bị khi hỗ trợ; lời thoại và
+          ngữ cảnh được gửi tới ChatGPT để gợi ý, tóm tắt, ghi chú và để dịch nếu chế độ trên thiết bị không dùng được. Tranz không
+          lưu âm thanh. Hãy báo cho mọi người trong cuộc họp.
         </p>
       </section>
 
@@ -154,6 +160,33 @@ export function Home({
       </details>
     </>
   );
+}
+
+function TranslationReadiness({ status }: { status: DeviceTranslationStatus }) {
+  if (status.state === 'ready') {
+    return (
+      <p className="translation-readiness ready-line">
+        <CheckCircle2 size={18} aria-hidden="true" /> Dịch nhanh EN→VI đã sẵn sàng trên thiết bị.
+      </p>
+    );
+  }
+  if (status.state === 'downloading') {
+    const percent = Math.round((status.progress ?? 0) * 100);
+    return (
+      <div className="translation-readiness" role="status">
+        <span>Đang tải gói dịch EN→VI trên thiết bị{percent ? ` · ${percent}%` : '…'}</span>
+        <progress value={status.progress ?? 0} max={1} aria-label="Tiến độ tải gói dịch" />
+      </div>
+    );
+  }
+  if (status.state === 'unsupported' || status.state === 'error') {
+    return (
+      <p className="translation-readiness fallback" role="status">
+        Trình duyệt chưa dùng được dịch trên thiết bị. Tranz sẽ dịch bằng ChatGPT; bản dịch có thể chậm hơn.
+      </p>
+    );
+  }
+  return <p className="translation-readiness" role="status">Đang kiểm tra dịch nhanh EN→VI trên thiết bị…</p>;
 }
 
 /** One setup row: status icon, title, a one-line hint and at most one small action while not done. */

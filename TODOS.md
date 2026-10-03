@@ -2,7 +2,9 @@
 
 ## Authorization and current request
 
-On 2026-10-02 the user authorized integrated Phase 08R hardening for the complete Google Meet → extension → transcript/translation/assistance → post-meeting learning flow. The review branch is `fix/google-meet-e2e`; merge, release, store publication and Phase 09 remain unauthorized.
+On 2026-10-03 the user authorized Phase 08T to remove ChatGPT latency from live translation without taking risky cloud/billing actions. The implementation branch is `feat/fast-translation`, stacked on `fix/google-meet-e2e`; merge, release, store publication and Phase 09 remain unauthorized.
+
+Phase 08R remains in PR #12 with the same unresolved live Google Meet gates. Phase 08T changes only translation delivery, UI disclosure and related verification; audio/Agora behavior is unchanged.
 
 The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 06–08 until completion or a real blocker, then stop for integrated review. No merge, production deployment, store publication, Phase 09 or P2 work is authorized.
 
@@ -28,7 +30,20 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | — | Simpler Vietnamese UI with automatic pairing (user review feedback): PR #10 open; Chromium harness 43/43; Cốc Cốc pairing fixed and exercised | User review |
 | — | Monochrome black-and-white theme built with Zahlook: stacked branch/PR; Chromium harness 43/43; real Meet side panel exercised | Manual full-width and screen-reader review |
 | 08R | Integrated Google Meet hardening on `fix/google-meet-e2e`; PR #12 open | Incoming Meet-tab audio/playback, tab-close and network-loss checks remain |
+| 08T | On-device EN→VI translation on `feat/fast-translation`; PR #13 open; Chrome fast path + explicit ChatGPT fallback implemented | User review; real multi-person translation quality remains unproven |
 | 09 | Not authorized | Requires separate approval |
+
+## Phase 08T checklist
+
+- [x] Confirm the observed bottleneck is ChatGPT/Codex request latency rather than transcript capture.
+- [x] Avoid enabling Google Cloud services or creating a new credential/billing path without a confirmed Tranz project.
+- [x] Add a shared, sequential Chrome Translator API EN→VI fast path with visible first-download progress.
+- [x] Keep meeting start usable during download and retain the existing bounded ChatGPT translation fallback.
+- [x] Persist only bounded final-line results whose segment id and revision still match.
+- [x] Reduce panel transcript polling from 1.5 seconds to 750 ms without adding new permissions.
+- [x] Update consent, privacy and Settings copy to disclose the active translation boundary.
+- [x] Verify fast and fallback UI paths, stale-revision protection and real browser capability/latency with synthetic text.
+- [ ] Merge only after explicit user approval; no merge currently authorized.
 
 ## Phase 08R checklist
 
