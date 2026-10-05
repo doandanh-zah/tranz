@@ -3,7 +3,7 @@ import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
 import type { DeviceTranslationStatus } from '../browser-translator';
 import { useChatGpt } from '../chatgpt';
-import { Spinner } from '../components';
+import { Spinner, ViewHeading } from '../components';
 
 export function SettingsView({
   api,
@@ -23,9 +23,9 @@ export function SettingsView({
 }) {
   return (
     <>
-      <div className="section-heading">
-        <h1>Cài đặt</h1>
-      </div>
+      <ViewHeading kicker="Tranz trên máy của bạn" title="Cài đặt">
+        Tài khoản, bản dịch và cách dữ liệu được xử lý.
+      </ViewHeading>
       {capabilities?.provider === 'chatgpt' ? (
         <ChatGptAccount api={api} onChanged={() => void onRefresh()} />
       ) : (

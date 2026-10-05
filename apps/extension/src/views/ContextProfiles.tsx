@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Check, Plus, Trash2, X } from 'lucide-react';
+import { Check, FolderOpen, Plus, Trash2, X } from 'lucide-react';
+import { ViewHeading } from '../components';
 import type { Api } from '../api';
 import type { Run } from '../App';
 import type { Profile, ProfileInput } from '../../../../packages/shared/contracts';
@@ -53,10 +54,9 @@ export function ContextProfiles({
 
   return (
     <>
-      <div className="section-heading">
-        <h1>Ngữ cảnh</h1>
-        <p>Không bắt buộc. Ngữ cảnh giúp Tranz gợi ý câu trả lời đúng về công việc của bạn, thay vì đoán. Gợi ý chỉ dựa trên những gì bạn viết ở đây và lời thoại trong cuộc họp.</p>
-      </div>
+      <ViewHeading kicker="Chuẩn bị câu trả lời" title="Ngữ cảnh">
+        Thông tin bạn tin tưởng, cho gợi ý sát công việc. Không bắt buộc; Tranz chỉ dựa trên ngữ cảnh và lời thoại trong cuộc họp.
+      </ViewHeading>
       {editing ? (
         <form className="panel" onSubmit={save} aria-labelledby="profile-form-heading">
           <div className="section-label">
@@ -125,6 +125,7 @@ export function ContextProfiles({
             </ul>
           ) : (
             <div className="empty">
+              <span className="empty-symbol"><FolderOpen size={24} aria-hidden="true" /></span>
               <h2>Chưa có ngữ cảnh nào</h2>
               <p>Bạn vẫn dùng Tranz bình thường khi không có ngữ cảnh. Thêm vài thông tin chính nếu muốn gợi ý sát với công việc hơn.</p>
             </div>

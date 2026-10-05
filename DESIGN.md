@@ -119,7 +119,7 @@ Context and session details
 
 Chrome side-panel width can change, so the interface must be designed for constrained horizontal space.
 
-- **Narrow, 320-399 px:** one column, translation below source, sticky session controls, compact actions, no horizontal scrolling.
+- **Narrow, 320-399 px:** one column, translation below source, session controls in normal flow, compact actions, no horizontal scrolling. Setup actions sit beneath their step copy so Vietnamese text has enough room.
 - **Standard, 400-559 px:** one column with more generous line length and optional inline compact actions.
 - **Wide, 560 px and above:** source and translation may use paired columns when readability is preserved; response support remains visually dominant.
 
@@ -182,7 +182,7 @@ The visual system is a fixed, true-black monochrome theme, requested by the user
 - semantic colours carry state only: success `#00BA7C` (listening, done), warning `#FFD400` (paused, connecting, setup needed), danger `#F4212E` (stop, delete, errors);
 - hierarchy from type, weight and separators; no blur, glow, gradient, or drop shadow;
 - three type roles on local system fonts (no external font dependency): display (heavy system sans) for page titles, sans for reading, mono for short uppercase labels, counters, timestamps and status;
-- 4 px control radii and 8 px frames; pills only for the session status mark;
+- 8 px control radii and 12 px frames; pills only for the session status mark;
 - rem-based type, so browser text scaling enlarges content (checked at 200 %);
 - in the live view the Vietnamese translation is the brightest, largest line and the English original sits above it in secondary text;
 - restrained CSS-only motion (colour feedback on hover, the live pulse); everything stops under reduced motion; increased contrast raises muted text and lines.
@@ -302,3 +302,19 @@ The first user review found the English, multi-step interface hard to use. The p
 - Second review ("khó nhìn"): sections are separated by hairlines and spacing instead of framed cards; secondary labels are sentence-case muted text (mono is kept for times and counters only); quiet actions are not underlined until hover; the footer is gone; a locked main button is a quiet outline with readable text instead of a faded white block.
 - Every banner has an icon (information, success, error) so colour is never the only cue.
 - The responsive harness renders the unpacked extension at 320, 360, 400, 480 and 600 px and at 200 % text. The real side panel was exercised at its current browser width during a signed-in Meet call; manual resizing across every width, screen-reader use and a real multi-person meeting remain pending.
+
+## 10K extension refinement (user-authorized adaptation, 2026-10-05)
+
+The user asked to rebuild the existing extension UI using the supplied 10K Websites skill, then explicitly approved adapting its static-site workflow to React while preserving the meeting flow. The [design package](docs/designs/10k-extension-ui.md) records the adaptation and acceptance criteria.
+
+- Preserve true black and white, Vietnamese copy, local system typography and state-only semantic colours. Video, cinematic scroll, generated media, hosting and new product capabilities are outside this phase.
+- The signature is a static EN-to-VI vector bridge on Home, identifying the supported language pair. It never implies listening or audio activity.
+- Home groups real readiness in one quiet surface with a completed-step count. Narrow screens place step actions below their copy; wider panels may place them beside it. Translation readiness and fallback remain explicit; neither blocks the language-pack-download start path.
+- The start action carries a short explicit-control/no-audio-storage reminder, followed by the full consent disclosure in normal view. Optional context and retention remain in a disclosure.
+- Navigation uses labeled icons, equal destinations and an active rule. The header scrolls normally. A keyboard skip link targets the main region.
+- Live view has a real session title, separate time/state, wrap-safe controls, a focused English/linked-Vietnamese reading surface and a primary reply action. AI output retains source citations and uncertainty cautions.
+- Context, saved sessions and Settings use distinct introductions. Context/saved empty states use labeled content and decorative icons. Real data remains the only source of profiles and saved meetings.
+- View navigation uses a single 260 ms opacity/transform entrance. Transcript updates never animate. Reduced-motion preferences disable entrances, transitions, spinners and listening pulse immediately.
+- Muted text and interactive borders are brighter for readability; form fields, suggestions, dialogs and saved entries share restrained neutral surfaces and consistent radii.
+
+Verification and limits are recorded in [Phase 08U evidence](docs/evidence/10k-extension-ui.md). This refinement does not resolve the pending native panel, screen-reader or real-meeting gates.

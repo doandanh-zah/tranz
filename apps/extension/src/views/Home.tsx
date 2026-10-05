@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { CheckCircle2, Circle, Headphones } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, Circle, Headphones, ShieldCheck } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities } from '../App';
 import type { DeviceTranslationStatus } from '../browser-translator';
 import type { Profile } from '../../../../packages/shared/contracts';
 import { useChatGpt } from '../chatgpt';
-import { Spinner } from '../components';
+import { LanguageBridge, Spinner, ViewHeading } from '../components';
 import { errorMessage, isExtension, microphonePermission, openSetupTab, requestMicrophone, sendCommand } from '../platform';
 
 /**
@@ -48,10 +48,12 @@ export function Home({
 
   return (
     <>
-      <div className="section-heading">
-        <h1>Sẵn sàng cho cuộc họp</h1>
-        <p>Nghe tiếng Anh, đọc tiếng Việt, trả lời tự tin.</p>
-      </div>
+      <section className="meeting-intro" aria-label="Trợ lý cuộc họp tiếng Anh">
+        <LanguageBridge />
+        <ViewHeading kicker="Trợ lý cuộc họp tiếng Anh" title="Sẵn sàng cho cuộc họp">
+          Nghe tiếng Anh, đọc tiếng Việt, trả lời tự tin.
+        </ViewHeading>
+      </section>
 
       {capabilities && !capabilities.agora && (
         <details className="setup-warning">
@@ -63,8 +65,13 @@ export function Home({
         </details>
       )}
 
-      <TranslationReadiness status={deviceTranslation} />
-
+      <section className="preparation" aria-labelledby="preparation-heading">
+        <div className="section-label">
+          <h2 id="preparation-heading">Chuẩn bị trước khi nghe</h2>
+          <span className="step-count" aria-label={`${[aiReady, microphone.granted, meeting.ready].filter(Boolean).length} trên 3 bước đã xong`}>
+            {[aiReady, microphone.granted, meeting.ready].filter(Boolean).length}/3
+          </span>
+        </div>
       {allReady ? (
         <p className="ready-line">
           <CheckCircle2 size={18} aria-hidden="true" /> Mọi thứ đã sẵn sàng.
@@ -119,12 +126,17 @@ export function Home({
           <Step done={meeting.ready} title="Mở từ tab Google Meet" detail="Vào cuộc họp, rồi bấm biểu tượng Tranz trên thanh công cụ Chrome." />
         </ol>
       )}
+      </section>
+
+      <TranslationReadiness status={deviceTranslation} />
 
       <section className="start-zone" aria-label="Bắt đầu cuộc họp">
         <button className="primary full start" disabled={!!busy || !canStart} onClick={() => onStart(retain)}>
           {busy === 'start' ? <Spinner /> : <Headphones size={20} aria-hidden="true" />}
           {busy === 'start' ? 'Đang kết nối… (khoảng 10 giây)' : 'Bắt đầu nghe'}
+          {busy !== 'start' && <ArrowUpRight size={18} aria-hidden="true" className="start-arrow" />}
         </button>
+        <p className="start-assurance"><ShieldCheck size={14} aria-hidden="true" /> Chỉ bắt đầu khi bạn bấm nút. Không lưu âm thanh.</p>
         {!isExtension && <p className="caption">Bản xem thử giao diện · Mở extension trong Chrome để nghe cuộc họp.</p>}
         {/* Pressing the button is the consent (PR-004), so this stays visible rather than collapsed. */}
         <p className="caption consent">
@@ -139,7 +151,7 @@ export function Home({
         <label>
           Ngữ cảnh (giúp gợi ý đúng về công việc của bạn)
           <select value={profileId} onChange={(event) => onSelect(event.target.value)}>
-            <option value="">Không dùng — Cuộc họp nhanh</option>
+            <option value="">Không dùng: Cuộc họp nhanh</option>
             {profiles.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}

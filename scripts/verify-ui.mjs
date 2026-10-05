@@ -17,7 +17,7 @@ const out = resolve(process.argv[2] ?? 'artifacts/ui');
 // Tests use their own build so the dist/extension a person has loaded in Chrome is never rewritten.
 const buildDir = resolve(process.env.TRANZ_BUILD_DIR ?? 'artifacts/verify-build');
 const extensionPath = join(buildDir, 'extension');
-const widths = [320, 360, 400, 480, 600];
+const widths = [320, 360, 375, 400, 480, 600];
 const token = randomBytes(32).toString('hex');
 const dataDir = mkdtempSync(join(tmpdir(), 'tranz-ui-'));
 const profileDir = mkdtempSync(join(tmpdir(), 'tranz-chromium-'));
@@ -117,6 +117,10 @@ async function noHorizontalOverflow(page) {
 }
 
 async function shoot(page, name) {
+  // Navigation enters once. Capture the completed view, not the first transparent frame.
+  await page.locator('.view-content').evaluate(async (el) => {
+    await Promise.all(el.getAnimations().map((animation) => animation.finished.catch(() => {})));
+  });
   await page.screenshot({ path: join(out, `${name}.png`), fullPage: true });
 }
 
@@ -193,6 +197,40 @@ async function main() {
       await shoot(page, `01-home-${width}`);
     }
 
+    const contrast = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement);
+      const rgb = (token) => {
+        const hex = root.getPropertyValue(token).trim().replace('#', '');
+        const expanded = hex.length === 3 ? [...hex].map((c) => c + c).join('') : hex;
+        return expanded.match(/.{2}/g).map((c) => parseInt(c, 16) / 255);
+      };
+      const luminance = (token) => rgb(token).map((c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+        .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+      const ratio = (foreground, background) => {
+        const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+        return (values[0] + 0.05) / (values[1] + 0.05);
+      };
+      return {
+        muted: ratio('--muted', '--raised'),
+        secondary: ratio('--text-2', '--raised'),
+        border: ratio('--line-strong', '--raised'),
+        primary: ratio('--primary', '--primary-contrast'),
+      };
+    });
+    check('body text and interactive outlines contrast with the darkest raised surface',
+      contrast.muted >= 4.5 && contrast.secondary >= 4.5 && contrast.border >= 3 && contrast.primary >= 4.5,
+      JSON.stringify(contrast));
+
+    await page.getByRole('link', { name: 'Đến nội dung chính' }).focus();
+    await page.keyboard.press('Enter');
+    check('keyboard skip link moves focus to main', await page.evaluate(() => document.activeElement?.id === 'main'));
+
+    await page.setViewportSize({ width: 400, height: 900 });
+    const textScale = await page.addStyleTag({ content: ':root{font-size:30px!important}' });
+    check('200% text size keeps setup free of horizontal overflow at 400px', await noHorizontalOverflow(page));
+    await shoot(page, '02-home-text-200-400');
+    await textScale.evaluate((el) => el.remove());
+
     // Optional context, created through the real form
     await page.setViewportSize({ width: 360, height: 900 });
     await page.getByRole('button', { name: 'Ngữ cảnh', exact: true }).click();
@@ -230,6 +268,11 @@ async function main() {
     await page.getByRole('button', { name: 'Cài đặt', exact: true }).click();
     await page.getByRole('heading', { name: 'Cài đặt', exact: true }).waitFor();
     await shoot(page, '05-settings-360');
+    for (const width of [320, 375, 600]) {
+      await page.setViewportSize({ width, height: 900 });
+      check(`settings has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
+      await shoot(page, `05-settings-${width}`);
+    }
 
     // Explicitly remove the browser Translator API in a separate panel document. This proves the
     // disclosed ChatGPT fallback without racing the primary on-device panel.
@@ -271,6 +314,18 @@ async function main() {
     check('final lines use the on-device translator and do not call the AI translation provider', translationProviderCalls === 1);
     check('partial text is shown separately from final text', (await page.getByText('Đang nghe…', { exact: true }).count()) === 1);
     check('the detected question is labelled as a guess', (await page.getByText('Câu hỏi Tranz đoán được').count()) === 1);
+    await page.getByRole('button', { name: 'Ngữ cảnh', exact: true }).click();
+    for (const width of [320, 375, 400]) {
+      await page.setViewportSize({ width, height: 900 });
+      check(`active-session navigation header fits at ${width}px`, await noHorizontalOverflow(page));
+      await shoot(page, `06-active-context-${width}`);
+    }
+    const activeScale = await page.addStyleTag({ content: ':root{font-size:30px!important}' });
+    check('active-session navigation fits at 200% text size', await noHorizontalOverflow(page));
+    await shoot(page, '06-active-context-text-200');
+    await activeScale.evaluate((el) => el.remove());
+    await page.getByRole('button', { name: 'Quay lại cuộc họp', exact: true }).click();
+    await page.setViewportSize({ width: 360, height: 1100 });
     await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
     await page.getByText('[MOCK] Based on our plan').waitFor();
     check('a reply suggestion shows its sources and a check-before-use note', (await page.getByText(/Gợi ý của AI, hãy kiểm tra/).count()) === 1);
@@ -294,11 +349,15 @@ async function main() {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const animation = await page.locator('.status i').evaluate((el) => getComputedStyle(el).animationName);
     check('reduced motion disables the live indicator animation', animation === 'none', animation);
+    check('reduced motion disables view entrance while the page is open',
+      await page.locator('.view-content').evaluate((el) => getComputedStyle(el).animationName === 'none'));
     await page.emulateMedia({ reducedMotion: 'no-preference' });
+    check('changing motion preference back restores the view motion rule',
+      await page.locator('.view-content').evaluate((el) => getComputedStyle(el).animationName === 'view-arrive'));
 
     // Text scaled to 200% at 400px
     await page.setViewportSize({ width: 400, height: 1100 });
-    await page.addStyleTag({ content: ':root{font-size:28px!important}' });
+    await page.addStyleTag({ content: ':root{font-size:30px!important}' });
     check('200% root text size keeps the live view free of horizontal overflow at 400px', await noHorizontalOverflow(page));
     await shoot(page, '08-live-text-200-400');
     await page.reload();

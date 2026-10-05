@@ -1,19 +1,20 @@
 /*
- * Tranz visual system: a fixed, true-black editorial theme (Zahlook "dark editorial network",
- * monochrome like X's dark mode). White is the only accent; green, yellow and red carry state only.
- * Hierarchy comes from type, weight and hairline separators, not from blur, glow or shadows.
+ * Tranz meeting companion. 10K design-first workflow adapted to the React side panel.
+ * The language bridge is the signature; reading and session control stay quiet.
+ * True black/white with state-only colour, no external assets or decorative audio meters.
  */
 :root {
   color-scheme: dark;
 
   --canvas: #000000;
-  --raised: #16181c;
+  --raised: #101112;
+  --surface-soft: #0a0a0a;
   --hover: rgb(231 233 234 / 10%);
   --text: #ffffff;
   --text-2: #d6d9db;
-  --muted: #8b9096;
-  --line: #2f3336;
-  --line-strong: #536471;
+  --muted: #a0a3a6;
+  --line: #292b2e;
+  --line-strong: #777c82;
   --primary: #ffffff;
   --primary-hover: #d7dbdc;
   --primary-contrast: #000000;
@@ -29,9 +30,10 @@
   --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  --radius-control: 4px;
-  --radius-frame: 8px;
-  --fast: 150ms;
+  --radius-control: 8px;
+  --radius-frame: 12px;
+  --fast: 160ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   font-family: var(--font-sans);
   font-size: 15px;
@@ -50,6 +52,26 @@ body {
   margin: 0;
   min-width: 280px;
   background: var(--canvas);
+}
+
+html {
+  scroll-padding-top: 16px;
+}
+
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  padding: 12px;
+  background: var(--text);
+  color: var(--canvas);
+  border-radius: var(--radius-control);
+  transform: translateY(-160%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 button,
@@ -96,11 +118,11 @@ p {
 
 h1 {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 6.5vw, 1.875rem);
+  font-size: clamp(1.8rem, 7vw, 2.4rem);
   font-weight: 750;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
-  margin-bottom: 0.375rem;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  margin-bottom: 0.75rem;
   text-wrap: balance;
 }
 
@@ -154,8 +176,15 @@ code {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 56px;
-  padding: 0 12px 0 16px;
+  flex-wrap: wrap;
+  min-height: 72px;
+  padding: 0 16px 0 20px;
+}
+
+.brand-caption {
+  margin-left: -2px;
+  color: var(--muted);
+  font-size: 0.6875rem;
 }
 
 .wordmark {
@@ -167,9 +196,10 @@ code {
   border: 0;
   background: none;
   font-family: var(--font-display);
-  font-size: 1.375rem;
+  font-size: 1.625rem;
   font-weight: 800;
   letter-spacing: -0.03em;
+  flex-shrink: 0;
 }
 
 .mark {
@@ -193,6 +223,14 @@ code {
 
 .live-link {
   gap: 8px;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.masthead:has(.live-link) .brand-caption {
+  display: none;
 }
 
 .live-link::before {
@@ -203,17 +241,24 @@ code {
   background: var(--success);
 }
 
-/* X-style tabs: equal columns, the active label is white and bold with a short white rule. */
+/* Quiet, equal navigation destinations; the active rule also works without colour. */
 .tabs {
   display: grid;
   grid-auto-columns: 1fr;
   grid-auto-flow: column;
+  gap: 4px;
+  padding: 0 16px 12px;
 }
 
 .tabs button {
   position: relative;
-  min-height: 46px;
-  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 8px 4px;
+  border-radius: var(--radius-control);
   border: 0;
   background: none;
   color: var(--muted);
@@ -227,6 +272,7 @@ code {
 }
 
 .tabs button[aria-current='page'] {
+  background: var(--raised);
   color: var(--text);
   font-weight: 700;
 }
@@ -235,9 +281,9 @@ code {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: 0;
-  width: 44px;
-  height: 3px;
+  bottom: -4px;
+  width: 20px;
+  height: 2px;
   border-radius: 2px;
   background: var(--primary);
   transform: translateX(-50%);
@@ -249,13 +295,23 @@ code {
 
 main {
   flex: 1;
-  padding: 24px 16px 40px;
+  padding: 28px 20px 40px;
+}
+
+.view-content {
+  min-width: 0;
+  animation: view-arrive 260ms var(--ease);
+}
+
+@keyframes view-arrive {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Type roles */
 .eyebrow {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   color: var(--muted);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -263,13 +319,15 @@ main {
 }
 
 .section-heading {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .section-heading p {
-  max-width: 34rem;
+  max-width: 38ch;
   margin-bottom: 0;
-  color: var(--muted);
+  color: var(--text-2);
+  font-size: 0.9375rem;
+  line-height: 1.65;
 }
 
 .section-label {
@@ -324,7 +382,7 @@ main {
 /* Surfaces: hairline frames on black, never shadows or blur. */
 .panel {
   min-width: 0;
-  padding: 20px 0;
+  padding: 24px 0;
   border-top: 1px solid var(--line);
 }
 
@@ -372,7 +430,7 @@ textarea {
   padding: 11px 12px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
-  background: var(--canvas);
+  background: var(--surface-soft);
   color: var(--text);
   font-size: 0.9375rem;
   font-weight: 400;
@@ -630,9 +688,21 @@ textarea::placeholder {
 }
 
 .empty {
-  padding: 40px 8px;
+  padding: 44px 16px;
   text-align: center;
   color: var(--muted);
+}
+
+.empty-symbol {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--raised);
+  color: var(--text-2);
 }
 
 .empty h2,
@@ -738,7 +808,67 @@ summary:hover {
   margin-right: 4px;
 }
 
-/* Home: page statement, numbered checklist, one white start action */
+/* Home: a language bridge, real readiness, and one start action. */
+.meeting-intro {
+  margin-bottom: 24px;
+}
+
+.language-bridge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 220px;
+  margin-bottom: 26px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.language-bridge > span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.language-bridge > span:last-child {
+  border-color: var(--text-2);
+  color: var(--text);
+}
+
+.language-bridge svg {
+  width: 120px;
+  min-width: 0;
+  stroke: var(--line-strong);
+  stroke-width: 1.5px;
+}
+
+.language-bridge circle {
+  fill: var(--text);
+  stroke: var(--canvas);
+}
+
+.preparation {
+  padding: 18px 16px 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-frame);
+  background: var(--surface-soft);
+}
+
+.preparation .section-label h2 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.step-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
 .setup-warning {
   margin-bottom: 20px;
   padding: 0 12px;
@@ -761,11 +891,9 @@ summary:hover {
   display: grid;
   gap: 8px;
   margin: 0 0 16px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
+  padding: 12px 0;
   border-radius: var(--radius-control);
   color: var(--text-2);
-  background: var(--surface-soft);
   font-size: 0.8125rem;
   line-height: 1.45;
 }
@@ -778,7 +906,8 @@ summary:hover {
 }
 
 .translation-readiness.fallback {
-  border-color: rgb(255 212 0 / 35%);
+  padding: 12px;
+  border-left: 2px solid var(--warning);
   background: var(--warning-wash);
 }
 
@@ -791,23 +920,22 @@ summary:hover {
 
 .checklist {
   list-style: none;
-  margin: 0 0 20px;
+  margin: 0;
   padding: 0;
-  border-top: 1px solid var(--line);
 }
 
 .checklist li {
   display: grid;
-  grid-template-columns: 20px 1fr auto;
+  grid-template-columns: 20px minmax(0, 1fr);
   align-items: start;
-  gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
+  gap: 8px 10px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
 }
 
 .checklist li > svg {
-  margin-top: 0;
-  color: var(--line-strong);
+  margin-top: 1px;
+  color: var(--muted);
 }
 
 .checklist li.done > svg {
@@ -819,11 +947,13 @@ summary:hover {
 }
 
 .checklist li > button {
-  align-self: center;
+  grid-column: 2;
+  justify-self: start;
+  align-self: start;
 }
 
 .primary.small {
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 14px;
   font-size: 0.8125rem;
 }
@@ -832,6 +962,7 @@ summary:hover {
   display: block;
   font-size: 0.9375rem;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .checklist li.done strong {
@@ -844,13 +975,14 @@ summary:hover {
   color: var(--muted);
   font-size: 0.8125rem;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .ready-line {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 0 20px;
+  margin: 0 0 18px;
   font-weight: 600;
 }
 
@@ -862,14 +994,37 @@ summary:hover {
   margin: 0 0 16px;
 }
 
+.start-assurance {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.start-assurance svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.start-arrow {
+  margin-left: auto;
+}
+
 .primary.start {
   min-height: 56px;
   font-size: 1.0625rem;
   font-weight: 800;
+  justify-content: flex-start;
+  padding-inline: 18px;
 }
 
 .start-zone .consent {
-  margin: 12px 0 0;
+  margin: 18px 0 0;
+  font-size: 0.75rem;
 }
 
 .consent strong {
@@ -896,6 +1051,20 @@ summary:hover {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.session-heading > div:first-child {
+  flex: 1 1 170px;
+  min-width: 0;
+}
+
+.session-title {
+  margin-bottom: 8px;
+  font-size: 1.375rem;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
 }
 
 .session-heading .eyebrow {
@@ -904,7 +1073,8 @@ summary:hover {
 
 .session-meta {
   margin: 0;
-  font-weight: 700;
+  color: var(--muted);
+  font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
 
@@ -965,6 +1135,7 @@ summary:hover {
   align-items: center;
   gap: 8px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .controls .stop {
@@ -974,15 +1145,17 @@ summary:hover {
 /* The latest line: English as heard, Vietnamese as the line to read. */
 .now {
   min-height: 104px;
-  margin: 0 0 24px;
-  padding: 2px 0 2px 16px;
-  border-left: 2px solid var(--text);
+  margin: 0 0 20px;
+  padding: 20px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-frame);
+  background: var(--surface-soft);
 }
 
 .original {
   margin-bottom: 10px;
   color: var(--text-2);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
@@ -990,7 +1163,7 @@ summary:hover {
 .translation {
   margin-bottom: 0;
   color: var(--text);
-  font-size: 1.1875rem;
+  font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -1034,8 +1207,10 @@ summary:hover {
 
 .result {
   margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-frame);
+  background: var(--raised);
 }
 
 .result h3 {
@@ -1078,7 +1253,7 @@ summary:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 12px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
@@ -1167,8 +1342,11 @@ summary:hover {
 
 /* Rows for saved contexts and meetings */
 .card {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 20px;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-frame);
+  background: var(--surface-soft);
 }
 
 .card-list .card:first-child {
@@ -1289,12 +1467,38 @@ summary:hover {
 
 @media (min-width: 560px) {
   main {
-    padding: 28px 24px 44px;
+    padding: 32px 32px 48px;
   }
 
   .masthead {
     padding: 0 16px 0 24px;
   }
+}
+
+@media (min-width: 400px) {
+  .checklist li {
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+  }
+
+  .checklist li > button {
+    grid-column: 3;
+    align-self: center;
+  }
+}
+
+@media (max-width: 359px) {
+  main { padding-inline: 16px; }
+  .tabs { padding-inline: 12px; }
+  .tabs button { gap: 5px; font-size: 0.8125rem; }
+  .preparation, .now, .result, .card { padding-inline: 14px; }
+}
+
+@media (max-width: 480px) {
+  .brand-caption { display: none; }
+}
+
+@media (pointer: coarse) {
+  .icon.small { min-width: 44px; min-height: 44px; }
 }
 
 @media (max-width: 639px) {

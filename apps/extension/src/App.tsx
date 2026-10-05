@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AudioLines, Settings as SettingsIcon } from 'lucide-react';
+import { AudioLines, BookOpen, FolderOpen, Headphones, Settings as SettingsIcon } from 'lucide-react';
 import { Api, ApiError, pairToken } from './api';
 import { errorMessage, isExtension, readToken, sendCommand, writeToken, type CaptureStatus } from './platform';
 import { Banner, ConfirmDialog, Spinner } from './components';
@@ -355,6 +355,7 @@ export function App() {
 
   return (
     <div className="app">
+      <a className="skip-link" href="#main">Đến nội dung chính</a>
       <div className="topbar">
         <header className="masthead">
           <button className="wordmark" onClick={() => go('meeting')} aria-label="Tranz, về màn hình cuộc họp">
@@ -363,6 +364,7 @@ export function App() {
             </span>
             tranz
           </button>
+          <span className="brand-caption" aria-hidden="true">meeting copilot</span>
           {session && signedIn && view !== 'meeting' && active && (
             <button className="text-button live-link" onClick={() => go('meeting')}>
               Quay lại cuộc họp
@@ -378,19 +380,21 @@ export function App() {
           <nav className="tabs" aria-label="Điều hướng chính">
             {(
               [
-                ['meeting', 'Cuộc họp'],
-                ['context', 'Ngữ cảnh'],
-                ['library', 'Đã lưu'],
+                ['meeting', 'Cuộc họp', Headphones],
+                ['context', 'Ngữ cảnh', FolderOpen],
+                ['library', 'Đã lưu', BookOpen],
               ] as const
-            ).map(([key, label]) => (
+            ).map(([key, label, Icon]) => (
               <button key={key} aria-current={view === key ? 'page' : undefined} onClick={() => go(key)}>
+                <Icon size={16} aria-hidden="true" />
                 {label}
               </button>
             ))}
           </nav>
         )}
       </div>
-      <main>
+      <main id="main" tabIndex={-1}>
+        <div className="view-content" key={view}>
         {error && (
           <Banner tone="error" onDismiss={() => setError('')}>
             {error}
@@ -491,6 +495,7 @@ export function App() {
             }}
           />
         )}
+        </div>
       </main>
       {deletion && (
         <ConfirmDialog

@@ -2,6 +2,8 @@
 
 ## Authorization and current request
 
+On 2026-10-05 the user authorized a UI/UX rebuild using the supplied 10K Websites zip, then explicitly chose to adapt the skill to the existing React extension while keeping the meeting flow. This is Phase 08U in [PR #14](https://github.com/doandanh-zah/tranz/pull/14) on `feat/10k-extension-ui`, stacked on `feat/fast-translation`. Audio, Agora, AI/translation contracts, backend, retention, permissions and external publication stay outside the UI change. Phase 08T remains awaiting review; no merge or release is authorized.
+
 On 2026-10-03 the user authorized Phase 08T to remove ChatGPT latency from live translation without taking risky cloud/billing actions. The implementation branch is `feat/fast-translation`, stacked on `fix/google-meet-e2e`; merge, release, store publication and Phase 09 remain unauthorized.
 
 Phase 08R remains in PR #12 with the same unresolved live Google Meet gates. Phase 08T changes only translation delivery, UI disclosure and related verification; audio/Agora behavior is unchanged.
@@ -31,6 +33,7 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | — | Monochrome black-and-white theme built with Zahlook: stacked branch/PR; Chromium harness 43/43; real Meet side panel exercised | Manual full-width and screen-reader review |
 | 08R | Integrated Google Meet hardening on `fix/google-meet-e2e`; PR #12 open | Incoming Meet-tab audio/playback, tab-close and network-loss checks remain |
 | 08T | On-device EN→VI translation on `feat/fast-translation`; PR #13 open; Chrome fast path + explicit ChatGPT fallback implemented | User review; real multi-person translation quality remains unproven |
+| 08U | 10K skill adapted to the existing React extension in PR #14 on `feat/10k-extension-ui`; 34 tests and 59 unpacked-build checks pass | User review; native-panel and screen-reader acceptance remain pending |
 | 09 | Not authorized | Requires separate approval |
 
 ## Phase 08T checklist
@@ -43,6 +46,17 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 - [x] Reduce panel transcript polling from 1.5 seconds to 750 ms without adding new permissions.
 - [x] Update consent, privacy and Settings copy to disclose the active translation boundary.
 - [x] Verify fast and fallback UI paths, stale-revision protection and real browser capability/latency with synthetic text.
+- [ ] Merge only after explicit user approval; no merge currently authorized.
+
+## Phase 08U checklist
+
+- [x] Read the supplied skill/references, project contracts, current branch/worktree and open PR stack.
+- [x] Obtain the user's explicit choice to adapt the skill to React and preserve the meeting flow.
+- [x] Write a design-first package with UI scope, actual-state boundaries and browser acceptance criteria.
+- [x] Rebuild shell, setup, live reading/reply, context, saved-session and Settings presentation.
+- [x] Preserve consent, fallback disclosure, direct session controls, deletion scope and existing error/recovery flows.
+- [x] Verify lint, types, tests, build, unpacked-extension permission/load checks, 320–600 px, 200% text, keyboard, reduced motion, contrast and controls. See [Phase 08U evidence](docs/evidence/10k-extension-ui.md).
+- [x] Record evidence and push [PR #14](https://github.com/doandanh-zah/tranz/pull/14). Stop for review; native-panel and screen-reader acceptance remain pending.
 - [ ] Merge only after explicit user approval; no merge currently authorized.
 
 ## Phase 08R checklist
