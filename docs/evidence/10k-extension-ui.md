@@ -1,6 +1,6 @@
 # Phase 08U: 10K extension UI/UX rebuild
 
-Date: 2026-10-05. User-approved adaptation of the supplied 10K Websites skill to the existing React extension. Branch: `feat/10k-extension-ui`, based on `feat/fast-translation` at `ba1c856`. Version remains `0.1.0`; no release or merge.
+Date: 2026-10-05. User-approved adaptation of the supplied 10K Websites skill to the existing React extension. [PR #14](https://github.com/doandanh-zah/tranz/pull/14). Branch: `feat/10k-extension-ui`, based on `feat/fast-translation` at `ba1c856`. Implementation commit: `583fe02`; review-link documentation follows in a separate commit. Version remains `0.1.0`; no release or merge.
 
 ## Outcome
 
