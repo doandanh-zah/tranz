@@ -89,9 +89,8 @@ export function Live({
       <div className="session-heading">
         <div>
           <span className="eyebrow">{active ? 'Trong cuộc họp' : 'Sau cuộc họp'}</span>
-          <p className="session-meta">
-            {session.context.name} · bắt đầu {time(session.startedAt)}
-          </p>
+          <h1 className="session-title">{session.context.name}</h1>
+          <p className="session-meta">Anh → Việt · bắt đầu {time(session.startedAt)}</p>
         </div>
         <div role="status" aria-live="polite">
           <StatusPill state={session.state} />
@@ -179,7 +178,7 @@ export function Live({
           <p className="muted">Chưa thấy câu hỏi nào. Tranz sẽ gợi ý dựa trên đoạn hội thoại gần nhất, hoặc bạn chọn một câu ở phần Toàn bộ hội thoại.</p>
         )}
         <div className="button-row">
-          <button className="secondary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
+          <button className="primary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
             {busy === 'reply' ? <Spinner /> : null}
             Gợi ý câu trả lời
           </button>

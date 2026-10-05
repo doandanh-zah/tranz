@@ -21,6 +21,7 @@ Implementation candidate on stacked, unmerged review branches. Live Agora and Ch
 
 ### Changed (after user review)
 
+- Rebuilt extension presentation with the approved React adaptation of the supplied 10K Websites skill: EN→VI language bridge, real setup progress, clearer live reading/replies, labeled navigation and supporting views, keyboard skip link, restrained view entrances and stronger interactive contrast. Meeting/runtime/privacy contracts remain unchanged.
 - The side panel is in Vietnamese, connects to the local backend automatically (no access-token step) and opens on a three-step checklist with one **Bắt đầu nghe** button; context is optional.
 - The interface uses a true-black monochrome theme in the tone of X's dark mode (white text and one white main action, hairline separators, state-only colours, no glass or blur), with simpler setup copy, collapsed technical detail and the data-flow disclosure always visible under the start button. Text now scales with the browser text size.
 - Backend error messages are in Vietnamese.

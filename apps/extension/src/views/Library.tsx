@@ -1,6 +1,6 @@
-import { ArrowRight, Trash2 } from 'lucide-react';
+import { ArrowRight, BookOpen, Trash2 } from 'lucide-react';
 import type { Session } from '../../../../packages/shared/contracts';
-import { Spinner } from '../components';
+import { Spinner, ViewHeading } from '../components';
 
 export function Library({
   sessions,
@@ -16,10 +16,9 @@ export function Library({
   const kept = sessions.filter((s) => s.retain).sort((a, b) => b.startedAt - a.startedAt);
   return (
     <>
-      <div className="section-heading">
-        <h1>Cuộc họp đã lưu</h1>
-        <p>Chỉ những cuộc họp bạn chọn lưu mới xuất hiện ở đây. Cuộc họp tạm thời tự xoá sau 1 giờ.</p>
-      </div>
+      <ViewHeading kicker="Xem lại & học từ cuộc họp" title="Cuộc họp đã lưu">
+        Chỉ những cuộc họp bạn chọn lưu mới xuất hiện ở đây. Cuộc họp tạm thời tự xoá sau 1 giờ.
+      </ViewHeading>
       {loading && !kept.length ? (
         <div className="empty" aria-busy="true">
           <Spinner />
@@ -48,6 +47,7 @@ export function Library({
         </ul>
       ) : (
         <div className="empty">
+          <span className="empty-symbol"><BookOpen size={24} aria-hidden="true" /></span>
           <h2>Chưa lưu cuộc họp nào</h2>
           <p>Sau mỗi cuộc họp, bấm “Lưu phiên này” nếu bạn muốn xem lại ghi chú và bản ghi.</p>
         </div>

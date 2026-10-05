@@ -34,6 +34,7 @@ Finishing a phase does not authorize the next one. Work resumes only after the u
 | 08 | Harden privacy, accessibility, reliability, and Chrome Web Store readiness | Implemented; PR #8 open; store readiness out of scope |
 | 08R | Harden and verify the integrated Google Meet flow | PR #12 open on `fix/google-meet-e2e`; automatic pairing and ChatGPT auto-finalize regressions fixed; bounded live evidence recorded |
 | 08T | Replace slow live translation with an on-device EN→VI fast path and explicit ChatGPT fallback | PR #13 open on `feat/fast-translation`; no cloud API or billing change |
+| 08U | Rebuild the existing extension UI/UX using the user-approved React adaptation of 10K Websites | `feat/10k-extension-ui`, stacked on `feat/fast-translation`; UI scope only, no runtime/provider change |
 | 09 | Run a measured private beta | Not authorized |
 
 Detailed future work belongs in [BACKLOG.md](BACKLOG.md). Only [TODOS.md](TODOS.md) defines the current approved checklist.

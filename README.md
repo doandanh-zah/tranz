@@ -8,7 +8,7 @@ Tranz helps Vietnamese professionals understand difficult English conversations,
 
 **Stage:** Local MVP implementation candidate — integrated synthetic review complete; bounded live gates remain
 
-**Current delivery phase:** Phase 08T on-device fast translation in PR #13, stacked on PR #12; none merged
+**Current delivery phase:** Phase 08U extension UI/UX rebuild on `feat/10k-extension-ui`, stacked on Phase 08T / PR #13; none merged
 
 ## Product loop
 
