@@ -329,7 +329,44 @@ async function main() {
     await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
     await page.getByText('[MOCK] Based on our plan').waitFor();
     check('a reply suggestion shows its sources and a check-before-use note', (await page.getByText(/Gợi ý của AI, hãy kiểm tra/).count()) === 1);
-    await page.getByRole('button', { name: /Toàn bộ hội thoại/ }).click();
+    check('chat keeps all previous final lines with their linked translations and the partial line',
+      await page.locator('.chat-message').count() === 4 &&
+      await page.locator('.chat-message.final .translation').count() === 3);
+    await page.locator('.chat-message').first().getByRole('button', { name: 'Trả lời câu này' }).click();
+    check('a previous chat line can be selected for a reply',
+      await page.locator('.target[open]').getByText(lines[0], { exact: true }).isVisible());
+    await page.getByRole('button', { name: 'Bỏ chọn câu này' }).click();
+    await page.setViewportSize({ width: 375, height: 800 });
+    await shoot(page, '06-chat-compact-375');
+
+    const extraLines = Array.from({ length: 12 }, (_, i) => ({
+      id: `chat-extra-${i}`, text: `Synthetic previous sentence ${i}.`, final: true, revision: 1, at: Date.now() + i,
+    }));
+    await api('PUT', `/sessions/${sessionId}/segments`, extraLines);
+    await page.locator('[data-segment-id="chat-extra-11"]').waitFor();
+    const chat = page.locator('.conversation-items');
+    await chat.evaluate((el) => { el.scrollTop = 0; });
+    await page.getByRole('button', { name: 'Xuống câu mới nhất' }).waitFor();
+    await api('PUT', `/sessions/${sessionId}/segments`, [{
+      id: 'chat-extra-new', text: 'Synthetic new sentence while reading history.', final: true, revision: 1, at: Date.now() + 50,
+    }]);
+    await page.locator('[data-segment-id="chat-extra-new"]').waitFor();
+    check('new speech preserves the reader position while reviewing previous lines',
+      await chat.evaluate((el) => el.scrollTop < 2));
+    await page.getByRole('button', { name: 'Xuống câu mới nhất' }).click();
+    check('jump to newest reaches the bottom of the conversation',
+      await chat.evaluate((el) => el.scrollHeight - el.clientHeight - el.scrollTop < 2));
+    await api('PUT', `/sessions/${sessionId}/segments`, [{
+      id: 'chat-extra-follow', text: 'Synthetic sentence while following the newest line.', final: true, revision: 1, at: Date.now() + 60,
+    }]);
+    await page.locator('[data-segment-id="chat-extra-follow"]').waitFor();
+    await page.waitForFunction(() => {
+      const el = document.querySelector('.conversation-items');
+      return el.scrollHeight - el.clientHeight - el.scrollTop < 2;
+    });
+    check('chat follows new speech when already reading the latest line', true);
+    check('chat scroll region is bounded to leave room for controls and reply actions',
+      await chat.evaluate((el) => el.clientHeight <= window.innerHeight * 0.55));
     for (const width of widths) {
       await page.setViewportSize({ width, height: 1100 });
       check(`simulated live view has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));

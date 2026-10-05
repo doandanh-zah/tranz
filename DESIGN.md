@@ -43,7 +43,7 @@ The interface is not a transcript dashboard. Its primary job is to reduce the us
 ### Progressive disclosure
 
 - The live view prioritizes comprehension and response support.
-- Full transcript history, provenance, and settings are available without dominating the live view.
+- Chronological chat history is visible in a bounded scroll region; provenance and settings use disclosures.
 - Advanced controls appear only when they are relevant to the current state.
 
 ### Purposeful visual language
@@ -68,11 +68,11 @@ The ready screen should explain what Tranz can hear, what it will store, and wha
 
 The default live view has three priorities:
 
-1. **Now:** the most recent stable English segment and linked Vietnamese translation.
+1. **Conversation:** chronological chat bubbles, each keeping its English source and Vietnamese translation together.
 2. **Respond:** the detected question or user-selected text and one grounded response suggestion.
 3. **Control:** session health, listening state, catch-up, pause, and stop.
 
-Older transcript segments should remain accessible but visually recede. Suggestions should support quick actions such as `Shorter`, `Simpler English`, `More professional`, and `Ask for clarification`.
+Earlier chat bubbles remain available in the same scroll region. New speech follows only when the reader is already at the bottom; otherwise preserve their position and offer a jump to the newest line. Suggestions should support quick actions such as `Shorter`, `Simpler English`, `More professional`, and `Ask for clarification`.
 
 ### After the meeting
 
@@ -94,20 +94,16 @@ Session header
 ├─ connection and listening state
 └─ pause / stop
 
-Live focus
-├─ current English segment
-├─ linked Vietnamese translation
-└─ confidence or uncertainty treatment
+Conversation chat
+├─ chronological English segments with linked Vietnamese translations
+├─ distinct in-progress bubble
+└─ preserved scroll position / jump to newest
 
 Response support
 ├─ detected question or selected context
 ├─ primary suggested reply
 ├─ compact transformations
 └─ copy / mark useful
-
-Recent conversation
-├─ chronological transcript
-└─ catch-up action
 
 Context and session details
 ├─ active context snapshot
@@ -247,7 +243,7 @@ Implementation status: rendered in the unpacked extension build with a mock prov
 
 - Suggestions are user-triggered only. Tranz never requests a reply automatically, which bounds cost and distraction; revisit after measured use.
 - Question detection is a heuristic over the last five final lines (a trailing question mark or an interrogative first word). It is labelled `Detected question (automatic guess)`; the user can pick any final line with `Use for reply`.
-- The live view shows the latest final English line with its linked Vietnamese translation. In-progress text appears separately as `Hearing…` and is never translated. Final lines are translated one at a time by the browser's on-device EN→VI model where available; the configured AI provider is the disclosed fallback.
+- The live view now keeps previous and current lines as chronological chat bubbles with linked Vietnamese translations (Phase 08V feedback). In-progress text uses a distinct `Đang nghe…` bubble and is never translated. Final lines are translated one at a time by the browser's on-device EN→VI model where available; the configured AI provider is the disclosed fallback.
 - Each result states whether it cites the user's context, transcript lines, both or nothing, and always says `verify before using`. Cited sources are expandable. A valid citation does not prove the answer is correct.
 - A reply that cites no known source is replaced with a clarification request and marked uncertain.
 - `Catch me up` explains recent speech in Vietnamese. The composer rewrites a Vietnamese draft as spoken English without adding facts.
@@ -318,3 +314,13 @@ The user asked to rebuild the existing extension UI using the supplied 10K Websi
 - Muted text and interactive borders are brighter for readability; form fields, suggestions, dialogs and saved entries share restrained neutral surfaces and consistent radii.
 
 Verification and limits are recorded in [Phase 08U evidence](docs/evidence/10k-extension-ui.md). This refinement does not resolve the pending native panel, screen-reader or real-meeting gates.
+
+## Compact conversation follow-up (Phase 08V, 2026-10-05)
+
+- Replace the duplicated latest-line/history surfaces with one always-visible chronological chat. Its height is bounded to 42% of the viewport (240–420 px) so growing transcript does not grow the whole page.
+- Keep English, Vietnamese, timestamp and “Trả lời câu này” together. Partial text is a dashed bubble. Previous sentences remain selectable; choosing another sentence clears the previous suggestion and invalidates an older pending suggestion.
+- Preserve position while reading history, including when new speech arrives. Follow new speech only while at the bottom, with “Xuống câu mới nhất” to resume following.
+- Reduce heading/spacing overhead. Automatic-question text, reply transformations, composer and context stay in disclosures; selected questions open for inspection. Copy stays directly available. AI reply output remains visibly separate and labelled as a suggestion, never as speech the user actually said.
+- The requested counterpart-only translation is **pending** the user's choice: tab-only capture excludes local microphone speech entirely; retaining local speech requires a separate identified source path. Current capture still mixes tab and microphone, so chat deliberately says the speaker is unidentified. Do not label these lines “Đối phương” or claim self-speech is filtered.
+
+See [Phase 08V evidence](docs/evidence/chat-conversation.md). No audio, permission, provider or storage contract has changed at this checkpoint.

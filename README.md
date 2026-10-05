@@ -8,7 +8,7 @@ Tranz helps Vietnamese professionals understand difficult English conversations,
 
 **Stage:** Local MVP implementation candidate — integrated synthetic review complete; bounded live gates remain
 
-**Current delivery phase:** Phase 08U extension UI/UX rebuild in [PR #14](https://github.com/doandanh-zah/tranz/pull/14), stacked on Phase 08T / PR #13; none merged
+**Current delivery phase:** Phase 08V compact conversation follow-up on `feat/chat-conversation`, stacked on Phase 08U / [PR #14](https://github.com/doandanh-zah/tranz/pull/14). Chat UI implemented; counterpart-only capture awaits the user’s source choice. No merge or release. See [evidence](docs/evidence/chat-conversation.md).
 
 ## Product loop
 

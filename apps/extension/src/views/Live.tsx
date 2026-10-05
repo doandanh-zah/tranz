@@ -65,8 +65,6 @@ export function Live({
   const active = !['stopped', 'error'].includes(session.state);
   const starting = session.state === 'created' || session.state === 'connecting';
   const finals = session.segments.filter((s) => s.final);
-  const latestFinal = finals.at(-1);
-  const partial = session.segments.at(-1)?.final === false ? session.segments.at(-1) : undefined;
   const detected = finals
     .slice(-5)
     .reverse()
@@ -134,48 +132,24 @@ export function Live({
       )}
       {muted && active && <p className="caption">Micro của bạn đang tắt với Tranz (Google Meet không bị ảnh hưởng). Tranz vẫn nghe những người khác.</p>}
 
-      <section className="now" aria-labelledby="now-heading">
-        <h2 id="now-heading" className="section-label">
-          Vừa nói · Anh → Việt
-        </h2>
-        {latestFinal ? (
-          <>
-            <p className="original" lang="en">
-              {latestFinal.text}
-            </p>
-            <Translation segment={latestFinal} aiReady={aiReady} active={active} onRetry={onTranslate} />
-          </>
-        ) : (
-          !partial && (
-            <div className="empty compact">
-              <h3>{starting ? 'Đang kết nối, khoảng 10 giây…' : active ? 'Đang nghe, chưa có ai nói' : 'Không có lời thoại'}</h3>
-              <p>Lời nói trong cuộc họp sẽ hiện ở đây kèm bản dịch tiếng Việt.</p>
-            </div>
-          )
-        )}
-        {partial && (
-          <p className="partial" lang="en">
-            <span className="tag">{active ? 'Đang nghe…' : 'Câu chưa nói xong:'}</span> {partial.text}
-          </p>
-        )}
-      </section>
+      <Conversation segments={session.segments} active={active} starting={starting} aiReady={aiReady} onUse={(segment) => { request.current++; setSelected(segment); setResult(undefined); }} onTranslate={onTranslate} />
 
       <section className="panel response" aria-labelledby="respond-heading">
-        <h2 id="respond-heading" className="section-label">
+        <h2 id="respond-heading" className="sr-only">
           Trả lời thế nào?
         </h2>
         {target ? (
-          <div className="target">
-            <span className="tag">{selected ? 'Câu bạn đã chọn' : 'Câu hỏi Tranz đoán được'}</span>
+          <details className="target" open={selected ? true : undefined}>
+            <summary>{selected ? 'Câu bạn đã chọn' : 'Câu hỏi Tranz đoán được'}</summary>
             <p lang="en">{target.text}</p>
             {selected && (
-              <button className="icon small" aria-label="Bỏ chọn câu này" onClick={() => setSelected(undefined)}>
+              <button className="icon small" aria-label="Bỏ chọn câu này" onClick={() => { request.current++; setSelected(undefined); setResult(undefined); }}>
                 <X size={15} />
               </button>
             )}
-          </div>
+          </details>
         ) : (
-          <p className="muted">Chưa thấy câu hỏi nào. Tranz sẽ gợi ý dựa trên đoạn hội thoại gần nhất, hoặc bạn chọn một câu ở phần Toàn bộ hội thoại.</p>
+          <p className="caption">Chọn một câu trong hội thoại để trả lời, hoặc soạn điều bạn muốn nói.</p>
         )}
         <div className="button-row">
           <button className="primary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
@@ -191,7 +165,7 @@ export function Live({
         {result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
 
         <details className="composer">
-          <summary>Tôi muốn nói… (viết tiếng Việt, Tranz dịch sang tiếng Anh)</summary>
+          <summary>Tôi muốn nói…</summary>
           <label>
             Điều bạn muốn nói, bằng tiếng Việt
             <textarea value={draft} maxLength={2000} onChange={(event) => setDraft(event.target.value)} lang="vi" placeholder="Điều bạn muốn nói…" />
@@ -202,8 +176,6 @@ export function Live({
           </button>
         </details>
       </section>
-
-      <History segments={session.segments} aiReady={aiReady} onUse={setSelected} onTranslate={onTranslate} />
 
       <details className="panel">
         <summary>Ngữ cảnh dùng cho phiên này: {session.context.name}</summary>
@@ -305,8 +277,10 @@ function Result({
           </ul>
         </details>
       )}
-      <div className="chip-row">
-        {result.kind === 'reply' &&
+      {result.kind === 'reply' && <details className="reply-actions">
+        <summary>Chỉnh câu trả lời</summary>
+        <div className="chip-row">
+        {
           (
             [
               ['shorter', 'Ngắn hơn'],
@@ -319,7 +293,9 @@ function Result({
               {label}
             </button>
           ))}
-        <button
+        </div>
+      </details>}
+      <button className="text-button copy-reply"
           onClick={() =>
             void navigator.clipboard
               .writeText(result.text)
@@ -329,47 +305,45 @@ function Result({
         >
           <Copy size={13} aria-hidden="true" />
           Sao chép
-        </button>
-      </div>
+      </button>
     </div>
   );
 }
 
-function History({
+function Conversation({
   segments,
+  active,
+  starting,
   aiReady,
   onUse,
   onTranslate,
 }: {
   segments: Segment[];
+  active: boolean;
+  starting: boolean;
   aiReady: boolean;
   onUse: (segment: Segment) => void;
   onTranslate: (segment: Segment) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [following, setFollowing] = useState(true);
   const list = useRef<HTMLOListElement>(null);
 
   // Keep the reader's position; only auto-scroll while they are already at the newest line.
   useEffect(() => {
-    if (open && following && list.current) list.current.scrollTop = list.current.scrollHeight;
-  }, [open, following, segments.length]);
+    if (following && list.current) list.current.scrollTop = list.current.scrollHeight;
+  }, [following, segments]);
 
   return (
-    <section className="history" aria-labelledby="history-heading">
-      <h2 id="history-heading">
-        <button className="history-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-          Toàn bộ hội thoại
-          <span>
-            {segments.length} câu
-          </span>
-        </button>
-      </h2>
-      {open && (
+    <section className="conversation" aria-labelledby="conversation-heading">
+      <div className="section-label">
+        <h2 id="conversation-heading">Hội thoại</h2>
+        <span>Anh → Việt</span>
+      </div>
+      {segments.length ? (
         <>
           <ol
             ref={list}
-            className="history-items"
+            className="conversation-items"
             tabIndex={0}
             aria-label="Toàn bộ hội thoại"
             onScroll={(event) => {
@@ -378,28 +352,17 @@ function History({
             }}
           >
             {segments.map((segment) => (
-              <li key={segment.id}>
-                <small>
-                  {segment.final ? '' : 'Đang nói · '}
-                  {time(segment.at)}
-                </small>
-                <p lang="en">{segment.text}</p>
-                {segment.translation && (
-                  <p lang="vi" className="muted">
-                    {segment.translation}
-                  </p>
-                )}
+              <li key={segment.id} className={`chat-message ${segment.final ? 'final' : 'partial-message'}`} data-segment-id={segment.id}>
+                <div className="message-meta">
+                  <span>{segment.final ? 'Chưa xác định người nói' : 'Đang nghe…'}</span>
+                  <time dateTime={new Date(segment.at).toISOString()}>{time(segment.at)}</time>
+                </div>
+                <p className="original" lang="en">{segment.text}</p>
                 {segment.final && (
-                  <div className="button-row start">
-                    <button className="text-button" onClick={() => onUse(segment)}>
-                      Trả lời câu này
-                    </button>
-                    {!segment.translation && segment.translationState !== 'pending' && (
-                      <button className="text-button" disabled={!aiReady} onClick={() => onTranslate(segment)}>
-                        {segment.translationState === 'error' ? 'Dịch lại' : 'Dịch'}
-                      </button>
-                    )}
-                  </div>
+                  <>
+                    <Translation segment={segment} aiReady={aiReady} active={active} onRetry={onTranslate} />
+                    <button className="text-button message-reply" onClick={() => onUse(segment)}>Trả lời câu này</button>
+                  </>
                 )}
               </li>
             ))}
@@ -417,6 +380,11 @@ function History({
             </button>
           )}
         </>
+      ) : (
+        <div className="empty compact">
+          <h3>{starting ? 'Đang kết nối, khoảng 10 giây…' : active ? 'Đang nghe, chưa có ai nói' : 'Không có lời thoại'}</h3>
+          <p>Mỗi câu và bản dịch sẽ hiện cùng nhau ở đây.</p>
+        </div>
       )}
     </section>
   );

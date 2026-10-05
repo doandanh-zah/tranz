@@ -2,6 +2,8 @@
 
 ## Authorization and current request
 
+The latest 2026-10-05 review requests a shorter interface, chat history retaining previous sentences, and translation of the other party only. Phase 08V handles this follow-up on `feat/chat-conversation` from PR #14. UI work is authorized; the source choice (tab only versus retaining separately identified local speech) is awaiting the user’s reply. Existing mixed capture remains until that choice is resolved. No merge, release or Phase 09 work.
+
 On 2026-10-05 the user authorized a UI/UX rebuild using the supplied 10K Websites zip, then explicitly chose to adapt the skill to the existing React extension while keeping the meeting flow. This is Phase 08U in [PR #14](https://github.com/doandanh-zah/tranz/pull/14) on `feat/10k-extension-ui`, stacked on `feat/fast-translation`. Audio, Agora, AI/translation contracts, backend, retention, permissions and external publication stay outside the UI change. Phase 08T remains awaiting review; no merge or release is authorized.
 
 On 2026-10-03 the user authorized Phase 08T to remove ChatGPT latency from live translation without taking risky cloud/billing actions. The implementation branch is `feat/fast-translation`, stacked on `fix/google-meet-e2e`; merge, release, store publication and Phase 09 remain unauthorized.
@@ -34,7 +36,18 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | 08R | Integrated Google Meet hardening on `fix/google-meet-e2e`; PR #12 open | Incoming Meet-tab audio/playback, tab-close and network-loss checks remain |
 | 08T | On-device EN→VI translation on `feat/fast-translation`; PR #13 open; Chrome fast path + explicit ChatGPT fallback implemented | User review; real multi-person translation quality remains unproven |
 | 08U | 10K skill adapted to the existing React extension in PR #14 on `feat/10k-extension-ui`; 34 tests and 59 unpacked-build checks pass | User review; native-panel and screen-reader acceptance remain pending |
+| 08V | Compact chronological chat on `feat/chat-conversation`, stacked on PR #14; [checkpoint evidence](docs/evidence/chat-conversation.md) | Capture choice pending; counterpart-only translation not implemented yet |
 | 09 | Not authorized | Requires separate approval |
+
+## Phase 08V checklist
+
+- [x] Implement the user's compact chronological chat feedback with previous sentences and linked translations.
+- [x] Keep AI reply suggestions distinct; let the reader select earlier speech without retaining an unrelated old suggestion.
+- [x] Verify preserved scroll position, jump/follow behavior, responsive widths, 200% text and existing mock-backed flows.
+- [ ] Resolve the capture choice with the user: only tab audio (no local speech in transcript) or separately identified local speech. This materially changes audio/privacy/product behavior, so the question remains pending.
+- [ ] Implement counterpart-only translation and synchronize PRODUCT/ARCHITECTURE/ADR/consent with the approved capture strategy.
+- [ ] Run capture/live checks appropriate to that strategy before claiming counterpart-only behavior.
+- [ ] Finish the bounded phase, provide evidence, open a focused PR and stop for review.
 
 ## Phase 08T checklist
 
