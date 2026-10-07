@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, Copy, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, Copy, MessageCircle, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
 import type { AssistKind, EndReason, ReplyStyle, Segment, Session, Suggestion } from '../../../../packages/shared/contracts';
@@ -132,11 +132,11 @@ export function Live({
       )}
       {muted && active && <p className="caption">Micro của bạn đang tắt với Tranz (Google Meet không bị ảnh hưởng). Tranz vẫn nghe những người khác.</p>}
 
-      <Conversation segments={session.segments} active={active} starting={starting} aiReady={aiReady} onUse={(segment) => { request.current++; setSelected(segment); setResult(undefined); }} onTranslate={onTranslate} />
+      <Conversation segments={session.segments} selectedId={selected?.id} active={active} starting={starting} aiReady={aiReady} onUse={(segment) => { request.current++; setSelected(segment); setResult(undefined); }} onTranslate={onTranslate} />
 
       <section className="panel response" aria-labelledby="respond-heading">
-        <h2 id="respond-heading" className="sr-only">
-          Trả lời thế nào?
+        <h2 id="respond-heading" className="response-heading">
+          <MessageCircle size={17} aria-hidden="true" /> Đến lượt bạn
         </h2>
         {target ? (
           <details className="target" open={selected ? true : undefined}>
@@ -153,7 +153,7 @@ export function Live({
         )}
         <div className="button-row">
           <button className="primary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
-            {busy === 'reply' ? <Spinner /> : null}
+            {busy === 'reply' ? <Spinner /> : <ArrowUpRight size={16} aria-hidden="true" />}
             Gợi ý câu trả lời
           </button>
           <button className="text-button" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('catch-up')}>
@@ -171,7 +171,7 @@ export function Live({
             <textarea value={draft} maxLength={2000} onChange={(event) => setDraft(event.target.value)} lang="vi" placeholder="Điều bạn muốn nói…" />
           </label>
           <button className="secondary" disabled={!!busy || !draft.trim() || !aiReady} onClick={() => void assist('compose')}>
-            {busy === 'compose' ? <Spinner /> : null}
+            {busy === 'compose' ? <Spinner /> : <ArrowUpRight size={16} aria-hidden="true" />}
             Chuyển sang tiếng Anh
           </button>
         </details>
@@ -312,6 +312,7 @@ function Result({
 
 function Conversation({
   segments,
+  selectedId,
   active,
   starting,
   aiReady,
@@ -319,6 +320,7 @@ function Conversation({
   onTranslate,
 }: {
   segments: Segment[];
+  selectedId?: string;
   active: boolean;
   starting: boolean;
   aiReady: boolean;
@@ -337,7 +339,7 @@ function Conversation({
     <section className="conversation" aria-labelledby="conversation-heading">
       <div className="section-label">
         <h2 id="conversation-heading">Hội thoại</h2>
-        <span>Anh → Việt</span>
+        <span>EN <ArrowUpRight size={12} aria-hidden="true" /> VI</span>
       </div>
       {segments.length ? (
         <>
@@ -352,7 +354,7 @@ function Conversation({
             }}
           >
             {segments.map((segment) => (
-              <li key={segment.id} className={`chat-message ${segment.final ? 'final' : 'partial-message'}`} data-segment-id={segment.id}>
+              <li key={segment.id} className={`chat-message ${segment.final ? 'final' : 'partial-message'} ${selectedId === segment.id ? 'selected' : ''}`} data-segment-id={segment.id}>
                 <div className="message-meta">
                   <span>{segment.final ? 'Chưa xác định người nói' : 'Đang nghe…'}</span>
                   <time dateTime={new Date(segment.at).toISOString()}>{time(segment.at)}</time>
@@ -361,7 +363,7 @@ function Conversation({
                 {segment.final && (
                   <>
                     <Translation segment={segment} aiReady={aiReady} active={active} onRetry={onTranslate} />
-                    <button className="text-button message-reply" onClick={() => onUse(segment)}>Trả lời câu này</button>
+                    <button className="text-button message-reply" aria-pressed={selectedId === segment.id} onClick={() => onUse(segment)}>Trả lời câu này <ArrowUpRight size={12} aria-hidden="true" /></button>
                   </>
                 )}
               </li>

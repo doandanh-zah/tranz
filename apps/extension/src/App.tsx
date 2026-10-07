@@ -354,7 +354,7 @@ export function App() {
   const signedIn = connection === 'ready';
 
   return (
-    <div className="app">
+    <div className={`app view-${view}`}>
       <a className="skip-link" href="#main">Đến nội dung chính</a>
       <div className="topbar">
         <header className="masthead">
@@ -364,7 +364,7 @@ export function App() {
             </span>
             tranz
           </button>
-          <span className="brand-caption" aria-hidden="true">meeting copilot</span>
+          <span className="brand-caption" aria-hidden="true">Cùng bạn trong cuộc họp</span>
           {session && signedIn && view !== 'meeting' && active && (
             <button className="text-button live-link" onClick={() => go('meeting')}>
               Quay lại cuộc họp
@@ -395,6 +395,7 @@ export function App() {
       </div>
       <main id="main" tabIndex={-1}>
         <div className="view-content" key={view}>
+        {import.meta.env.VITE_TRANZ_DEMO === '1' && <p className="preview-label" role="status">Bản xem thử · Hội thoại tổng hợp · AI mô phỏng</p>}
         {error && (
           <Banner tone="error" onDismiss={() => setError('')}>
             {error}

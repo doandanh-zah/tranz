@@ -101,7 +101,7 @@ export function ContextProfiles({
         </form>
       ) : (
         <>
-          <button className="secondary full" onClick={() => setEditing({ value: empty })}>
+          <button className="primary full" onClick={() => setEditing({ value: empty })}>
             <Plus size={17} aria-hidden="true" />
             Tạo ngữ cảnh mới
           </button>
@@ -109,7 +109,7 @@ export function ContextProfiles({
             <ul className="card-list">
               {profiles.map((profile) => (
                 <li className="card" key={profile.id}>
-                  <span className="eyebrow">Phiên bản {profile.version}</span>
+                  <span className="card-kicker"><FolderOpen size={14} aria-hidden="true" /> Ngữ cảnh · phiên bản {profile.version}</span>
                   <h2>{profile.name}</h2>
                   <p>{profile.role || 'Chưa ghi vai trò'}</p>
                   <div className="button-row">

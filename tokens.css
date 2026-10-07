@@ -1,0 +1,54 @@
+/* Tranz · warm editorial companion, inspired by the public Wispr Flow reference.
+ * Local system fonts only; app palette, type and spacing.
+ */
+:root {
+  color-scheme: light;
+  --canvas: #faf9f2;
+  --raised: #ffffff;
+  --surface-soft: #f3f2e9;
+  --hover: #eae9df;
+  --text: #242922;
+  --text-2: #454c43;
+  --muted: #62685e;
+  --line: #dcded2;
+  --line-strong: #7b8276;
+  --primary: #e4d7f5;
+  --primary-hover: #d5c1ee;
+  --primary-contrast: #282234;
+  --focus: #5b397b;
+  --forest: #234c42;
+  --forest-contrast: #fbfaf2;
+  --forest-wash: #eaf0e9;
+  --lavender-wash: #f2ecf9;
+  --success: #286047;
+  --warning: #79530c;
+  --danger: #a42d35;
+  --danger-text: #a42d35;
+  --danger-border: #b56469;
+  --danger-wash: #fff0ef;
+  --warning-border: #ba9145;
+  --warning-wash: #fff4d9;
+  --backdrop: rgb(30 43 35 / 32%);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --radius-control: 10px;
+  --radius-frame: 16px;
+  --fast: 160ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --muted: #40473c;
+    --text-2: #242922;
+    --line: #7b8276;
+    --line-strong: #454c43;
+  }
+}

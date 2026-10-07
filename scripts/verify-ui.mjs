@@ -17,7 +17,7 @@ const out = resolve(process.argv[2] ?? 'artifacts/ui');
 // Tests use their own build so the dist/extension a person has loaded in Chrome is never rewritten.
 const buildDir = resolve(process.env.TRANZ_BUILD_DIR ?? 'artifacts/verify-build');
 const extensionPath = join(buildDir, 'extension');
-const widths = [320, 360, 375, 400, 480, 600];
+const widths = [320, 360, 375, 400, 414, 480, 600, 768];
 const token = randomBytes(32).toString('hex');
 const dataDir = mkdtempSync(join(tmpdir(), 'tranz-ui-'));
 const profileDir = mkdtempSync(join(tmpdir(), 'tranz-chromium-'));
@@ -113,7 +113,14 @@ async function api(method, path, body) {
 }
 
 async function noHorizontalOverflow(page) {
-  return page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
+  return page.evaluate(() => {
+    const width = document.documentElement.clientWidth;
+    return document.documentElement.scrollWidth <= width + 1 &&
+      [...document.querySelectorAll('button, input, select, textarea')].every((el) => {
+        const box = el.getBoundingClientRect();
+        return !box.width || (box.left >= -1 && box.right <= width + 1 && el.scrollWidth <= el.clientWidth + 1);
+      });
+  });
 }
 
 async function shoot(page, name) {
@@ -178,6 +185,12 @@ async function main() {
     await page.getByRole('heading', { name: 'Sẵn sàng cho cuộc họp' }).waitFor();
     check('the panel connects by itself, with no access-token step', (await page.locator('input[type=password]').count()) === 0);
     check('panel renders the app instead of the loading fallback', !(await page.locator('#root').textContent()).includes('Đang mở Tranz'));
+    check('body and controls use the light palette without a stale dark inline fallback',
+      await page.evaluate(() => {
+        const body = getComputedStyle(document.body);
+        return body.backgroundColor === 'rgb(250, 249, 242)' && body.color === 'rgb(36, 41, 34)' &&
+          getComputedStyle(document.querySelector('.wordmark')).color === body.color;
+      }));
     check(
       'home shows a three-step checklist and one start button',
       (await page.locator('.checklist li').count()) === 3 && (await page.getByRole('button', { name: 'Bắt đầu nghe' }).count()) === 1,
@@ -190,6 +203,9 @@ async function main() {
       'the data-flow disclosure is visible under the start button, not collapsed',
       await page.locator('.start-zone .consent').isVisible(),
     );
+    check('disabled start has a visible associated explanation',
+      await page.getByRole('button', { name: 'Bắt đầu nghe' }).getAttribute('aria-describedby') === 'start-requirements' &&
+      await page.locator('#start-requirements').isVisible());
     check('home reports that on-device EN→VI translation is ready', (await page.getByText(/Dịch nhanh EN→VI đã sẵn sàng/).count()) === 1);
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
@@ -215,11 +231,19 @@ async function main() {
         secondary: ratio('--text-2', '--raised'),
         border: ratio('--line-strong', '--raised'),
         primary: ratio('--primary', '--primary-contrast'),
+        forest: ratio('--forest', '--raised'),
+        mutedLavender: ratio('--muted', '--lavender-wash'),
+        danger: ratio('--danger-text', '--danger-wash'),
+        warning: ratio('--warning', '--warning-wash'),
+        focus: ratio('--focus', '--canvas'),
       };
     });
-    check('body text and interactive outlines contrast with the darkest raised surface',
+    check('body text and interactive outlines have readable contrast',
       contrast.muted >= 4.5 && contrast.secondary >= 4.5 && contrast.border >= 3 && contrast.primary >= 4.5,
       JSON.stringify(contrast));
+    check('translation, AI caution, error, warning and focus colours remain readable',
+      contrast.forest >= 4.5 && contrast.mutedLavender >= 4.5 && contrast.danger >= 4.5 &&
+      contrast.warning >= 4.5 && contrast.focus >= 3, JSON.stringify(contrast));
 
     await page.getByRole('link', { name: 'Đến nội dung chính' }).focus();
     await page.keyboard.press('Enter');
@@ -309,7 +333,7 @@ async function main() {
       ],
     );
     await page.goto(panel);
-    await page.getByText('Trong cuộc họp').waitFor();
+    await page.getByText('Trong cuộc họp', { exact: true }).waitFor();
     await page.getByText('[DEVICE] Bản dịch trên thiết bị: Can you share').waitFor({ timeout: 15000 });
     check('final lines use the on-device translator and do not call the AI translation provider', translationProviderCalls === 1);
     check('partial text is shown separately from final text', (await page.getByText('Đang nghe…', { exact: true }).count()) === 1);
@@ -335,6 +359,10 @@ async function main() {
     await page.locator('.chat-message').first().getByRole('button', { name: 'Trả lời câu này' }).click();
     check('a previous chat line can be selected for a reply',
       await page.locator('.target[open]').getByText(lines[0], { exact: true }).isVisible());
+    check('selected speech is marked and the previous AI reply is cleared',
+      await page.locator('.chat-message.selected .message-reply[aria-pressed="true"]').count() === 1 &&
+      await page.locator('.result').count() === 0);
+    await shoot(page, '06-selected-sentence-360');
     await page.getByRole('button', { name: 'Bỏ chọn câu này' }).click();
     await page.setViewportSize({ width: 375, height: 800 });
     await shoot(page, '06-chat-compact-375');
@@ -398,7 +426,7 @@ async function main() {
     check('200% root text size keeps the live view free of horizontal overflow at 400px', await noHorizontalOverflow(page));
     await shoot(page, '08-live-text-200-400');
     await page.reload();
-    await page.getByText('Trong cuộc họp').waitFor();
+    await page.getByText('Trong cuộc họp', { exact: true }).waitFor();
 
     clearInterval(heartbeat);
     await api('POST', `/sessions/${sessionId}/stop`);
@@ -444,7 +472,7 @@ async function main() {
     await api('POST', `/sessions/${temporaryId}/heartbeat`, { state: 'listening' });
     await api('PUT', `/sessions/${temporaryId}/segments`, [{ id: 't-1', text: 'Synthetic temporary line.', final: true, revision: 1, at: Date.now() }]);
     await page.reload();
-    await page.getByText('Trong cuộc họp').waitFor();
+    await page.getByText('Trong cuộc họp', { exact: true }).waitFor();
     check('a session without context runs as "Cuộc họp nhanh"', (await page.getByText(/Cuộc họp nhanh/).count()) >= 1);
     await api('POST', `/sessions/${temporaryId}/stop`, { reason: 'tab-closed' });
     await page.getByRole('heading', { name: /Phiên tạm thời/ }).waitFor({ timeout: 10000 });

@@ -2,6 +2,9 @@
 
 ## Authorization and current request
 
+On 2026-10-07 the user requested a UI/UX rebuild inspired by Wispr Flow. Phase 08W on `feat/wispr-inspired-ui` starts from the local `feat/chat-conversation` checkpoint (`60e2cf4`) so the latest chat behavior is preserved. Only presentation and UI verification are authorized. The reference's light palette supersedes the prior dark-only preference for this review. Capture/provider/backend/privacy contracts, Phase 09, merge and release remain outside scope. Phase 08V's counterpart-only capture decision stays pending.
+
+
 The latest 2026-10-05 review requests a shorter interface, chat history retaining previous sentences, and translation of the other party only. Phase 08V handles this follow-up on `feat/chat-conversation` from PR #14. UI work is authorized; the source choice (tab only versus retaining separately identified local speech) is awaiting the user’s reply. Existing mixed capture remains until that choice is resolved. No merge, release or Phase 09 work.
 
 On 2026-10-05 the user authorized a UI/UX rebuild using the supplied 10K Websites zip, then explicitly chose to adapt the skill to the existing React extension while keeping the meeting flow. This is Phase 08U in [PR #14](https://github.com/doandanh-zah/tranz/pull/14) on `feat/10k-extension-ui`, stacked on `feat/fast-translation`. Audio, Agora, AI/translation contracts, backend, retention, permissions and external publication stay outside the UI change. Phase 08T remains awaiting review; no merge or release is authorized.
@@ -38,6 +41,16 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 | 08U | 10K skill adapted to the existing React extension in PR #14 on `feat/10k-extension-ui`; 34 tests and 59 unpacked-build checks pass | User review; native-panel and screen-reader acceptance remain pending |
 | 08V | Compact chronological chat on `feat/chat-conversation`, stacked on PR #14; [checkpoint evidence](docs/evidence/chat-conversation.md) | Capture choice pending; counterpart-only translation not implemented yet |
 | 09 | Not authorized | Requires separate approval |
+
+## Phase 08W checklist
+
+- [x] Read the repository contracts, actual Git state and public Wispr Flow reference.
+- [x] Establish one shared cream/lavender/forest system with local fonts and retain Vietnamese meeting flows.
+- [x] Rework setup, navigation, conversation selection, reply support and supporting views without changing runtime contracts.
+- [x] Run lint, types, tests, build and unpacked-extension UI verification, including narrow widths, text scaling, keyboard, contrast and motion.
+- [x] Inspect actual screenshots and expose a clearly labelled synthetic local review.
+- [ ] Record evidence, commit the scoped change, open a focused stacked PR and stop for review.
+- [ ] Native-panel manual resizing and screen-reader acceptance remain pending; do not claim them from a tab-rendered harness.
 
 ## Phase 08V checklist
 

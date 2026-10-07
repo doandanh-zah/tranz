@@ -56,7 +56,7 @@ export function AfterMeeting({
         )}
       </section>
 
-      <section className="panel" aria-labelledby="keep-heading">
+      <section className="panel retention-panel" aria-labelledby="keep-heading">
         <h2 id="keep-heading">
           <ShieldCheck size={17} aria-hidden="true" /> {session.retain ? 'Đã lưu trên máy này' : 'Phiên tạm thời'}
         </h2>
