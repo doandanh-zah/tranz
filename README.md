@@ -8,7 +8,7 @@ Tranz helps Vietnamese professionals understand difficult English conversations,
 
 **Stage:** Local MVP implementation candidate — integrated synthetic review complete; bounded live gates remain
 
-**Current delivery phase:** Phase 08W Wispr-inspired UI/UX review on `feat/wispr-inspired-ui`, from the Phase 08V chat checkpoint (`60e2cf4`). Presentation only; counterpart-only capture remains pending its source choice. No merge or release. See [evidence](docs/evidence/wispr-inspired-ui.md).
+**Current delivery phase:** Phase 08W Wispr-inspired UI/UX review in [draft PR #15](https://github.com/doandanh-zah/tranz/pull/15) on `feat/wispr-inspired-ui`, from the Phase 08V chat checkpoint (`60e2cf4`). Presentation only; counterpart-only capture remains pending its source choice. No merge or release. See [evidence](docs/evidence/wispr-inspired-ui.md).
 
 ## Product loop
 

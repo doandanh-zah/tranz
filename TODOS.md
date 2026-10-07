@@ -49,7 +49,7 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 - [x] Rework setup, navigation, conversation selection, reply support and supporting views without changing runtime contracts.
 - [x] Run lint, types, tests, build and unpacked-extension UI verification, including narrow widths, text scaling, keyboard, contrast and motion.
 - [x] Inspect actual screenshots and expose a clearly labelled synthetic local review.
-- [ ] Record evidence, commit the scoped change, open a focused stacked PR and stop for review.
+- [x] Record evidence, commit the scoped change, open [draft PR #15](https://github.com/doandanh-zah/tranz/pull/15) and stop for review.
 - [ ] Native-panel manual resizing and screen-reader acceptance remain pending; do not claim them from a tab-rendered harness.
 
 ## Phase 08V checklist

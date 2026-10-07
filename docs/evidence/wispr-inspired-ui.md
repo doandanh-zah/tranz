@@ -2,6 +2,8 @@
 
 Ngày: 2026-10-07. Nhánh: `feat/wispr-inspired-ui`. Điểm bắt đầu: `feat/chat-conversation`, commit `60e2cf4`.
 
+Commit triển khai: `41f0d8c`. [Draft PR #15](https://github.com/doandanh-zah/tranz/pull/15), base `feat/chat-conversation`, đã push.
+
 Người dùng yêu cầu làm lại UI/UX và tham khảo [Wispr Flow](https://wisprflow.ai/). Phạm vi là giao diện extension; yêu cầu mới thay thế hướng màu đen ở lần thiết kế trước. Không thay đổi hợp đồng runtime.
 
 ## Kết quả
