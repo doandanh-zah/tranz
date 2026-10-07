@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowUpRight, Copy, MessageCircle, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ArrowDown, ArrowUpRight, Copy, Info, MessageCircle, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
 import type { AssistKind, EndReason, ReplyStyle, Segment, Session, Suggestion } from '../../../../packages/shared/contracts';
@@ -61,6 +61,8 @@ export function Live({
   const [selected, setSelected] = useState<Segment>();
   const [draft, setDraft] = useState('');
   const request = useRef(0);
+  const [composeFailed, setComposeFailed] = useState(false);
+  const [detail, setDetail] = useState<'compose' | 'context' | 'result'>();
 
   const active = !['stopped', 'error'].includes(session.state);
   const starting = session.state === 'created' || session.state === 'connecting';
@@ -73,84 +75,118 @@ export function Live({
   const aiReady = !!capabilities?.ai;
 
   async function assist(kind: AssistKind, style: ReplyStyle = 'clear') {
+    if (kind === 'compose') setComposeFailed(false);
     const sequence = ++request.current;
-    await run(kind, async () => {
+    const ok = await run(kind, async () => {
       const text = kind === 'compose' ? draft : kind === 'reply' ? (target?.text ?? '') : '';
       const next = await api.call<Suggestion>(`/sessions/${session.id}/assist`, 'POST', { kind, text, style });
       // Ignore a slower, older request that finishes after a newer one.
       if (sequence === request.current) setResult(next);
     });
+    if (detail === 'compose' && kind === 'compose') setComposeFailed(!ok);
+    if (ok && kind === 'compose' && sequence === request.current) setDetail(undefined);
   }
 
-  return (
+  const composer = (
     <>
-      <div className="session-heading">
-        <div>
-          <span className="eyebrow">{active ? 'Trong cuộc họp' : 'Sau cuộc họp'}</span>
-          <h1 className="session-title">{session.context.name}</h1>
-          <p className="session-meta">Anh → Việt · bắt đầu {time(session.startedAt)}</p>
+      <label>
+        Điều bạn muốn nói, bằng tiếng Việt
+        <textarea value={draft} maxLength={2000} onChange={(event) => setDraft(event.target.value)} lang="vi" placeholder="Điều bạn muốn nói…" />
+      </label>
+      <button className="secondary" disabled={!!busy || !draft.trim() || !aiReady} onClick={() => void assist('compose')}>
+        {busy === 'compose' ? <Spinner /> : <ArrowUpRight size={16} aria-hidden="true" />}
+        Chuyển sang tiếng Anh
+      </button>
+      {composeFailed && <Banner tone="error">Chưa chuyển được câu. Hãy thử lại hoặc đóng cửa sổ để xem thông báo lỗi.</Banner>}
+      {!aiReady && <p className="caption">Đăng nhập ChatGPT trong Cài đặt để dùng gợi ý và dịch.</p>}
+    </>
+  );
+
+  return (
+    <div className={active ? 'live-workspace' : 'ended-workspace'}>
+      <div className="session-overview">
+        <div className="session-heading">
+          <div>
+            <span className="eyebrow">{active ? 'Trong cuộc họp' : 'Sau cuộc họp'}</span>
+            <h1 className="session-title">
+              {active ? <button className="session-context" title={session.context.name} onClick={() => setDetail('context')} aria-label={`Ngữ cảnh dùng cho phiên này: ${session.context.name}`}>{session.context.name}</button> : session.context.name}
+            </h1>
+            <p className="session-meta">Anh → Việt · bắt đầu {time(session.startedAt)}</p>
+          </div>
+          <div role="status" aria-live="polite">
+            <StatusPill state={session.state} />
+          </div>
         </div>
-        <div role="status" aria-live="polite">
-          <StatusPill state={session.state} />
+
+        <div className="session-alerts">
+          {session.error && <Banner tone="error">{session.error}</Banner>}
+          {!active && session.endedReason && endedMessages[session.endedReason] && <Banner>{endedMessages[session.endedReason]}</Banner>}
+          {session.state === 'paused' && (
+            <Banner>
+              Đang tạm dừng: Tranz không gửi âm thanh đi. Bạn vẫn nghe cuộc họp bình thường. Kết nối vẫn mở nên có thể vẫn bị tính
+              phí.
+            </Banner>
+          )}
+          {session.state === 'reconnecting' && <Banner>Kết nối bị gián đoạn. Tranz tạm ngừng gửi âm thanh trong lúc kết nối lại.</Banner>}
+
+          {muted && active && <p className="caption">Micro của bạn đang tắt với Tranz (Google Meet không bị ảnh hưởng). Tranz vẫn nghe những người khác.</p>}
         </div>
+
+        {active && (
+          <div className="controls" role="group" aria-label="Điều khiển phiên">
+            <button className="secondary" disabled={starting || !!busy} onClick={onPause}>
+              {session.state === 'paused' ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
+              {session.state === 'paused' ? 'Tiếp tục' : 'Tạm dừng'}
+            </button>
+            <button
+              className="icon outlined"
+              disabled={starting || !!busy}
+              aria-pressed={muted}
+              aria-label={muted ? 'Micro đang tắt với Tranz. Bật lại' : 'Tắt micro của tôi với Tranz'}
+              title="Tranz ngừng nghe micro của bạn. Không ảnh hưởng tới Google Meet."
+              onClick={onMute}
+            >
+              {muted ? <MicOff size={17} /> : <Mic size={17} />}
+            </button>
+            <button className="stop" disabled={busy === 'stop'} onClick={onStop}>
+              {busy === 'stop' ? <Spinner /> : <Square size={13} aria-hidden="true" />}
+              Dừng
+            </button>
+          </div>
+        )}
       </div>
-
-      {session.error && <Banner tone="error">{session.error}</Banner>}
-      {!active && session.endedReason && endedMessages[session.endedReason] && <Banner>{endedMessages[session.endedReason]}</Banner>}
-      {session.state === 'paused' && (
-        <Banner>
-          Đang tạm dừng: Tranz không gửi âm thanh đi. Bạn vẫn nghe cuộc họp bình thường. Kết nối vẫn mở nên có thể vẫn bị tính
-          phí.
-        </Banner>
-      )}
-      {session.state === 'reconnecting' && <Banner>Kết nối bị gián đoạn. Tranz tạm ngừng gửi âm thanh trong lúc kết nối lại.</Banner>}
-
-      {active && (
-        <div className="controls" role="group" aria-label="Điều khiển phiên">
-          <button className="secondary" disabled={starting || !!busy} onClick={onPause}>
-            {session.state === 'paused' ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
-            {session.state === 'paused' ? 'Tiếp tục' : 'Tạm dừng'}
-          </button>
-          <button
-            className="icon outlined"
-            disabled={starting || !!busy}
-            aria-pressed={muted}
-            aria-label={muted ? 'Micro đang tắt với Tranz. Bật lại' : 'Tắt micro của tôi với Tranz'}
-            title="Tranz ngừng nghe micro của bạn. Không ảnh hưởng tới Google Meet."
-            onClick={onMute}
-          >
-            {muted ? <MicOff size={17} /> : <Mic size={17} />}
-          </button>
-          <button className="stop" disabled={busy === 'stop'} onClick={onStop}>
-            {busy === 'stop' ? <Spinner /> : <Square size={13} aria-hidden="true" />}
-            Dừng
-          </button>
-        </div>
-      )}
       {!active && (
         <AfterMeeting api={api} session={session} busy={busy} run={run} aiReady={!!capabilities?.ai} onUpdate={onUpdate} onNext={onNext} onDelete={onDelete} />
       )}
-      {muted && active && <p className="caption">Micro của bạn đang tắt với Tranz (Google Meet không bị ảnh hưởng). Tranz vẫn nghe những người khác.</p>}
-
       <Conversation segments={session.segments} selectedId={selected?.id} active={active} starting={starting} aiReady={aiReady} onUse={(segment) => { request.current++; setSelected(segment); setResult(undefined); }} onTranslate={onTranslate} />
 
       <section className="panel response" aria-labelledby="respond-heading">
-        <h2 id="respond-heading" className="response-heading">
-          <MessageCircle size={17} aria-hidden="true" /> Đến lượt bạn
-        </h2>
-        {target ? (
-          <details className="target" open={selected ? true : undefined}>
-            <summary>{selected ? 'Câu bạn đã chọn' : 'Câu hỏi Tranz đoán được'}</summary>
-            <p lang="en">{target.text}</p>
-            {selected && (
-              <button className="icon small" aria-label="Bỏ chọn câu này" onClick={() => { request.current++; setSelected(undefined); setResult(undefined); }}>
-                <X size={15} />
-              </button>
-            )}
-          </details>
-        ) : (
-          <p className="caption">Chọn một câu trong hội thoại để trả lời, hoặc soạn điều bạn muốn nói.</p>
-        )}
+        <div className="response-toolbar">
+          <h2 id="respond-heading" className="response-heading">
+            <MessageCircle size={17} aria-hidden="true" /> Đến lượt bạn
+          </h2>
+          {active && result && <button className="icon result-details" aria-label="Chi tiết gợi ý" title="Nguồn, chỉnh câu và sao chép" onClick={() => setDetail('result')}><Info size={18} /></button>}
+          {active && <button className="text-button compose-open" onClick={() => setDetail('compose')}>Tôi muốn nói…</button>}
+        </div>
+        <div className="response-body">
+          {(!active || !result) && (target ? (
+            <details className="target" open={selected ? true : undefined}>
+              <summary>{selected ? 'Câu bạn đã chọn' : 'Câu hỏi Tranz đoán được'}</summary>
+              <p lang="en">{target.text}</p>
+              {selected && (
+                <button className="icon small" aria-label="Bỏ chọn câu này" onClick={() => { request.current++; setSelected(undefined); setResult(undefined); }}>
+                  <X size={15} />
+                </button>
+              )}
+            </details>
+          ) : (
+            <p className="caption">Chọn một câu trong hội thoại để trả lời, hoặc soạn điều bạn muốn nói.</p>
+          ))}
+          {!aiReady && <p className="caption">Đăng nhập ChatGPT trong Cài đặt để dùng gợi ý và dịch.</p>}
+
+          {result && <Result compact={active} result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
+
+        </div>
         <div className="button-row">
           <button className="primary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
             {busy === 'reply' ? <Spinner /> : <ArrowUpRight size={16} aria-hidden="true" />}
@@ -160,30 +196,45 @@ export function Live({
             {busy === 'catch-up' ? 'Đang tóm tắt…' : 'Tóm tắt vừa rồi'}
           </button>
         </div>
-        {!aiReady && <p className="caption">Đăng nhập ChatGPT trong Cài đặt để dùng gợi ý và dịch.</p>}
-
-        {result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
-
-        <details className="composer">
-          <summary>Tôi muốn nói…</summary>
-          <label>
-            Điều bạn muốn nói, bằng tiếng Việt
-            <textarea value={draft} maxLength={2000} onChange={(event) => setDraft(event.target.value)} lang="vi" placeholder="Điều bạn muốn nói…" />
-          </label>
-          <button className="secondary" disabled={!!busy || !draft.trim() || !aiReady} onClick={() => void assist('compose')}>
-            {busy === 'compose' ? <Spinner /> : <ArrowUpRight size={16} aria-hidden="true" />}
-            Chuyển sang tiếng Anh
-          </button>
-        </details>
+        {!active && <details className="composer"><summary>Tôi muốn nói…</summary>{composer}</details>}
       </section>
 
-      <details className="panel">
+      {!active && <details className="panel">
         <summary>Ngữ cảnh dùng cho phiên này: {session.context.name}</summary>
         <ContextDetails profile={session.context} />
-      </details>
-
-    </>
+      </details>}
+      {detail && <MeetingDetail title={detail === 'compose' ? 'Tôi muốn nói…' : detail === 'context' ? 'Ngữ cảnh của phiên' : 'Chi tiết gợi ý'} onClose={() => setDetail(undefined)}>
+        {detail === 'compose' ? composer : detail === 'context' ? <><h3>{session.context.name}</h3><ContextDetails profile={session.context} /></> : result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
+        {detail === 'compose' && busy === 'compose' && <p className="caption" role="status">Đang chuyển câu sang tiếng Anh…</p>}
+      </MeetingDetail>}
+    </div>
   );
+}
+
+/** Secondary tasks stay in a native modal, leaving the meeting workspace at its viewport size. */
+function MeetingDetail({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const element = dialog.current;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    element?.showModal();
+    const cancel = (event: Event) => { event.preventDefault(); close.current(); };
+    element?.addEventListener('cancel', cancel);
+    return () => {
+      element?.removeEventListener('cancel', cancel);
+      if (element?.open) element.close();
+      if (opener?.isConnected) opener.focus();
+    };
+  }, []);
+  return <dialog ref={dialog} className="modal meeting-detail" aria-labelledby="meeting-detail-title">
+    <div className="detail-heading">
+      <h2 id="meeting-detail-title">{title}</h2>
+      <button className="icon" aria-label="Đóng cửa sổ" onClick={onClose}><X size={18} /></button>
+    </div>
+    <div className="detail-body">{children}</div>
+  </dialog>;
 }
 
 function Translation({
@@ -233,12 +284,14 @@ function Translation({
 }
 
 function Result({
+  compact = false,
   result,
   session,
   busy,
   onRestyle,
   onCopied,
 }: {
+  compact?: boolean;
   result: Suggestion;
   session: Session;
   busy: string;
@@ -252,19 +305,19 @@ function Result({
 
   return (
     <div className="result" aria-live="polite">
-      <h3>{heading}</h3>
-      {result.question && <p className="caption">Cho câu: “{result.question}”</p>}
+      <h3 className={compact ? 'sr-only' : undefined}>{heading}</h3>
+      {!compact && result.question && <p className="caption">Cho câu: “{result.question}”</p>}
       <p className="suggestion" lang={vietnamese ? 'vi' : 'en'}>
         {result.text}
       </p>
       <p className={`evidence-label ${result.uncertain ? 'uncertain' : ''}`}>
         {result.uncertain ? 'Chưa chắc chắn, hãy kiểm tra trước khi dùng. ' : 'Gợi ý của AI, hãy kiểm tra trước khi dùng. '}
-        {result.kind !== 'compose' &&
+        {!compact && result.kind !== 'compose' &&
           (usedProfile || lines.length
             ? `Dựa trên ${[usedProfile && 'ngữ cảnh của bạn', lines.length && `${lines.length} câu trong cuộc họp`].filter(Boolean).join(' và ')}.`
             : 'Không dựa trên nguồn cụ thể nào.')}
       </p>
-      {result.evidence.length > 0 && (
+      {!compact && result.evidence.length > 0 && (
         <details>
           <summary>Xem nguồn</summary>
           <ul className="evidence">
@@ -277,7 +330,7 @@ function Result({
           </ul>
         </details>
       )}
-      {result.kind === 'reply' && <details className="reply-actions">
+      {!compact && result.kind === 'reply' && <details className="reply-actions">
         <summary>Chỉnh câu trả lời</summary>
         <div className="chip-row">
         {
@@ -295,7 +348,7 @@ function Result({
           ))}
         </div>
       </details>}
-      <button className="text-button copy-reply"
+      {!compact && <button className="text-button copy-reply"
           onClick={() =>
             void navigator.clipboard
               .writeText(result.text)
@@ -305,7 +358,7 @@ function Result({
         >
           <Copy size={13} aria-hidden="true" />
           Sao chép
-      </button>
+      </button>}
     </div>
   );
 }
@@ -329,17 +382,33 @@ function Conversation({
 }) {
   const [following, setFollowing] = useState(true);
   const list = useRef<HTMLOListElement>(null);
+  const followingRef = useRef(true);
 
   // Keep the reader's position; only auto-scroll while they are already at the newest line.
   useEffect(() => {
     if (following && list.current) list.current.scrollTop = list.current.scrollHeight;
   }, [following, segments]);
 
+  useEffect(() => {
+    const element = list.current;
+    if (!element) return;
+    const observer = new ResizeObserver(() => {
+      if (followingRef.current) element.scrollTop = element.scrollHeight;
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [segments.length > 0]);
+
   return (
     <section className="conversation" aria-labelledby="conversation-heading">
       <div className="section-label">
         <h2 id="conversation-heading">Hội thoại</h2>
         <span>EN <ArrowUpRight size={12} aria-hidden="true" /> VI</span>
+        {active && !following && <button className="secondary jump" aria-label="Xuống câu mới nhất" title="Xuống câu mới nhất" onClick={() => {
+          followingRef.current = true;
+          setFollowing(true);
+          if (list.current) list.current.scrollTop = list.current.scrollHeight;
+        }}><ArrowDown size={15} aria-hidden="true" /></button>}
       </div>
       {segments.length ? (
         <>
@@ -350,7 +419,8 @@ function Conversation({
             aria-label="Toàn bộ hội thoại"
             onScroll={(event) => {
               const el = event.currentTarget;
-              setFollowing(el.scrollHeight - el.scrollTop - el.clientHeight < 24);
+              followingRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+              setFollowing(followingRef.current);
             }}
           >
             {segments.map((segment) => (
@@ -369,10 +439,11 @@ function Conversation({
               </li>
             ))}
           </ol>
-          {!following && (
+          {!active && !following && (
             <button
               className="secondary jump"
               onClick={() => {
+                followingRef.current = true;
                 setFollowing(true);
                 if (list.current) list.current.scrollTop = list.current.scrollHeight;
               }}

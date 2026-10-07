@@ -38,6 +38,18 @@ function check(name, pass, detail = '') {
   console.log(`${pass ? 'PASS' : 'FAIL'} ${name}${detail ? ` — ${detail}` : ''}`);
 }
 
+async function meetingFitsViewport(page) {
+  return page.evaluate(() => {
+    const root = document.scrollingElement;
+    const selectors = ['.controls', '.conversation', '.response-toolbar', '.response > .button-row'];
+    return root.scrollHeight <= window.innerHeight + 1 && root.scrollTop === 0 && selectors.every((selector) => {
+      const element = document.querySelector(selector);
+      const box = element?.getBoundingClientRect();
+      return box && box.top >= 0 && box.bottom <= window.innerHeight + 1 && box.height >= 40;
+    }) && (document.querySelector('.conversation-items')?.clientHeight ?? document.querySelector('.conversation').clientHeight) >= 80;
+  });
+}
+
 function mockProvider() {
   const server = http.createServer((req, res) => {
     let raw = '';
@@ -319,6 +331,16 @@ async function main() {
     await api('POST', '/sessions', { id: sessionId, profileId: profiles[0].id, retain: true });
     await api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'listening' });
     heartbeat = setInterval(() => void api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'listening' }), 10000);
+    await page.goto(panel);
+    await page.getByText('Đang nghe, chưa có ai nói', { exact: true }).waitFor();
+    await page.setViewportSize({ width: 320, height: 600 });
+    check('empty listening workspace fits one screen with disabled assistance', await meetingFitsViewport(page) && !(await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).isEnabled()));
+    clearInterval(heartbeat);
+    await api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'connecting' });
+    await page.locator('.status.connecting').waitFor();
+    check('connecting workspace keeps stop visible without page scrolling', await meetingFitsViewport(page));
+    await api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'listening' });
+    heartbeat = setInterval(() => void api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'listening' }), 10000);
     const lines = [
       'Synthetic line: thanks everyone for joining the test call.',
       'Synthetic line: the QA checklist is almost complete.',
@@ -352,6 +374,10 @@ async function main() {
     await page.setViewportSize({ width: 360, height: 1100 });
     await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
     await page.getByText('[MOCK] Based on our plan').waitFor();
+    await page.getByRole('button', { name: 'Chi tiết gợi ý' }).click();
+    check('a reply keeps its sources available in a detail modal', await page.getByRole('dialog', { name: 'Chi tiết gợi ý' }).getByText('Xem nguồn', { exact: true }).isVisible());
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({ state: 'hidden' });
     check('a reply suggestion shows its sources and a check-before-use note', (await page.getByText(/Gợi ý của AI, hãy kiểm tra/).count()) === 1);
     check('chat keeps all previous final lines with their linked translations and the partial line',
       await page.locator('.chat-message').count() === 4 &&
@@ -366,6 +392,53 @@ async function main() {
     await page.getByRole('button', { name: 'Bỏ chọn câu này' }).click();
     await page.setViewportSize({ width: 375, height: 800 });
     await shoot(page, '06-chat-compact-375');
+    for (const [width, height] of [[320, 600], [375, 700], [400, 800], [600, 900]]) {
+      await page.setViewportSize({ width, height });
+      check(`meeting fits one viewport at ${width}x${height}`, await meetingFitsViewport(page));
+      await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
+      await page.getByText('[MOCK] Based on our plan').waitFor();
+      await page.waitForFunction(() => !document.querySelector('.response > .button-row > .primary')?.disabled);
+      check(`reply does not push controls off screen at ${width}x${height}`, await meetingFitsViewport(page));
+      check(`short reply is fully visible without scrolling at ${width}x${height}`, await page.locator('.suggestion').evaluate((el) => {
+        const r = el.getBoundingClientRect(), area = el.closest('.response-body').getBoundingClientRect();
+        return r.top >= area.top && r.bottom <= area.bottom + 1;
+      }));
+      check(`AI caution stays visible for a short reply at ${width}x${height}`, await page.locator('.evidence-label').evaluate((el) => {
+        const r = el.getBoundingClientRect(), area = el.closest('.response-body').getBoundingClientRect();
+        return r.top >= area.top && r.bottom <= area.bottom + 1;
+      }));
+      await shoot(page, `06-one-screen-reply-${width}-${height}`);
+    }
+    clearInterval(heartbeat);
+    await page.setViewportSize({ width: 320, height: 600 });
+    for (const state of ['paused', 'reconnecting']) {
+      await api('POST', `/sessions/${sessionId}/heartbeat`, { state });
+      await page.locator(`.status.${state}`).waitFor();
+      check(`${state} explanation keeps meeting controls visible at 320x600`, await meetingFitsViewport(page));
+      await shoot(page, `06-one-screen-${state}-320`);
+    }
+    await api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'listening' });
+    await page.locator('.status.listening').waitFor();
+    heartbeat = setInterval(() => void api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'listening' }), 10000);
+    await page.setViewportSize({ width: 375, height: 700 });
+    const contextButton = page.getByRole('button', { name: 'Ngữ cảnh dùng cho phiên này: Synthetic sprint sync', exact: true });
+    await contextButton.click();
+    check('session context opens in a modal with the unchanged session snapshot', await page.getByRole('dialog', { name: 'Ngữ cảnh của phiên' }).isVisible());
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    check('Escape closes context and returns focus to its opener', await contextButton.evaluate((el) => el === document.activeElement));
+    await page.getByRole('button', { name: 'Tôi muốn nói…', exact: true }).click();
+    await page.getByLabel('Điều bạn muốn nói, bằng tiếng Việt').fill('Synthetic unsent draft');
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    check('composer can close without submitting or changing the meeting', await meetingFitsViewport(page));
+    await page.getByRole('button', { name: 'Tôi muốn nói…', exact: true }).click();
+    check('composer retains an unsent draft when reopened', await page.getByLabel('Điều bạn muốn nói, bằng tiếng Việt').inputValue() === 'Synthetic unsent draft');
+    check('composer modal fits within the viewport', await page.getByRole('dialog').evaluate((el) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; }));
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    await page.setViewportSize({ width: 375, height: 800 });
+
 
     const extraLines = Array.from({ length: 12 }, (_, i) => ({
       id: `chat-extra-${i}`, text: `Synthetic previous sentence ${i}.`, final: true, revision: 1, at: Date.now() + i,
@@ -393,8 +466,7 @@ async function main() {
       return el.scrollHeight - el.clientHeight - el.scrollTop < 2;
     });
     check('chat follows new speech when already reading the latest line', true);
-    check('chat scroll region is bounded to leave room for controls and reply actions',
-      await chat.evaluate((el) => el.clientHeight <= window.innerHeight * 0.55));
+    check('meeting controls and reply actions fit together without page scrolling', await meetingFitsViewport(page));
     for (const width of widths) {
       await page.setViewportSize({ width, height: 1100 });
       check(`simulated live view has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
@@ -423,6 +495,7 @@ async function main() {
     // Text scaled to 200% at 400px
     await page.setViewportSize({ width: 400, height: 1100 });
     await page.addStyleTag({ content: ':root{font-size:30px!important}' });
+    check('200% text keeps controls inside the viewport', await meetingFitsViewport(page));
     check('200% root text size keeps the live view free of horizontal overflow at 400px', await noHorizontalOverflow(page));
     await shoot(page, '08-live-text-200-400');
     await page.reload();
@@ -456,6 +529,7 @@ async function main() {
     const focusInside = await page.evaluate(() => !!document.activeElement?.closest('dialog'));
     await shoot(page, '09-delete-dialog-360');
     await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({ state: 'hidden' });
     await dialog.waitFor({ state: 'detached' });
     const restored = await page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
     check('the delete dialog takes focus, closes on Escape and restores focus', focusInside && restored === 'Xoá phiên này', `restored=${restored}`);

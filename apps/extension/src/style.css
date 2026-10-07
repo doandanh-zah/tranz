@@ -1502,6 +1502,79 @@ button:active:not(:disabled) { transform: translateY(1px); }
   }
 }
 
+
+/* During a meeting the shell owns the viewport. Only history, lengthy replies and
+ * secondary dialogs scroll; ordinary controls never sit over the reading surface. */
+.app.is-live { height: 100dvh; min-height: 0; }
+.is-live .topbar { display: flex; align-items: center; flex: 0 0 auto; margin: 8px 10px 0; }
+.is-live .masthead { flex: 1; min-width: 0; min-height: 52px; padding: 4px 6px; gap: 4px; flex-wrap: nowrap; }
+.is-live .wordmark { font-size: 1.15rem; gap: 6px; }
+.is-live .mark { width: 24px; height: 24px; }
+.is-live .brand-caption, .is-live .nav-label { display: none; }
+.is-live .tabs { display: flex; padding: 4px; gap: 2px; }
+.is-live .tabs button { width: 44px; height: 44px; padding: 0; justify-content: center; }
+.is-live .tabs button svg { display: block; }
+.is-live main { display: flex; flex: 1; min-height: 0; padding: 10px; }
+.is-live .view-content { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 8px; }
+.is-live .view-notifications { flex: 0 1 auto; max-height: 20dvh; overflow: auto; scrollbar-gutter: stable; }
+.view-notifications:empty, .session-alerts:empty { display: none; }
+.is-live .view-notifications > :last-child { margin-bottom: 0; }
+.is-live .preview-label { padding: 4px 8px; margin: 0; }
+.live-workspace { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 10px; }
+.live-workspace .session-overview { flex: 0 1 auto; min-height: 0; }
+.live-workspace .session-heading { flex-wrap: nowrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.live-workspace .session-heading > div:first-child { min-width: 0; }
+.live-workspace .eyebrow { font-size: 0.65rem; margin-bottom: 2px; }
+.live-workspace .session-title { font-size: 1.15rem; line-height: 1.25; margin: 0 0 2px; }
+.session-context { font: inherit; letter-spacing: inherit; color: inherit; border: 0; background: none; padding: 2px 0; max-width: 100%; text-align: left; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; text-decoration: underline dotted var(--line-strong); text-underline-offset: 4px; }
+.session-context:hover { text-decoration-style: solid; }
+.live-workspace .session-meta { margin-bottom: 0; }
+.live-workspace .session-alerts { max-height: 16dvh; overflow: auto; margin-bottom: 8px; }
+.live-workspace .session-alerts > :last-child { margin-bottom: 0; }
+.live-workspace .banner { padding: 8px; }
+.live-workspace .controls { margin-bottom: 0; }
+.live-workspace .conversation { display: flex; flex-direction: column; flex: 1 1 0; min-height: 116px; margin: 0; }
+.live-workspace .conversation .section-label { flex: 0 0 auto; margin: 0 2px 6px; }
+.live-workspace .conversation-items { height: auto; flex: 1; min-height: 0; padding: 8px; }
+.live-workspace .empty.compact { overflow: auto; min-height: 0; }
+.live-workspace .jump { flex: 0 0 auto; width: 44px; height: 44px; margin: 0; padding: 0; }
+.live-workspace .conversation:has(.jump) { min-height: 132px; }
+.live-workspace .conversation .section-label h2 { margin-right: auto; }
+.live-workspace .response { display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-height: 42%; padding: 8px 10px; margin: 0; gap: 6px; }
+.live-workspace .response:has(.result) { flex-basis: 42%; }
+.response-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.live-workspace .response-toolbar { flex: 0 0 auto; }
+.live-workspace .response-heading { flex: 1; margin: 0; font-size: 0.875rem; gap: 6px; }
+.live-workspace .compose-open { font-size: 0.8125rem; min-height: 44px; padding: 4px; }
+.live-workspace .response-body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 2px; }
+.live-workspace .response-body > :last-child { margin-bottom: 0; }
+.live-workspace .response > .button-row { flex: 0 0 auto; flex-wrap: nowrap; gap: 6px; }
+.live-workspace .response > .button-row > .primary { padding-inline: 8px; font-size: 0.8125rem; }
+.live-workspace .response > .button-row > .text-button { font-size: 0.75rem; padding-inline: 4px; min-height: 44px; }
+.live-workspace .target { margin: 0; padding: 0 8px; }
+.live-workspace .target summary { padding-block: 6px; min-height: 32px; }
+.live-workspace .target p { margin-bottom: 8px; }
+.live-workspace .result { margin-top: 6px; padding: 8px; }
+.live-workspace .result h3 { margin-top: 0; }
+.live-workspace .result .suggestion { margin-bottom: 8px; font-size: 1rem; }
+.live-workspace .result .evidence-label { margin: 0; font-size: 0.75rem; }
+.live-workspace .result { margin: 0; }
+.live-workspace .target { padding-right: 38px; }
+.meeting-detail:not([open]) { display: none; }
+.meeting-detail { display: flex; flex-direction: column; max-height: calc(100dvh - 24px); padding: 16px; }
+.detail-heading { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.detail-heading h2 { margin: 0; }
+.detail-body { overflow: auto; min-height: 0; overscroll-behavior: contain; padding: 2px; }
+.detail-body textarea { min-height: 120px; }
+.detail-body > .caption { margin: 12px 0 0; }
+@media (max-height: 599px) {
+  .live-workspace { gap: 6px; }
+  .live-workspace .session-heading .eyebrow, .live-workspace .session-meta { display: none; }
+}
+/* Large type gets wrapping controls plus internal reading areas, without clipping text. */
+@media (min-width: 360px) {
+  .live-workspace .response > .button-row > .primary { min-width: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

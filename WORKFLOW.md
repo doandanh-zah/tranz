@@ -36,7 +36,7 @@ Finishing a phase does not authorize the next one. Work resumes only after the u
 | 08T | Replace slow live translation with an on-device EN→VI fast path and explicit ChatGPT fallback | PR #13 open on `feat/fast-translation`; no cloud API or billing change |
 | 08U | Rebuild the existing extension UI/UX using the user-approved React adaptation of 10K Websites | PR #14 on `feat/10k-extension-ui`, stacked on `feat/fast-translation`; native-panel/screen-reader acceptance and user review pending |
 | 08V | Compact chat history and counterpart-only translation requested after UI review | `feat/chat-conversation`, stacked on PR #14; UI checkpoint verified, capture strategy awaits user choice; no PR/merge yet |
-| 08W | Wispr-inspired extension UI/UX follow-up | [Draft PR #15](https://github.com/doandanh-zah/tranz/pull/15) on `feat/wispr-inspired-ui` from Phase 08V; presentation only, no merge/release; native-panel/screen-reader acceptance pending |
+| 08W | Wispr-inspired extension UI/UX follow-up | [Draft PR #15](https://github.com/doandanh-zah/tranz/pull/15) on `feat/wispr-inspired-ui` from Phase 08V; one-viewport meeting follow-up included; presentation only, no merge/release; native-panel/screen-reader acceptance pending |
 | 09 | Run a measured private beta | Not authorized |
 
 Detailed future work belongs in [BACKLOG.md](BACKLOG.md). Only [TODOS.md](TODOS.md) defines the current approved checklist.

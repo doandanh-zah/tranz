@@ -354,7 +354,7 @@ export function App() {
   const signedIn = connection === 'ready';
 
   return (
-    <div className={`app view-${view}`}>
+    <div className={`app view-${view}${active && view === 'meeting' && signedIn ? ' is-live' : ''}`}>
       <a className="skip-link" href="#main">Đến nội dung chính</a>
       <div className="topbar">
         <header className="masthead">
@@ -385,9 +385,9 @@ export function App() {
                 ['library', 'Đã lưu', BookOpen],
               ] as const
             ).map(([key, label, Icon]) => (
-              <button key={key} aria-current={view === key ? 'page' : undefined} onClick={() => go(key)}>
+              <button key={key} aria-label={label} title={label} aria-current={view === key ? 'page' : undefined} onClick={() => go(key)}>
                 <Icon size={16} aria-hidden="true" />
-                {label}
+                <span className="nav-label">{label}</span>
               </button>
             ))}
           </nav>
@@ -395,6 +395,7 @@ export function App() {
       </div>
       <main id="main" tabIndex={-1}>
         <div className="view-content" key={view}>
+        <div className="view-notifications">
         {import.meta.env.VITE_TRANZ_DEMO === '1' && <p className="preview-label" role="status">Bản xem thử · Hội thoại tổng hợp · AI mô phỏng</p>}
         {error && (
           <Banner tone="error" onDismiss={() => setError('')}>
@@ -412,6 +413,7 @@ export function App() {
             dừng bởi thông báo này.
           </Banner>
         )}
+        </div>
         {connection === 'loading' ? (
           <div className="empty" aria-busy="true">
             <Spinner />

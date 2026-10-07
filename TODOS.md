@@ -2,7 +2,7 @@
 
 ## Authorization and current request
 
-On 2026-10-07 the user requested a UI/UX rebuild inspired by Wispr Flow. Phase 08W on `feat/wispr-inspired-ui` starts from the local `feat/chat-conversation` checkpoint (`60e2cf4`) so the latest chat behavior is preserved. Only presentation and UI verification are authorized. The reference's light palette supersedes the prior dark-only preference for this review. Capture/provider/backend/privacy contracts, Phase 09, merge and release remain outside scope. Phase 08V's counterpart-only capture decision stays pending.
+On 2026-10-07 the user requested a UI/UX rebuild inspired by Wispr Flow. Phase 08W on `feat/wispr-inspired-ui` starts from the local `feat/chat-conversation` checkpoint (`60e2cf4`) so the latest chat behavior is preserved. The user also explicitly requested that the active meeting fit one screen, without page scrolling. Only presentation and UI verification are authorized. The reference's light palette supersedes the prior dark-only preference for this review. Capture/provider/backend/privacy contracts, Phase 09, merge and release remain outside scope. Phase 08V's counterpart-only capture decision stays pending.
 
 
 The latest 2026-10-05 review requests a shorter interface, chat history retaining previous sentences, and translation of the other party only. Phase 08V handles this follow-up on `feat/chat-conversation` from PR #14. UI work is authorized; the source choice (tab only versus retaining separately identified local speech) is awaiting the user’s reply. Existing mixed capture remains until that choice is resolved. No merge, release or Phase 09 work.
@@ -48,6 +48,7 @@ The user invoked the handoff prompt on 2026-09-29 and asked to continue Phases 0
 - [x] Establish one shared cream/lavender/forest system with local fonts and retain Vietnamese meeting flows.
 - [x] Rework setup, navigation, conversation selection, reply support and supporting views without changing runtime contracts.
 - [x] Run lint, types, tests, build and unpacked-extension UI verification, including narrow widths, text scaling, keyboard, contrast and motion.
+- [x] Fit active meeting controls, transcript and reply support within one viewport; secondary tasks use dialogs and long content scrolls internally.
 - [x] Inspect actual screenshots and expose a clearly labelled synthetic local review.
 - [x] Record evidence, commit the scoped change, open [draft PR #15](https://github.com/doandanh-zah/tranz/pull/15) and stop for review.
 - [ ] Native-panel manual resizing and screen-reader acceptance remain pending; do not claim them from a tab-rendered harness.
