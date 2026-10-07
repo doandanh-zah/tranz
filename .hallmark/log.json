@@ -7,5 +7,14 @@
     "enrichment": "none",
     "brief": "Tranz meeting companion; public Wispr Flow reference",
     "source": "https://wisprflow.ai/"
+  },
+  {
+    "date": "2026-10-07",
+    "scope": "meeting-interface",
+    "macrostructure": "Workbench",
+    "theme": "Wispr-inspired",
+    "enrichment": "none",
+    "brief": "Separate conversation, reply and catch-up; one visible task with shared controls",
+    "verification": "147 unpacked-build UI checks; native panel and VoiceOver pending"
   }
 ]

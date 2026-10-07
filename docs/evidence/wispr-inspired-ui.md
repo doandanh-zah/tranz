@@ -6,6 +6,46 @@ Commit triển khai: `41f0d8c`. [Draft PR #15](https://github.com/doandanh-zah/t
 
 Người dùng yêu cầu làm lại UI/UX và tham khảo [Wispr Flow](https://wisprflow.ai/). Phạm vi là giao diện extension; yêu cầu mới thay thế hướng màu đen ở lần thiết kế trước. Không thay đổi hợp đồng runtime.
 
+## Phản hồi mới nhất: tách nhiệm vụ thành từng mục
+
+Người dùng làm rõ: không nhồi mọi tính năng vào một trang; chia thành nhiều phần để tinh gọn. Bản hiện tại thay thế cách ghép hội thoại và trả lời ở checkpoint trước.
+
+- **Hội thoại** là mục mặc định, chỉ hiện lịch sử lời nói và bản dịch cùng nhau.
+- **Trả lời** dành riêng cho câu được chọn/đoán được, gợi ý, soạn câu, nguồn, chỉnh văn phong và sao chép.
+- **Tóm tắt** có kết quả riêng và nút yêu cầu AI rõ ràng. Chuyển mục không tự gửi yêu cầu AI.
+- Chỉ một panel xuất hiện trong giao diện và cây accessibility. Trạng thái cùng Tạm dừng/Micro/Dừng nằm ngoài các mục, trong cùng viewport.
+- “Trả lời câu này” chuyển sang Trả lời và đặt focus tại panel. Tablist hỗ trợ phím mũi tên, Home/End và một điểm Tab.
+- Hội thoại được giữ mounted, nhận lời thoại/bản dịch khi mở mục khác, giữ vị trí đọc giữa lịch sử khi quay lại; follow/jump vẫn hoạt động. Gợi ý và tóm tắt giữ kết quả độc lập. Soạn câu giữ bản nháp trong dialog.
+
+### Bằng chứng bản cuối
+
+| Kiểm tra | Kết quả |
+| --- | --- |
+| `npm run verify` | Lint/types, 34/34 tests và build xác minh đạt |
+| `npm run lint && npm run typecheck` sau sửa cuối | Đạt |
+| `TRANZ_CHROMIUM='<Chromium 1234>' npm run verify:ui -- artifacts/ui-sections` | **147/147 đạt** trên extension unpacked thực |
+| Layout từng mục | 320/360/375/400/414/480/600/768 px; một panel hiện, điều khiển vừa viewport; 320×600 đến 600×900 cho phần đọc/trả lời; chữ 200% tại 400×1100 |
+| Hành vi | Giữ vị trí đọc khác 0, nhận câu khi panel ẩn, bàn phím/focus, nguồn/uncertainty, kết quả AI độc lập, bản nháp, reduced motion, states, quyền/pairing và flow mock hiện có đều đạt |
+| `npm run build` | Đạt; `dist/extension` được cập nhật |
+| Trình duyệt local | Đã chọn câu, xem gợi ý và mở mục Tóm tắt ở 375×700 trên demo có nhãn dữ liệu tổng hợp/mock |
+| Diff và tài liệu | `git diff --check`, link Markdown local và quét credential marker trong nội dung thêm đạt |
+
+[Kết quả 147 mục](wispr-ui/sections-results.json). Các ảnh là render bản unpacked với dữ liệu kiểm thử tổng hợp; [DEVICE]/[MOCK] không chứng minh chất lượng dịch hoặc AI thật.
+
+![Hội thoại riêng tại 375×700](wispr-ui/sections-conversation-375.png)
+
+![Trả lời riêng tại 375×700](wispr-ui/sections-reply-375.png)
+
+![Tóm tắt riêng tại 360 px](wispr-ui/sections-catchup-360.png)
+
+File sửa: `apps/extension/src/views/Live.tsx`, `apps/extension/src/style.css`, `scripts/verify-ui.mjs`, `README.md`, `DESIGN.md`, `WORKFLOW.md`, `TODOS.md`, `CHANGELOG.md`, `.hallmark/log.json`, báo cáo này. Thêm ba ảnh và JSON kết quả ở `docs/evidence/wispr-ui/`.
+
+Không sửa App, server, shared contracts, capture, Agora, provider/translator, auth, manifest, retention hoặc dữ liệu thật. Không dùng lại các phiên thật làm test. Giữ nguyên `.claude/` chưa tracked.
+
+Nhánh vẫn `feat/wispr-inspired-ui`; cập nhật draft PR #15, không merge/release, không tăng VERSION, không chuyển phase. UI và xác minh local đã hoàn tất để review; native side panel, VoiceOver và các gate Meet thật vẫn pending. Nội dung dài cần cuộn trong mục tương ứng; chiều cao quá thấp ngoài các kích thước kiểm tra chưa được xác minh. Cảnh báo bundle offscreen khoảng 2.9 MB giữ nguyên.
+
+Các mục bên dưới lưu bằng chứng của những checkpoint trước, không mô tả layout hiện tại.
+
 ## Kết quả
 
 - Nền kem, vùng đọc sáng, nút tím nhạt, bản dịch xanh đậm; tiêu đề serif dùng font có sẵn trên máy.

@@ -23,6 +23,7 @@ const dataDir = mkdtempSync(join(tmpdir(), 'tranz-ui-'));
 const profileDir = mkdtempSync(join(tmpdir(), 'tranz-chromium-'));
 const results = [];
 let translationProviderCalls = 0;
+let assistanceProviderCalls = 0;
 // Matches VITE_TRANZ_BACKEND in build:verify, so a backend the person runs on 4318 is left alone.
 // Override both together (TRANZ_VERIFY_PORT + a build with that backend) when 4328 is already in use.
 const PORT = Number(process.env.TRANZ_VERIFY_PORT ?? 4328);
@@ -41,12 +42,14 @@ function check(name, pass, detail = '') {
 async function meetingFitsViewport(page) {
   return page.evaluate(() => {
     const root = document.scrollingElement;
-    const selectors = ['.controls', '.conversation', '.response-toolbar', '.response > .button-row'];
-    return root.scrollHeight <= window.innerHeight + 1 && root.scrollTop === 0 && selectors.every((selector) => {
-      const element = document.querySelector(selector);
-      const box = element?.getBoundingClientRect();
+    const panels = [...document.querySelectorAll('.live-workspace > .meeting-panel:not([hidden])')];
+    const selectors = ['.controls', '.meeting-section-tabs', '.meeting-panel:not([hidden])'];
+    const fits = root.scrollHeight <= window.innerHeight + 1 && root.scrollTop === 0 && panels.length === 1 && selectors.every((selector) => {
+      const box = document.querySelector(selector)?.getBoundingClientRect();
       return box && box.top >= 0 && box.bottom <= window.innerHeight + 1 && box.height >= 40;
-    }) && (document.querySelector('.conversation-items')?.clientHeight ?? document.querySelector('.conversation').clientHeight) >= 80;
+    });
+    const chat = panels[0]?.querySelector('.conversation-items');
+    return fits && (!chat || chat.clientHeight >= 80);
   });
 }
 
@@ -58,6 +61,7 @@ function mockProvider() {
       const body = JSON.parse(raw || '{}');
       const system = body.messages?.[0]?.content ?? '';
       const data = JSON.parse(body.messages?.[1]?.content ?? '{}');
+      if (data.task) assistanceProviderCalls++;
       let content;
       if (system.includes('Translate')) {
         translationProviderCalls++;
@@ -139,6 +143,10 @@ async function shoot(page, name) {
   // Navigation enters once. Capture the completed view, not the first transparent frame.
   await page.locator('.view-content').evaluate(async (el) => {
     await Promise.all(el.getAnimations().map((animation) => animation.finished.catch(() => {})));
+  });
+  // A task switch can finish React rendering before its short button colour transition.
+  await page.locator('.meeting-section-tabs').evaluateAll(async (tabs) => {
+    await Promise.all(tabs.flatMap((el) => el.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => {}))));
   });
   await page.screenshot({ path: join(out, `${name}.png`), fullPage: true });
 }
@@ -334,7 +342,9 @@ async function main() {
     await page.goto(panel);
     await page.getByText('Đang nghe, chưa có ai nói', { exact: true }).waitFor();
     await page.setViewportSize({ width: 320, height: 600 });
+    await page.getByRole('tab', { name: 'Trả lời', exact: true }).click();
     check('empty listening workspace fits one screen with disabled assistance', await meetingFitsViewport(page) && !(await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).isEnabled()));
+    await page.getByRole('tab', { name: 'Hội thoại', exact: true }).click();
     clearInterval(heartbeat);
     await api('POST', `/sessions/${sessionId}/heartbeat`, { state: 'connecting' });
     await page.locator('.status.connecting').waitFor();
@@ -359,6 +369,7 @@ async function main() {
     await page.getByText('[DEVICE] Bản dịch trên thiết bị: Can you share').waitFor({ timeout: 15000 });
     check('final lines use the on-device translator and do not call the AI translation provider', translationProviderCalls === 1);
     check('partial text is shown separately from final text', (await page.getByText('Đang nghe…', { exact: true }).count()) === 1);
+    await page.getByRole('tab', { name: 'Trả lời', exact: true }).click();
     check('the detected question is labelled as a guess', (await page.getByText('Câu hỏi Tranz đoán được').count()) === 1);
     await page.getByRole('button', { name: 'Ngữ cảnh', exact: true }).click();
     for (const width of [320, 375, 400]) {
@@ -372,17 +383,18 @@ async function main() {
     await activeScale.evaluate((el) => el.remove());
     await page.getByRole('button', { name: 'Quay lại cuộc họp', exact: true }).click();
     await page.setViewportSize({ width: 360, height: 1100 });
+    await page.getByRole('tab', { name: 'Trả lời', exact: true }).click();
     await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
     await page.getByText('[MOCK] Based on our plan').waitFor();
-    await page.getByRole('button', { name: 'Chi tiết gợi ý' }).click();
-    check('a reply keeps its sources available in a detail modal', await page.getByRole('dialog', { name: 'Chi tiết gợi ý' }).getByText('Xem nguồn', { exact: true }).isVisible());
-    await page.keyboard.press('Escape');
-    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    check('reply section keeps sources available without opening another screen', await page.getByText('Xem nguồn', { exact: true }).isVisible());
     check('a reply suggestion shows its sources and a check-before-use note', (await page.getByText(/Gợi ý của AI, hãy kiểm tra/).count()) === 1);
     check('chat keeps all previous final lines with their linked translations and the partial line',
       await page.locator('.chat-message').count() === 4 &&
       await page.locator('.chat-message.final .translation').count() === 3);
+    await page.getByRole('tab', { name: 'Hội thoại', exact: true }).click();
     await page.locator('.chat-message').first().getByRole('button', { name: 'Trả lời câu này' }).click();
+    check('selecting a sentence opens the reply section with conversation hidden', await page.getByRole('tab', { name: 'Trả lời', exact: true }).getAttribute('aria-selected') === 'true' && !(await page.locator('.conversation').isVisible()));
+    check('selecting a sentence moves focus into the reply panel', await page.locator('.reply-panel').evaluate((el) => el === document.activeElement));
     check('a previous chat line can be selected for a reply',
       await page.locator('.target[open]').getByText(lines[0], { exact: true }).isVisible());
     check('selected speech is marked and the previous AI reply is cleared',
@@ -391,10 +403,15 @@ async function main() {
     await shoot(page, '06-selected-sentence-360');
     await page.getByRole('button', { name: 'Bỏ chọn câu này' }).click();
     await page.setViewportSize({ width: 375, height: 800 });
+    await page.getByRole('tab', { name: 'Hội thoại', exact: true }).click();
     await shoot(page, '06-chat-compact-375');
     for (const [width, height] of [[320, 600], [375, 700], [400, 800], [600, 900]]) {
       await page.setViewportSize({ width, height });
-      check(`meeting fits one viewport at ${width}x${height}`, await meetingFitsViewport(page));
+      await page.getByRole('tab', { name: 'Hội thoại', exact: true }).click();
+      check(`conversation alone fits one viewport at ${width}x${height}`, await meetingFitsViewport(page));
+      check(`conversation hides reply and catch-up actions at ${width}x${height}`, !(await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).isVisible()) && !(await page.getByRole('button', { name: 'Tóm tắt vừa rồi' }).isVisible()));
+      await shoot(page, `06-sections-conversation-${width}-${height}`);
+      await page.getByRole('tab', { name: 'Trả lời', exact: true }).click();
       await page.getByRole('button', { name: 'Gợi ý câu trả lời' }).click();
       await page.getByText('[MOCK] Based on our plan').waitFor();
       await page.waitForFunction(() => !document.querySelector('.response > .button-row > .primary')?.disabled);
@@ -440,6 +457,7 @@ async function main() {
     await page.setViewportSize({ width: 375, height: 800 });
 
 
+    await page.getByRole('tab', { name: 'Hội thoại', exact: true }).click();
     const extraLines = Array.from({ length: 12 }, (_, i) => ({
       id: `chat-extra-${i}`, text: `Synthetic previous sentence ${i}.`, final: true, revision: 1, at: Date.now() + i,
     }));
@@ -452,6 +470,29 @@ async function main() {
       id: 'chat-extra-new', text: 'Synthetic new sentence while reading history.', final: true, revision: 1, at: Date.now() + 50,
     }]);
     await page.locator('[data-segment-id="chat-extra-new"]').waitFor();
+    await chat.evaluate((el) => { el.scrollTop = 120; });
+    const savedHistoryPosition = await chat.evaluate((el) => el.scrollTop);
+    const beforeTabCalls = assistanceProviderCalls;
+    await page.getByRole('tab', { name: 'Trả lời', exact: true }).click();
+    await page.getByRole('tab', { name: 'Tóm tắt', exact: true }).click();
+    await api('PUT', `/sessions/${sessionId}/segments`, [{
+      id: 'chat-while-hidden', text: 'Synthetic speech received while reading catch-up.', final: true, revision: 1, at: Date.now() + 55,
+    }]);
+    await page.locator('[data-segment-id="chat-while-hidden"]').waitFor({ state: 'attached' });
+    check('conversation keeps receiving speech while another section is open', true);
+    await page.getByRole('tab', { name: 'Hội thoại', exact: true }).click();
+    check('history test starts at a nonzero reading position', savedHistoryPosition > 0);
+    check('section changes preserve the history reader position', await chat.evaluate((el, position) => Math.abs(el.scrollTop - position) < 2, savedHistoryPosition));
+    check('switching sections does not request AI assistance', assistanceProviderCalls === beforeTabCalls);
+    const taskTab = page.getByRole('tab', { name: 'Hội thoại', exact: true });
+    await taskTab.focus();
+    await page.keyboard.press('ArrowRight');
+    check('arrow keys activate and focus the next task tab', await page.getByRole('tab', { name: 'Trả lời', exact: true }).evaluate((el) => el === document.activeElement && el.getAttribute('aria-selected') === 'true'));
+    await page.keyboard.press('End');
+    check('End selects the last task and only one panel is exposed', await page.getByRole('tabpanel').count() === 1 && await page.getByRole('tab', { name: 'Tóm tắt', exact: true }).getAttribute('aria-selected') === 'true');
+    await page.keyboard.press('Home');
+    check('Home returns to conversation', await taskTab.getAttribute('aria-selected') === 'true');
+    await chat.evaluate((el) => { el.scrollTop = 0; });
     check('new speech preserves the reader position while reviewing previous lines',
       await chat.evaluate((el) => el.scrollTop < 2));
     await page.getByRole('button', { name: 'Xuống câu mới nhất' }).click();
@@ -466,21 +507,34 @@ async function main() {
       return el.scrollHeight - el.clientHeight - el.scrollTop < 2;
     });
     check('chat follows new speech when already reading the latest line', true);
-    check('meeting controls and reply actions fit together without page scrolling', await meetingFitsViewport(page));
+    check('conversation section and meeting controls fit without page scrolling', await meetingFitsViewport(page));
     for (const width of widths) {
       await page.setViewportSize({ width, height: 1100 });
       check(`simulated live view has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
       await shoot(page, `06-live-simulated-${width}`);
+      for (const section of ['Trả lời', 'Tóm tắt']) {
+        await page.getByRole('tab', { name: section, exact: true }).click();
+        check(`${section} section has no horizontal overflow at ${width}px`, await noHorizontalOverflow(page));
+        check(`${section} section keeps only one task and controls in the viewport at ${width}px`, await meetingFitsViewport(page));
+      }
+      await page.getByRole('tab', { name: 'Hội thoại', exact: true }).click();
     }
     await page.setViewportSize({ width: 360, height: 1100 });
+    await page.getByRole('tab', { name: 'Tóm tắt', exact: true }).click();
     await page.getByRole('button', { name: 'Tóm tắt vừa rồi' }).click();
     await page.getByText('[MOCK] Mọi người').waitFor();
+    await shoot(page, '07-sections-catchup-360');
+    await page.getByRole('tab', { name: 'Trả lời', exact: true }).click();
+    check('catch-up keeps the previous reply available in its own section', await page.getByText('[MOCK] Based on our plan').isVisible());
     await page.getByText('Tôi muốn nói…').click();
     await page.getByLabel('Điều bạn muốn nói, bằng tiếng Việt').fill('Tôi cần thêm thời gian để xác nhận.');
     await page.getByRole('button', { name: 'Chuyển sang tiếng Anh' }).click();
     await page.getByText('[MOCK] I need a little more time').waitFor();
     check('catch-up and the Vietnamese composer round-trip through the backend (mock provider)', true);
     await shoot(page, '07-composer-360');
+    await page.getByRole('tab', { name: 'Tóm tắt', exact: true }).click();
+    check('composing a reply does not overwrite the catch-up result', await page.getByText('[MOCK] Mọi người').isVisible());
+    await page.getByRole('tab', { name: 'Trả lời', exact: true }).click();
 
     // Reduced motion removes the live pulse
     await page.emulateMedia({ reducedMotion: 'reduce' });

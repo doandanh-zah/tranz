@@ -21,7 +21,7 @@ Implementation candidate on stacked, unmerged review branches. Live Agora and Ch
 
 ### Changed (after user review)
 
-- Active meeting workspace fits one viewport with always-visible controls and reply actions; history and long replies scroll internally, while compose, context and suggestion details open native dialogs.
+- Active meetings now separate Conversation, Reply and Catch-up into task tabs with shared controls, retained reading position and separate AI results. Compose/context use dialogs; sources, restyling and copy live in the dedicated reply section. Navigating sections does not request AI.
 - Wispr-inspired light extension UI: cream surfaces, local serif headings, lavender actions, forest translation, segmented navigation, explicit start prerequisites, selected-sentence feedback and consistent context/library/settings/notes presentation. Runtime and privacy contracts are unchanged.
 
 - Compact chronological chat replaces the separate latest-line/history surfaces. Earlier sentences keep their linked translations and remain selectable; new speech preserves the reader’s position while they review history. Reply transformations are collapsed, copy remains visible, and spacing is reduced. Counterpart-only capture is pending a source choice; audio is unchanged at this checkpoint.

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowDown, ArrowUpRight, Copy, Info, MessageCircle, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { ArrowDown, ArrowUpRight, Copy, MessageCircle, Mic, MicOff, Pause, Play, RefreshCw, Square, X } from 'lucide-react';
 import type { Api } from '../api';
 import type { Capabilities, Run } from '../App';
 import type { AssistKind, EndReason, ReplyStyle, Segment, Session, Suggestion } from '../../../../packages/shared/contracts';
@@ -57,14 +57,20 @@ export function Live({
   onDelete: () => void;
   onUpdate: (session: Session) => void;
 }) {
-  const [result, setResult] = useState<Suggestion>();
+  const [replyResult, setReplyResult] = useState<Suggestion>();
+  const [catchupResult, setCatchupResult] = useState<Suggestion>();
+  const [lastResult, setLastResult] = useState<Suggestion>();
+  const [section, setSection] = useState<MeetingSection>('conversation');
+  const replyPanel = useRef<HTMLDivElement>(null);
+  const moveReplyFocus = useRef(false);
   const [selected, setSelected] = useState<Segment>();
   const [draft, setDraft] = useState('');
   const request = useRef(0);
   const [composeFailed, setComposeFailed] = useState(false);
-  const [detail, setDetail] = useState<'compose' | 'context' | 'result'>();
+  const [detail, setDetail] = useState<'compose' | 'context'>();
 
   const active = !['stopped', 'error'].includes(session.state);
+  const result = active ? replyResult : lastResult;
   const starting = session.state === 'created' || session.state === 'connecting';
   const finals = session.segments.filter((s) => s.final);
   const detected = finals
@@ -74,6 +80,13 @@ export function Live({
   const target = selected ?? detected;
   const aiReady = !!capabilities?.ai;
 
+  useLayoutEffect(() => {
+    if (active && section === 'reply' && moveReplyFocus.current) {
+      replyPanel.current?.focus();
+      moveReplyFocus.current = false;
+    }
+  }, [active, section, selected?.id]);
+
   async function assist(kind: AssistKind, style: ReplyStyle = 'clear') {
     if (kind === 'compose') setComposeFailed(false);
     const sequence = ++request.current;
@@ -81,10 +94,17 @@ export function Live({
       const text = kind === 'compose' ? draft : kind === 'reply' ? (target?.text ?? '') : '';
       const next = await api.call<Suggestion>(`/sessions/${session.id}/assist`, 'POST', { kind, text, style });
       // Ignore a slower, older request that finishes after a newer one.
-      if (sequence === request.current) setResult(next);
+      if (sequence === request.current) {
+        setLastResult(next);
+        if (kind === 'catch-up') setCatchupResult(next);
+        else setReplyResult(next);
+      }
     });
     if (detail === 'compose' && kind === 'compose') setComposeFailed(!ok);
-    if (ok && kind === 'compose' && sequence === request.current) setDetail(undefined);
+    if (ok && kind === 'compose' && sequence === request.current) {
+      setDetail(undefined);
+      setSection('reply');
+    }
   }
 
   const composer = (
@@ -132,83 +152,118 @@ export function Live({
           {muted && active && <p className="caption">Micro của bạn đang tắt với Tranz (Google Meet không bị ảnh hưởng). Tranz vẫn nghe những người khác.</p>}
         </div>
 
-        {active && (
-          <div className="controls" role="group" aria-label="Điều khiển phiên">
-            <button className="secondary" disabled={starting || !!busy} onClick={onPause}>
-              {session.state === 'paused' ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
-              {session.state === 'paused' ? 'Tiếp tục' : 'Tạm dừng'}
-            </button>
-            <button
-              className="icon outlined"
-              disabled={starting || !!busy}
-              aria-pressed={muted}
-              aria-label={muted ? 'Micro đang tắt với Tranz. Bật lại' : 'Tắt micro của tôi với Tranz'}
-              title="Tranz ngừng nghe micro của bạn. Không ảnh hưởng tới Google Meet."
-              onClick={onMute}
-            >
-              {muted ? <MicOff size={17} /> : <Mic size={17} />}
-            </button>
-            <button className="stop" disabled={busy === 'stop'} onClick={onStop}>
-              {busy === 'stop' ? <Spinner /> : <Square size={13} aria-hidden="true" />}
-              Dừng
-            </button>
-          </div>
-        )}
       </div>
       {!active && (
         <AfterMeeting api={api} session={session} busy={busy} run={run} aiReady={!!capabilities?.ai} onUpdate={onUpdate} onNext={onNext} onDelete={onDelete} />
       )}
-      <Conversation segments={session.segments} selectedId={selected?.id} active={active} starting={starting} aiReady={aiReady} onUse={(segment) => { request.current++; setSelected(segment); setResult(undefined); }} onTranslate={onTranslate} />
+      {active && <MeetingSectionTabs current={section} onChange={setSection} />}
+      <div className="meeting-panel conversation-panel" hidden={active && section !== 'conversation'} role={active ? 'tabpanel' : undefined} id="meeting-conversation" aria-labelledby={active ? 'tab-conversation' : undefined} tabIndex={active ? 0 : undefined}>
+      <Conversation visible={!active || section === 'conversation'} segments={session.segments} selectedId={selected?.id} active={active} starting={starting} aiReady={aiReady} onUse={(segment) => { moveReplyFocus.current = true; request.current++; setSelected(segment); setReplyResult(undefined); setLastResult(undefined); setSection('reply'); }} onTranslate={onTranslate} />
+      </div>
+      <div ref={replyPanel} className="meeting-panel reply-panel" hidden={active && section !== 'reply'} role={active ? 'tabpanel' : undefined} id="meeting-reply" aria-labelledby={active ? 'tab-reply' : undefined} tabIndex={active ? 0 : undefined}>
+        <section className="panel response" aria-labelledby="respond-heading">
+          <div className="response-toolbar">
+            <h2 id="respond-heading" className="response-heading">
+              <MessageCircle size={17} aria-hidden="true" /> Đến lượt bạn
+            </h2>
+          </div>
+          <div className="response-body" tabIndex={active ? 0 : undefined} aria-label={active ? 'Nội dung trả lời' : undefined}>
+            {(!active || !result) && (target ? (
+              <details className="target" open={selected ? true : undefined}>
+                <summary>{selected ? 'Câu bạn đã chọn' : 'Câu hỏi Tranz đoán được'}</summary>
+                <p lang="en">{target.text}</p>
+                {selected && (
+                  <button className="icon small" aria-label="Bỏ chọn câu này" onClick={() => { request.current++; setSelected(undefined); setReplyResult(undefined); setLastResult(undefined); }}>
+                    <X size={15} />
+                  </button>
+                )}
+              </details>
+            ) : (
+              <p className="caption">Chọn một câu trong hội thoại để trả lời, hoặc soạn điều bạn muốn nói.</p>
+            ))}
+            {!aiReady && <p className="caption">Đăng nhập ChatGPT trong Cài đặt để dùng gợi ý và dịch.</p>}
 
-      <section className="panel response" aria-labelledby="respond-heading">
-        <div className="response-toolbar">
-          <h2 id="respond-heading" className="response-heading">
-            <MessageCircle size={17} aria-hidden="true" /> Đến lượt bạn
-          </h2>
-          {active && result && <button className="icon result-details" aria-label="Chi tiết gợi ý" title="Nguồn, chỉnh câu và sao chép" onClick={() => setDetail('result')}><Info size={18} /></button>}
-          {active && <button className="text-button compose-open" onClick={() => setDetail('compose')}>Tôi muốn nói…</button>}
+            {result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
+
+          </div>
+          <div className="button-row">
+            <button className="primary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
+              {busy === 'reply' ? <Spinner /> : <ArrowUpRight size={16} aria-hidden="true" />}
+              Gợi ý câu trả lời
+            </button>
+            {!active && <button className="text-button" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('catch-up')}>
+              {busy === 'catch-up' ? 'Đang tóm tắt…' : 'Tóm tắt vừa rồi'}
+            </button>}
+            {active && <button className="secondary compose-open" onClick={() => setDetail('compose')}>Tôi muốn nói…</button>}
+          </div>
+          {!active && <details className="composer"><summary>Tôi muốn nói…</summary>{composer}</details>}
+        </section>
+      </div>
+      {active && <div className="meeting-panel catchup-panel" hidden={section !== 'catchup'} role="tabpanel" id="meeting-catchup" aria-labelledby="tab-catchup" tabIndex={0}>
+        <div className="catchup-body" tabIndex={0} aria-label="Nội dung tóm tắt">
+          {catchupResult ? <Result result={catchupResult} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} /> : <div className="task-empty">
+            <h2>Theo kịp cuộc trò chuyện</h2>
+            <p className="caption">Tóm tắt phần trao đổi gần đây bằng tiếng Việt khi bạn cần.</p>
+          </div>}
+          {!aiReady && <p className="caption">Đăng nhập ChatGPT trong Cài đặt để dùng tóm tắt.</p>}
         </div>
-        <div className="response-body">
-          {(!active || !result) && (target ? (
-            <details className="target" open={selected ? true : undefined}>
-              <summary>{selected ? 'Câu bạn đã chọn' : 'Câu hỏi Tranz đoán được'}</summary>
-              <p lang="en">{target.text}</p>
-              {selected && (
-                <button className="icon small" aria-label="Bỏ chọn câu này" onClick={() => { request.current++; setSelected(undefined); setResult(undefined); }}>
-                  <X size={15} />
-                </button>
-              )}
-            </details>
-          ) : (
-            <p className="caption">Chọn một câu trong hội thoại để trả lời, hoặc soạn điều bạn muốn nói.</p>
-          ))}
-          {!aiReady && <p className="caption">Đăng nhập ChatGPT trong Cài đặt để dùng gợi ý và dịch.</p>}
-
-          {result && <Result compact={active} result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
-
-        </div>
-        <div className="button-row">
-          <button className="primary" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('reply')}>
-            {busy === 'reply' ? <Spinner /> : <ArrowUpRight size={16} aria-hidden="true" />}
-            Gợi ý câu trả lời
+        <button className="primary catchup-action" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('catch-up')}>
+          {busy === 'catch-up' ? <Spinner /> : <RefreshCw size={16} aria-hidden="true" />}
+          {busy === 'catch-up' ? 'Đang tóm tắt…' : 'Tóm tắt vừa rồi'}
+        </button>
+      </div>}
+      {active && (
+        <div className="controls" role="group" aria-label="Điều khiển phiên">
+          <button className="secondary" disabled={starting || !!busy} onClick={onPause}>
+            {session.state === 'paused' ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
+            {session.state === 'paused' ? 'Tiếp tục' : 'Tạm dừng'}
           </button>
-          <button className="text-button" disabled={!!busy || !finals.length || !aiReady} onClick={() => void assist('catch-up')}>
-            {busy === 'catch-up' ? 'Đang tóm tắt…' : 'Tóm tắt vừa rồi'}
+          <button
+            className="icon outlined"
+            disabled={starting || !!busy}
+            aria-pressed={muted}
+            aria-label={muted ? 'Micro đang tắt với Tranz. Bật lại' : 'Tắt micro của tôi với Tranz'}
+            title="Tranz ngừng nghe micro của bạn. Không ảnh hưởng tới Google Meet."
+            onClick={onMute}
+          >
+            {muted ? <MicOff size={17} /> : <Mic size={17} />}
+          </button>
+          <button className="stop" disabled={busy === 'stop'} onClick={onStop}>
+            {busy === 'stop' ? <Spinner /> : <Square size={13} aria-hidden="true" />}
+            Dừng
           </button>
         </div>
-        {!active && <details className="composer"><summary>Tôi muốn nói…</summary>{composer}</details>}
-      </section>
-
+      )}
       {!active && <details className="panel">
         <summary>Ngữ cảnh dùng cho phiên này: {session.context.name}</summary>
         <ContextDetails profile={session.context} />
       </details>}
-      {detail && <MeetingDetail title={detail === 'compose' ? 'Tôi muốn nói…' : detail === 'context' ? 'Ngữ cảnh của phiên' : 'Chi tiết gợi ý'} onClose={() => setDetail(undefined)}>
-        {detail === 'compose' ? composer : detail === 'context' ? <><h3>{session.context.name}</h3><ContextDetails profile={session.context} /></> : result && <Result result={result} session={session} busy={busy} onRestyle={(style) => void assist('reply', style)} onCopied={onNotice} />}
+      {detail && <MeetingDetail title={detail === 'compose' ? 'Tôi muốn nói…' : 'Ngữ cảnh của phiên'} onClose={() => setDetail(undefined)}>
+        {detail === 'compose' ? composer : <><h3>{session.context.name}</h3><ContextDetails profile={session.context} /></>}
         {detail === 'compose' && busy === 'compose' && <p className="caption" role="status">Đang chuyển câu sang tiếng Anh…</p>}
       </MeetingDetail>}
     </div>
   );
+}
+
+const meetingSections = [
+  ['conversation', 'Hội thoại'],
+  ['reply', 'Trả lời'],
+  ['catchup', 'Tóm tắt'],
+] as const;
+type MeetingSection = (typeof meetingSections)[number][0];
+
+function MeetingSectionTabs({ current, onChange }: { current: MeetingSection; onChange: (section: MeetingSection) => void }) {
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  return <div className="meeting-section-tabs" role="tablist" aria-label="Mục trong cuộc họp">
+    {meetingSections.map(([key, label], index) => <button key={key} ref={(node) => { buttons.current[index] = node; }} id={`tab-${key}`} role="tab" aria-selected={current === key} aria-controls={`meeting-${key}`} tabIndex={current === key ? 0 : -1} onClick={() => onChange(key)} onKeyDown={(event) => {
+      const next = event.key === 'ArrowRight' ? (index + 1) % 3 : event.key === 'ArrowLeft' ? (index + 2) % 3 : event.key === 'Home' ? 0 : event.key === 'End' ? 2 : undefined;
+      if (next === undefined) return;
+      event.preventDefault();
+      onChange(meetingSections[next][0]);
+      buttons.current[next]?.focus();
+    }}>{label}</button>)}
+  </div>;
 }
 
 /** Secondary tasks stay in a native modal, leaving the meeting workspace at its viewport size. */
@@ -284,14 +339,12 @@ function Translation({
 }
 
 function Result({
-  compact = false,
   result,
   session,
   busy,
   onRestyle,
   onCopied,
 }: {
-  compact?: boolean;
   result: Suggestion;
   session: Session;
   busy: string;
@@ -305,19 +358,19 @@ function Result({
 
   return (
     <div className="result" aria-live="polite">
-      <h3 className={compact ? 'sr-only' : undefined}>{heading}</h3>
-      {!compact && result.question && <p className="caption">Cho câu: “{result.question}”</p>}
+      <h3>{heading}</h3>
+      {result.question && <p className="caption">Cho câu: “{result.question}”</p>}
       <p className="suggestion" lang={vietnamese ? 'vi' : 'en'}>
         {result.text}
       </p>
       <p className={`evidence-label ${result.uncertain ? 'uncertain' : ''}`}>
         {result.uncertain ? 'Chưa chắc chắn, hãy kiểm tra trước khi dùng. ' : 'Gợi ý của AI, hãy kiểm tra trước khi dùng. '}
-        {!compact && result.kind !== 'compose' &&
+        {result.kind !== 'compose' &&
           (usedProfile || lines.length
             ? `Dựa trên ${[usedProfile && 'ngữ cảnh của bạn', lines.length && `${lines.length} câu trong cuộc họp`].filter(Boolean).join(' và ')}.`
             : 'Không dựa trên nguồn cụ thể nào.')}
       </p>
-      {!compact && result.evidence.length > 0 && (
+      {result.evidence.length > 0 && (
         <details>
           <summary>Xem nguồn</summary>
           <ul className="evidence">
@@ -330,7 +383,7 @@ function Result({
           </ul>
         </details>
       )}
-      {!compact && result.kind === 'reply' && <details className="reply-actions">
+      {result.kind === 'reply' && <details className="reply-actions">
         <summary>Chỉnh câu trả lời</summary>
         <div className="chip-row">
         {
@@ -348,7 +401,7 @@ function Result({
           ))}
         </div>
       </details>}
-      {!compact && <button className="text-button copy-reply"
+      <button className="text-button copy-reply"
           onClick={() =>
             void navigator.clipboard
               .writeText(result.text)
@@ -358,12 +411,13 @@ function Result({
         >
           <Copy size={13} aria-hidden="true" />
           Sao chép
-      </button>}
+      </button>
     </div>
   );
 }
 
 function Conversation({
+  visible,
   segments,
   selectedId,
   active,
@@ -372,6 +426,7 @@ function Conversation({
   onUse,
   onTranslate,
 }: {
+  visible: boolean;
   segments: Segment[];
   selectedId?: string;
   active: boolean;
@@ -383,17 +438,22 @@ function Conversation({
   const [following, setFollowing] = useState(true);
   const list = useRef<HTMLOListElement>(null);
   const followingRef = useRef(true);
+  const readingPosition = useRef(0);
 
   // Keep the reader's position; only auto-scroll while they are already at the newest line.
   useEffect(() => {
-    if (following && list.current) list.current.scrollTop = list.current.scrollHeight;
-  }, [following, segments]);
+    if (visible && following && list.current) list.current.scrollTop = list.current.scrollHeight;
+  }, [visible, following, segments]);
+
+  useLayoutEffect(() => {
+    if (visible && list.current) list.current.scrollTop = followingRef.current ? list.current.scrollHeight : readingPosition.current;
+  }, [visible]);
 
   useEffect(() => {
     const element = list.current;
     if (!element) return;
     const observer = new ResizeObserver(() => {
-      if (followingRef.current) element.scrollTop = element.scrollHeight;
+      if (element.clientHeight && followingRef.current) element.scrollTop = element.scrollHeight;
     });
     observer.observe(element);
     return () => observer.disconnect();
@@ -419,6 +479,8 @@ function Conversation({
             aria-label="Toàn bộ hội thoại"
             onScroll={(event) => {
               const el = event.currentTarget;
+              if (!visible || !el.clientHeight) return;
+              readingPosition.current = el.scrollTop;
               followingRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
               setFollowing(followingRef.current);
             }}

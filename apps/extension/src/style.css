@@ -1503,8 +1503,7 @@ button:active:not(:disabled) { transform: translateY(1px); }
 }
 
 
-/* During a meeting the shell owns the viewport. Only history, lengthy replies and
- * secondary dialogs scroll; ordinary controls never sit over the reading surface. */
+/* One meeting task per section; shared session controls remain outside the reading panels. */
 .app.is-live { height: 100dvh; min-height: 0; }
 .is-live .topbar { display: flex; align-items: center; flex: 0 0 auto; margin: 8px 10px 0; }
 .is-live .masthead { flex: 1; min-width: 0; min-height: 52px; padding: 4px 6px; gap: 4px; flex-wrap: nowrap; }
@@ -1532,7 +1531,7 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .live-workspace .session-alerts { max-height: 16dvh; overflow: auto; margin-bottom: 8px; }
 .live-workspace .session-alerts > :last-child { margin-bottom: 0; }
 .live-workspace .banner { padding: 8px; }
-.live-workspace .controls { margin-bottom: 0; }
+.live-workspace > .controls { flex: 0 0 auto; margin: 0; padding-top: 8px; border-top: 1px solid var(--line); }
 .live-workspace .conversation { display: flex; flex-direction: column; flex: 1 1 0; min-height: 116px; margin: 0; }
 .live-workspace .conversation .section-label { flex: 0 0 auto; margin: 0 2px 6px; }
 .live-workspace .conversation-items { height: auto; flex: 1; min-height: 0; padding: 8px; }
@@ -1540,12 +1539,11 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .live-workspace .jump { flex: 0 0 auto; width: 44px; height: 44px; margin: 0; padding: 0; }
 .live-workspace .conversation:has(.jump) { min-height: 132px; }
 .live-workspace .conversation .section-label h2 { margin-right: auto; }
-.live-workspace .response { display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-height: 42%; padding: 8px 10px; margin: 0; gap: 6px; }
-.live-workspace .response:has(.result) { flex-basis: 42%; }
+.live-workspace .response { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 12px; margin: 0; gap: 12px; }
 .response-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .live-workspace .response-toolbar { flex: 0 0 auto; }
 .live-workspace .response-heading { flex: 1; margin: 0; font-size: 0.875rem; gap: 6px; }
-.live-workspace .compose-open { font-size: 0.8125rem; min-height: 44px; padding: 4px; }
+.live-workspace .compose-open { font-size: 0.8125rem; min-height: 44px; padding-inline: 8px; }
 .live-workspace .response-body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 2px; }
 .live-workspace .response-body > :last-child { margin-bottom: 0; }
 .live-workspace .response > .button-row { flex: 0 0 auto; flex-wrap: nowrap; gap: 6px; }
@@ -1571,10 +1569,19 @@ button:active:not(:disabled) { transform: translateY(1px); }
   .live-workspace { gap: 6px; }
   .live-workspace .session-heading .eyebrow, .live-workspace .session-meta { display: none; }
 }
-/* Large type gets wrapping controls plus internal reading areas, without clipping text. */
-@media (min-width: 360px) {
-  .live-workspace .response > .button-row > .primary { min-width: 0; }
-}
+.meeting-section-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; flex: 0 0 auto; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.meeting-section-tabs button { border: 0; min-height: 44px; padding: 8px 4px; border-radius: var(--radius-control); background: none; color: var(--muted); font-size: 0.875rem; line-height: 1.3; font-weight: 600; }
+.meeting-section-tabs button:hover { background: var(--hover); }
+.meeting-section-tabs button[aria-selected='true'] { background: var(--lavender-wash); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 700; }
+.live-workspace > .meeting-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.meeting-panel[hidden] { display: none !important; }
+.live-workspace .catchup-panel { gap: 12px; border: 1px solid var(--line); border-radius: var(--radius-frame); background: var(--raised); padding: 12px; }
+.catchup-body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 2px; scrollbar-gutter: stable; }
+.catchup-action { flex: 0 0 auto; }
+.task-empty { padding: 24px 8px; }
+.live-workspace .result { padding: 12px; }
+.live-workspace .result .suggestion { font-size: 1.125rem; }
+.live-workspace .conversation .empty { margin: auto 0; }
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

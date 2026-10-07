@@ -8,7 +8,7 @@ Tranz helps Vietnamese professionals understand difficult English conversations,
 
 **Stage:** Local MVP implementation candidate — integrated synthetic review complete; bounded live gates remain
 
-**Current delivery phase:** Phase 08W Wispr-inspired UI/UX review in [draft PR #15](https://github.com/doandanh-zah/tranz/pull/15) on `feat/wispr-inspired-ui`, from the Phase 08V chat checkpoint (`60e2cf4`). Active meetings now fit one viewport, with internally scrolling history/replies and dialogs for secondary tasks. Presentation only; counterpart-only capture remains pending its source choice. No merge or release. See [evidence](docs/evidence/wispr-inspired-ui.md).
+**Current delivery phase:** Phase 08W Wispr-inspired UI/UX review in [draft PR #15](https://github.com/doandanh-zah/tranz/pull/15) on `feat/wispr-inspired-ui`, from the Phase 08V chat checkpoint (`60e2cf4`). Active meetings use separate Conversation, Reply and Catch-up sections within one viewport, with shared controls and dialogs for secondary tasks. Presentation only; counterpart-only capture remains pending its source choice. No merge or release. See [evidence](docs/evidence/wispr-inspired-ui.md).
 
 ## Product loop
 
