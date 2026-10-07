@@ -152,6 +152,6 @@ await start(
   'ready',
 );
 await seed();
-await start(process.execPath, ['node_modules/vite/bin/vite.js'], { VITE_TRANZ_BACKEND: `http://127.0.0.1:${BACKEND_PORT}` }, 'Local');
+await start(process.execPath, ['node_modules/vite/bin/vite.js'], { VITE_TRANZ_BACKEND: `http://127.0.0.1:${BACKEND_PORT}`, VITE_TRANZ_DEMO: '1' }, 'Local');
 console.log(`\nTranz UI demo (synthetic data, mock AI${live ? ', simulated meeting' : ''}): http://127.0.0.1:5173`);
 console.log(`Demo token (not a secret, only for this throwaway backend): ${DEMO_TOKEN}`);

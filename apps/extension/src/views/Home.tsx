@@ -49,10 +49,10 @@ export function Home({
   return (
     <>
       <section className="meeting-intro" aria-label="Trợ lý cuộc họp tiếng Anh">
-        <LanguageBridge />
-        <ViewHeading kicker="Trợ lý cuộc họp tiếng Anh" title="Sẵn sàng cho cuộc họp">
-          Nghe tiếng Anh, đọc tiếng Việt, trả lời tự tin.
+        <ViewHeading kicker="Một chút hỗ trợ. Nhiều hơn tự tin." title="Sẵn sàng cho cuộc họp">
+          Hiểu từng câu tiếng Anh.<br />Nói điều bạn muốn, theo cách của bạn.
         </ViewHeading>
+        <LanguageBridge />
       </section>
 
       {capabilities && !capabilities.agora && (
@@ -67,7 +67,7 @@ export function Home({
 
       <section className="preparation" aria-labelledby="preparation-heading">
         <div className="section-label">
-          <h2 id="preparation-heading">Chuẩn bị trước khi nghe</h2>
+          <h2 id="preparation-heading">{allReady ? 'Bạn đã sẵn sàng' : 'Chuẩn bị trước khi nghe'}</h2>
           <span className="step-count" aria-label={`${[aiReady, microphone.granted, meeting.ready].filter(Boolean).length} trên 3 bước đã xong`}>
             {[aiReady, microphone.granted, meeting.ready].filter(Boolean).length}/3
           </span>
@@ -131,11 +131,13 @@ export function Home({
       <TranslationReadiness status={deviceTranslation} />
 
       <section className="start-zone" aria-label="Bắt đầu cuộc họp">
-        <button className="primary full start" disabled={!!busy || !canStart} onClick={() => onStart(retain)}>
+        <button className="primary full start" aria-describedby={!canStart ? 'start-requirements' : undefined} disabled={!!busy || !canStart} onClick={() => onStart(retain)}>
           {busy === 'start' ? <Spinner /> : <Headphones size={20} aria-hidden="true" />}
-          {busy === 'start' ? 'Đang kết nối… (khoảng 10 giây)' : 'Bắt đầu nghe'}
+          {busy === 'start' ? 'Đang kết nối…' : 'Bắt đầu nghe'}
           {busy !== 'start' && <ArrowUpRight size={18} aria-hidden="true" className="start-arrow" />}
         </button>
+        {!canStart && isExtension && <p id="start-requirements" className="caption start-requirements">{!capabilities?.agora ? 'Hoàn tất cài đặt Tranz và các bước trên để bắt đầu.' : 'Hoàn tất các bước chuẩn bị ở trên để bắt đầu.'}</p>}
+        {busy === 'start' && <p className="caption" role="status">Tranz đang kết nối, thường mất khoảng 10 giây.</p>}
         <p className="start-assurance"><ShieldCheck size={14} aria-hidden="true" /> Chỉ bắt đầu khi bạn bấm nút. Không lưu âm thanh.</p>
         {!isExtension && <p className="caption">Bản xem thử giao diện · Mở extension trong Chrome để nghe cuộc họp.</p>}
         {/* Pressing the button is the consent (PR-004), so this stays visible rather than collapsed. */}

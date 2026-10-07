@@ -14,7 +14,7 @@ The interface is not a transcript dashboard. Its primary job is to reduce the us
 
 ### Glanceable under pressure
 
-- Keep the current thought, translation, and best next action visible without scrolling.
+- Show one meeting task at a time: conversation, reply or catch-up. Keep its content and the shared session controls within the viewport; do not stack every task onto the same screen.
 - Prefer one strong suggestion over a wall of alternatives.
 - Use short labels and direct verbs.
 - Place secondary detail behind deliberate actions.
@@ -66,11 +66,13 @@ The ready screen should explain what Tranz can hear, what it will store, and wha
 
 ### During the meeting
 
-The default live view has three priorities:
+The live view has three task sections, opening on Conversation:
 
 1. **Conversation:** chronological chat bubbles, each keeping its English source and Vietnamese translation together.
 2. **Respond:** the detected question or user-selected text and one grounded response suggestion.
-3. **Control:** session health, listening state, catch-up, pause, and stop.
+3. **Catch-up:** a user-triggered Vietnamese explanation of recent speech, with its own retained result.
+
+Session health, listening state, pause, microphone and stop remain shared outside the sections. Selecting a final transcript sentence opens Respond and moves focus into its panel. Switching sections does not trigger AI requests. Reply/composer output and catch-up output are retained separately while the current panel remains mounted.
 
 Earlier chat bubbles remain available in the same scroll region. New speech follows only when the reader is already at the bottom; otherwise preserve their position and offer a jump to the newest line. Suggestions should support quick actions such as `Shorter`, `Simpler English`, `More professional`, and `Ask for clarification`.
 
@@ -94,6 +96,8 @@ Session header
 ├─ connection and listening state
 └─ pause / stop
 
+Task navigation: Conversation / Reply / Catch-up (only one visible)
+
 Conversation chat
 ├─ chronological English segments with linked Vietnamese translations
 ├─ distinct in-progress bubble
@@ -104,6 +108,10 @@ Response support
 ├─ primary suggested reply
 ├─ compact transformations
 └─ copy / mark useful
+
+Catch-up
+├─ recent Vietnamese explanation
+└─ explicit request / refresh
 
 Context and session details
 ├─ active context snapshot
@@ -171,17 +179,17 @@ Loading states must preserve the last reliable content when safe. Error states m
 
 ## Visual system direction
 
-The visual system is a fixed, true-black monochrome theme, requested by the user on 2026-09-30 with X's dark mode as the colour reference and the Zahlook skill ("dark editorial network") as the design method. It replaces the earlier liquid-glass direction:
+The current system is a warm, light editorial interface inspired by the user's public [Wispr Flow reference](https://wisprflow.ai/) on 2026-10-07. This request supersedes the prior dark-only colour direction; older implementation sections below are historical checkpoints.
 
-- canvas `#000000`, primary text `#FFFFFF`, secondary text `#D6D9DB`, muted `#8B9096`, hairlines `#2F3336`, strong lines `#536471`; the theme is intentionally dark-only (`color-scheme: dark`);
-- white is the only accent: the one main action per screen is a white button with black text; other actions are hairline-outlined or underlined text buttons, so links and actions are told apart by shape, not colour;
-- semantic colours carry state only: success `#00BA7C` (listening, done), warning `#FFD400` (paused, connecting, setup needed), danger `#F4212E` (stop, delete, errors);
-- hierarchy from type, weight and separators; no blur, glow, gradient, or drop shadow;
-- three type roles on local system fonts (no external font dependency): display (heavy system sans) for page titles, sans for reading, mono for short uppercase labels, counters, timestamps and status;
-- 8 px control radii and 12 px frames; pills only for the session status mark;
-- rem-based type, so browser text scaling enlarges content (checked at 200 %);
-- in the live view the Vietnamese translation is the brightest, largest line and the English original sits above it in secondary text;
-- restrained CSS-only motion (colour feedback on hover, the live pulse); everything stops under reduced motion; increased contrast raises muted text and lines.
+- Canvas cream `#faf9f2`, white reading surfaces, dark ink `#242922`, muted olive-grey `#62685e`, lavender primary actions `#e4d7f5` and forest `#234c42` for translation and identity.
+- The app uses the Workbench family: preparation, bounded conversation, reply support and supporting data views. It does not adopt the reference website's marketing structure or claims.
+- Local roman serif display (Iowan/Palatino/Georgia fallback), local system sans for controls and reading, mono only for times and short counters. No font downloads.
+- During an active meeting, the app fits one viewport: a compact icon navigation row, task tabs, one visible reading panel and shared session controls. Setup and supporting views retain normal page scrolling; no bar overlays transcript or focused controls. Each navigation icon has an accessible name and tooltip.
+- Shared palette/type/spacing tokens live in [tokens.css](tokens.css), imported by the existing stylesheet. Control radii are 10 px and reading frames 16 px.
+- Primary actions use lavender with dark text and an explicit outline. Setup permissions use forest actions. Semantic success, warning and danger use dark colours with text and icons.
+- English and Vietnamese remain paired inside the same white transcript bubble. Vietnamese uses forest text and heavier weight; partial speech remains dashed and untranslated.
+- One brief view entrance, press feedback and the existing listening indicator; no transcript animation, artificial audio waveform, decorative media, blur, gradient or external assets.
+- Text uses rem-based sizing; viewport allocation uses dynamic viewport units. Reduced motion disables movement immediately; increased contrast darkens secondary text and strengthens outlines.
 
 Color alone must never carry status. Icons require labels or accessible names.
 
@@ -324,3 +332,18 @@ Verification and limits are recorded in [Phase 08U evidence](docs/evidence/10k-e
 - The requested counterpart-only translation is **pending** the user's choice: tab-only capture excludes local microphone speech entirely; retaining local speech requires a separate identified source path. Current capture still mixes tab and microphone, so chat deliberately says the speaker is unidentified. Do not label these lines “Đối phương” or claim self-speech is filtered.
 
 See [Phase 08V evidence](docs/evidence/chat-conversation.md). No audio, permission, provider or storage contract has changed at this checkpoint.
+
+## Wispr-inspired UI review (Phase 08W, 2026-10-07)
+
+The user requested another UI/UX rebuild with Wispr Flow as the reference. This is a presentation-only follow-up from the current chat checkpoint. It preserves the component boundaries, routes, auth, capture, translation, provider, storage and consent contracts.
+
+- Home uses a compact centered serif introduction, real language-pair labels, real setup progress and an explicit explanation associated with a disabled start button. Start loading uses a short button label and a separate time estimate.
+- The latest review asks to separate tasks rather than compress every feature into one page. Active meetings open on “Hội thoại”; “Trả lời” and “Tóm tắt” are independent sections. Only one is visible, while the status and pause/microphone/stop row remain available.
+- Selecting a final sentence marks it and opens Reply with keyboard focus in that panel. Conversation remains mounted, keeps its reading position, continues receiving linked translations and retains follow/jump behavior when returning.
+- Reply shows selected/detected source, suggestion/composer result, caution, sources, restyling and copy. Catch-up keeps its own result and explicit AI action; changing sections makes no AI request and neither result overwrites the other.
+- Composer and context retain native dialogs with Escape/focus return and unsent drafts. The task tablist supports arrow keys, Home/End, one keyboard stop and correctly labelled tabpanels. Long content scrolls inside its section; notes after stopping retain normal page scrolling.
+- Context creation is the primary action in its view. Context and saved entries have real type/date metadata; saved rows report actual final-segment count and note availability.
+- Settings groups account, translation and privacy into reading surfaces. Post-meeting notes and retention are visibly separate.
+- Counterpart-only capture remains pending the Phase 08V source choice. No speaker identity is invented.
+
+See [Phase 08W evidence](docs/evidence/wispr-inspired-ui.md) for commands, screenshots and bounded verification.

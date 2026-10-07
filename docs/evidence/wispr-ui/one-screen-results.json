@@ -1,0 +1,506 @@
+{
+  "extensionId": "hlciacmigmkadpcjlceolnjdidjbaoen",
+  "at": "2026-10-07T07:05:43.534Z",
+  "results": [
+    {
+      "name": "unpacked extension loads and registers its service worker",
+      "pass": true,
+      "detail": "hlciacmigmkadpcjlceolnjdidjbaoen"
+    },
+    {
+      "name": "manifest permissions are the expected narrow set",
+      "pass": true,
+      "detail": "{\"permissions\":[\"sidePanel\",\"offscreen\",\"tabCapture\",\"activeTab\",\"storage\"],\"hosts\":[\"http://127.0.0.1:4318/*\"]}"
+    },
+    {
+      "name": "the panel connects by itself, with no access-token step",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "panel renders the app instead of the loading fallback",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "body and controls use the light palette without a stale dark inline fallback",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home shows a three-step checklist and one start button",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "start stays disabled until AI, microphone and Google Meet are ready, and missing Agora is explained",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the data-flow disclosure is visible under the start button, not collapsed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "disabled start has a visible associated explanation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home reports that on-device EN→VI translation is ready",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 360px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 375px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 414px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 480px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "home has no horizontal overflow at 768px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "body text and interactive outlines have readable contrast",
+      "pass": true,
+      "detail": "{\"muted\":5.735996176148384,\"secondary\":8.868738078152827,\"border\":3.96462451114715,\"primary\":11.206526280945624,\"forest\":9.615776321588182,\"mutedLavender\":4.955228983784819,\"danger\":6.309737096512577,\"warning\":6.28165261335141,\"focus\":8.590863079506516}"
+    },
+    {
+      "name": "translation, AI caution, error, warning and focus colours remain readable",
+      "pass": true,
+      "detail": "{\"muted\":5.735996176148384,\"secondary\":8.868738078152827,\"border\":3.96462451114715,\"primary\":11.206526280945624,\"forest\":9.615776321588182,\"mutedLavender\":4.955228983784819,\"danger\":6.309737096512577,\"warning\":6.28165261335141,\"focus\":8.590863079506516}"
+    },
+    {
+      "name": "keyboard skip link moves focus to main",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "200% text size keeps setup free of horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "context is created through the form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the optional context can be picked under options",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "keyboard focus reaches controls with a visible outline",
+      "pass": true,
+      "detail": "10 stops"
+    },
+    {
+      "name": "settings has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "settings has no horizontal overflow at 375px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "settings has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "missing browser Translator API falls back to the mock AI provider",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "empty listening workspace fits one screen with disabled assistance",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "connecting workspace keeps stop visible without page scrolling",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "final lines use the on-device translator and do not call the AI translation provider",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "partial text is shown separately from final text",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the detected question is labelled as a guess",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "active-session navigation header fits at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "active-session navigation header fits at 375px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "active-session navigation header fits at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "active-session navigation fits at 200% text size",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a reply keeps its sources available in a detail modal",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a reply suggestion shows its sources and a check-before-use note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "chat keeps all previous final lines with their linked translations and the partial line",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a previous chat line can be selected for a reply",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "selected speech is marked and the previous AI reply is cleared",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "meeting fits one viewport at 320x600",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reply does not push controls off screen at 320x600",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "short reply is fully visible without scrolling at 320x600",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AI caution stays visible for a short reply at 320x600",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "meeting fits one viewport at 375x700",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reply does not push controls off screen at 375x700",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "short reply is fully visible without scrolling at 375x700",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AI caution stays visible for a short reply at 375x700",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "meeting fits one viewport at 400x800",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reply does not push controls off screen at 400x800",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "short reply is fully visible without scrolling at 400x800",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AI caution stays visible for a short reply at 400x800",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "meeting fits one viewport at 600x900",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reply does not push controls off screen at 600x900",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "short reply is fully visible without scrolling at 600x900",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AI caution stays visible for a short reply at 600x900",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "paused explanation keeps meeting controls visible at 320x600",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reconnecting explanation keeps meeting controls visible at 320x600",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "session context opens in a modal with the unchanged session snapshot",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Escape closes context and returns focus to its opener",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "composer can close without submitting or changing the meeting",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "composer retains an unsent draft when reopened",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "composer modal fits within the viewport",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "new speech preserves the reader position while reviewing previous lines",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "jump to newest reaches the bottom of the conversation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "chat follows new speech when already reading the latest line",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "meeting controls and reply actions fit together without page scrolling",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 360px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 375px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 414px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 480px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "simulated live view has no horizontal overflow at 768px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "catch-up and the Vietnamese composer round-trip through the backend (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reduced motion disables the live indicator animation",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "reduced motion disables view entrance while the page is open",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "changing motion preference back restores the view motion rule",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "200% text keeps controls inside the viewport",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "200% root text size keeps the live view free of horizontal overflow at 400px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "stopping creates notes in the background and the panel shows them (mock provider)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a kept session states its retention",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "practice phrases are labelled as not what anyone said",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "after-meeting notes have no horizontal overflow at 320px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "after-meeting notes have no horizontal overflow at 600px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the saved list shows the kept session",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the delete dialog takes focus, closes on Escape and restores focus",
+      "pass": true,
+      "detail": "restored=Xoá phiên này"
+    },
+    {
+      "name": "confirmed deletion removes the session from the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a session without context runs as \"Cuộc họp nhanh\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "an automatic stop explains why it happened",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "a stopped temporary session is not listed until the user saves it from the panel",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "backend offline shows plain recovery steps",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the checklist offers \"Đăng nhập ChatGPT\" when not signed in",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "sign-in opens the OpenAI page in a new tab and the checklist marks it done",
+      "pass": true,
+      "detail": "https://auth.openai.com/oauth/authorize"
+    },
+    {
+      "name": "settings shows the signed-in ChatGPT plan",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no script errors on extension pages",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

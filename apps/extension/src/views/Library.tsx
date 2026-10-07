@@ -28,11 +28,13 @@ export function Library({
         <ul className="card-list">
           {kept.map((session) => (
             <li className="card" key={session.id}>
-              <span className="eyebrow">
+              <span className="card-kicker">
+                <BookOpen size={14} aria-hidden="true" />
                 {new Date(session.startedAt).toLocaleString('vi-VN', { dateStyle: 'medium', timeStyle: 'short' })}
               </span>
               <h2>{session.context.name || 'Cuộc họp'}</h2>
               <p>{session.artifact?.summary ?? `${session.segments.filter((s) => s.final).length} câu đã ghi`}</p>
+              <p className="card-meta">{session.segments.filter((s) => s.final).length} câu · {session.artifact ? 'Có ghi chú' : session.processing === 'processing' ? 'Đang tạo ghi chú' : 'Bản ghi hội thoại'}</p>
               <div className="button-row">
                 <button className="text-button" onClick={() => onOpen(session)}>
                   Mở lại

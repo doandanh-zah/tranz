@@ -1,18 +1,14 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Check, CircleAlert, Info, X } from 'lucide-react';
+import { ArrowRight, Check, CircleAlert, Info, X } from 'lucide-react';
 import type { Profile, SessionState } from '../../../packages/shared/contracts';
 
 /** Static language-pair motif, never an audio or readiness indicator. */
 export function LanguageBridge() {
   return (
     <div className="language-bridge" aria-label="Tiếng Anh sang tiếng Việt">
-      <span lang="en">EN</span>
-      <svg viewBox="0 0 180 36" fill="none" aria-hidden="true">
-        <path d="M0 10H54C76 10 80 26 102 26H180" />
-        <path d="M0 26H54C76 26 80 10 102 10H180" />
-        <circle cx="78" cy="18" r="3" />
-      </svg>
-      <span>VI</span>
+      <span lang="en">English <small>EN</small></span>
+      <ArrowRight size={16} aria-hidden="true" />
+      <span>Tiếng Việt <small>VI</small></span>
     </div>
   );
 }
